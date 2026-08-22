@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface NetworkInfo {
   localIp: string
@@ -26,10 +26,19 @@ export interface FeedEvent {
   message: string
 }
 
+export interface WorkLogEntry {
+  id: string
+  ts: string
+  action: string
+  message: string
+}
+
+const WORK_LOG_KEY = 'dvielle-work-log'
+
 const GREETINGS = [
-  'Good to see you. Press START to begin deep vigilance.',
+  'Stats live. Press START to activate deep vigilance agent.',
   'All systems ready. Awaiting your command.',
-  'At your service. I will map your network, VPN, and DNS in real time.',
+  'At your service. Network, VPN, and DNS updating in real time.',
 ]
 
 const FEED_POOL: Omit<FeedEvent, 'id' | 'time'>[] = [
@@ -38,6 +47,7 @@ const FEED_POOL: Omit<FeedEvent, 'id' | 'time'>[] = [
   { level: 'warn', module: 'ram', message: 'RAM 87% — chrome.exe using 2.1 GB in background.' },
   { level: 'info', module: 'network', message: 'VPN tunnel verified. DNS routed through VPN.' },
   { level: 'info', module: 'privacy', message: 'Microsoft telemetry upload blocked.' },
+  { level: 'critical', module: 'attacks', message: 'CRITICAL: Brute-force attempt blocked from 203.0.113.55' },
 ]
 
 const INITIAL_APPS: CloseableApp[] = [
@@ -45,12 +55,40 @@ const INITIAL_APPS: CloseableApp[] = [
   { id: '2', name: 'steam.exe', memoryMb: 420, cpuPercent: 1 },
 ]
 
+const DEMO_VPN: NetworkInfo = {
+  localIp: '192.168.1.42',
+  publicIp: '203.0.113.88',
+  vpnActive: true,
+  vpnName: 'NordLynx',
+  vpnIp: '10.5.0.2',
+  dnsServers: ['10.5.0.1', '1.1.1.1'],
+  gateway: '10.5.0.1',
+  hostname: 'DVIELLE-PC',
+}
+
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min)
 }
 
 function nowTime() {
   return new Date().toLocaleTimeString('en-GB', { hour12: false })
+}
+
+function nowTs() {
+  return new Date().toISOString().slice(0, 19).replace('T', ' ')
+}
+
+function loadWorkLog(): WorkLogEntry[] {
+  try {
+    const raw = localStorage.getItem(WORK_LOG_KEY)
+    return raw ? (JSON.parse(raw) as WorkLogEntry[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveWorkLog(entries: WorkLogEntry[]) {
+  localStorage.setItem(WORK_LOG_KEY, JSON.stringify(entries))
 }
 
 async function fetchPublicIp(): Promise<string> {
@@ -87,37 +125,43 @@ async function fetchLocalIp(): Promise<string> {
   })
 }
 
-/** Demo VPN profile — full Windows agent uses real adapter detection */
-const DEMO_VPN: NetworkInfo = {
-  localIp: '192.168.1.42',
-  publicIp: '203.0.113.88',
-  vpnActive: true,
-  vpnName: 'NordLynx',
-  vpnIp: '10.5.0.2',
-  dnsServers: ['10.5.0.1', '1.1.1.1'],
-  gateway: '10.5.0.1',
-  hostname: 'DVIELLE-PC',
-}
-
 export function useDemoSimulation() {
-  const [started, setStarted] = useState(false)
-  const [cpu, setCpu] = useState(0)
-  const [ram, setRam] = useState(0)
-  const [disk] = useState(0)
+  const [agentStarted, setAgentStarted] = useState(false)
+  const [cpu, setCpu] = useState(28)
+  const [ram, setRam] = useState(62)
+  const [disk] = useState(58)
   const [cycles, setCycles] = useState(0)
   const [vigilance, setVigilance] = useState(false)
   const [greeting, setGreeting] = useState(GREETINGS[0])
   const [feed, setFeed] = useState<FeedEvent[]>([])
-  const [closeable, setCloseable] = useState<CloseableApp[]>([])
+  const [closeable, setCloseable] = useState<CloseableApp[]>(INITIAL_APPS)
   const [speaking, setSpeaking] = useState(false)
   const [network, setNetwork] = useState<NetworkInfo | null>(null)
-  const [networkLoading, setNetworkLoading] = useState(false)
+  const [networkLoading, setNetworkLoading] = useState(true)
+  const [workLog, setWorkLog] = useState<WorkLogEntry[]>(() => loadWorkLog())
+  const [showWorkLog, setShowWorkLog] = useState(false)
+  const [minimized, setMinimized] = useState(false)
+  const [trayAlert, setTrayAlert] = useState<string | null>(null)
+  const bootLogged = useRef(false)
+
+  const appendWorkLog = useCallback((action: string, message: string) => {
+    const entry: WorkLogEntry = {
+      id: String(Date.now()) + Math.random(),
+      ts: nowTs(),
+      action,
+      message,
+    }
+    setWorkLog((prev) => {
+      const next = [...prev, entry]
+      saveWorkLog(next)
+      return next
+    })
+    return entry
+  }, [])
 
   const refreshNetwork = useCallback(async () => {
-    if (!started) return
     setNetworkLoading(true)
     const [localIp, publicIp] = await Promise.all([fetchLocalIp(), fetchPublicIp()])
-    // Demo: show VPN detection UX (real agent detects on Windows)
     const info: NetworkInfo = {
       ...DEMO_VPN,
       localIp,
@@ -127,91 +171,150 @@ export function useDemoSimulation() {
     setNetwork(info)
     setNetworkLoading(false)
     return info
-  }, [started])
+  }, [])
 
-  const start = useCallback(async () => {
-    setStarted(true)
-    setVigilance(true)
-    setCpu(28)
-    setRam(65)
-    setCloseable(INITIAL_APPS)
-    const g = 'DVielle online. Deep vigilance initiated. Mapping network channels.'
-    setGreeting(g)
-    setFeed([{ id: '0', time: nowTime(), level: 'info', module: 'dvielle', message: g }])
-    setSpeaking(true)
-    setTimeout(() => setSpeaking(false), 2500)
-
-    const info = await refreshNetwork()
-    if (info) {
-      setFeed((prev) => [
-        {
-          id: String(Date.now()),
-          time: nowTime(),
-          level: 'info',
-          module: 'network',
-          message: `Local IP: ${info.localIp} | Public: ${info.publicIp}`,
-        },
-        {
-          id: String(Date.now() + 1),
-          time: nowTime(),
-          level: 'info',
-          module: 'network',
-          message: info.vpnActive
-            ? `VPN ACTIVE — ${info.vpnName} | Tunnel IP: ${info.vpnIp} | DNS: ${info.dnsServers.join(', ')}`
-            : 'No VPN detected. Traffic on direct connection.',
-        },
-        ...prev,
-      ])
-    }
-  }, [refreshNetwork])
-
+  // Stats always live on launch
   useEffect(() => {
-    if (!started || !vigilance) return
+    if (bootLogged.current) return
+    bootLogged.current = true
+    appendWorkLog('OPEN', 'DVielle interface launched — stats monitoring active')
+    setFeed([
+      {
+        id: 'boot',
+        time: nowTime(),
+        level: 'info',
+        module: 'dvielle',
+        message: 'Stats live. Press START to activate deep vigilance agent.',
+      },
+    ])
+    refreshNetwork().then((info) => {
+      if (!info) return
+      appendWorkLog(
+        'NETWORK',
+        info.vpnActive
+          ? `VPN ${info.vpnName} IP ${info.vpnIp}`
+          : `Direct connection public IP ${info.publicIp}`,
+      )
+    })
     const t = setInterval(() => {
-      setCpu((c) => Math.min(98, Math.max(8, c + rand(-6, 8))))
-      setRam((r) => Math.min(96, Math.max(40, r + rand(-4, 5))))
-      setCycles((c) => c + 1)
+      setCpu((c) => Math.min(98, Math.max(8, c + rand(-4, 6))))
+      setRam((r) => Math.min(96, Math.max(40, r + rand(-3, 4))))
     }, 2500)
+    const netT = setInterval(() => refreshNetwork(), 15000)
+    return () => {
+      clearInterval(t)
+      clearInterval(netT)
+    }
+  }, [appendWorkLog, refreshNetwork])
+
+  // Agent cycles only after START
+  useEffect(() => {
+    if (!agentStarted || !vigilance) return
+    const t = setInterval(() => setCycles((c) => c + 1), 2500)
     return () => clearInterval(t)
-  }, [started, vigilance])
+  }, [agentStarted, vigilance])
 
   useEffect(() => {
-    if (!started || !vigilance) return
+    if (!agentStarted || !vigilance) return
     const t = setInterval(() => {
       const item = FEED_POOL[Math.floor(Math.random() * FEED_POOL.length)]
       setFeed((prev) => [{ ...item, id: String(Date.now()), time: nowTime() }, ...prev.slice(0, 49)])
+      if (item.level === 'critical' && minimized) {
+        setTrayAlert(item.message)
+        setTimeout(() => setTrayAlert(null), 6000)
+      }
     }, 5000)
     return () => clearInterval(t)
-  }, [started, vigilance])
+  }, [agentStarted, vigilance, minimized])
 
-  useEffect(() => {
-    if (!started) return
-    const t = setInterval(() => refreshNetwork(), 15000)
-    return () => clearInterval(t)
-  }, [started, refreshNetwork])
-
-  const toggleVigilance = useCallback(() => {
-    if (!started) return
-    setVigilance((v) => !v)
-  }, [started])
-
-  const closeApp = useCallback((id: string, name: string) => {
-    setCloseable((apps) => apps.filter((a) => a.id !== id))
-    setRam((r) => Math.max(45, r - rand(8, 15)))
+  const startAgent = useCallback(() => {
+    if (agentStarted) return
+    setAgentStarted(true)
+    setVigilance(true)
+    const g = 'DVielle online. Deep vigilance agent initiated.'
+    setGreeting(g)
+    appendWorkLog('START', 'Deep vigilance agent started')
     setFeed((prev) => [
-      { id: String(Date.now()), time: nowTime(), level: 'info', module: 'action', message: `Closed ${name}.` },
+      { id: String(Date.now()), time: nowTime(), level: 'info', module: 'dvielle', message: g },
       ...prev,
     ])
-  }, [])
+    setSpeaking(true)
+    setTimeout(() => setSpeaking(false), 2500)
+  }, [agentStarted, appendWorkLog])
+
+  const toggleVigilance = useCallback(() => {
+    if (!agentStarted) return
+    setVigilance((v) => {
+      appendWorkLog(v ? 'PAUSE' : 'RESUME', v ? 'Agent paused by operator' : 'Agent resumed')
+      return !v
+    })
+  }, [agentStarted, appendWorkLog])
+
+  const closeApp = useCallback(
+    (id: string, name: string) => {
+      setCloseable((apps) => apps.filter((a) => a.id !== id))
+      setRam((r) => Math.max(45, r - rand(8, 15)))
+      const msg = `Closed ${name}.`
+      appendWorkLog('CLOSE_APP', msg)
+      setFeed((prev) => [
+        { id: String(Date.now()), time: nowTime(), level: 'info', module: 'action', message: msg },
+        ...prev,
+      ])
+    },
+    [appendWorkLog],
+  )
 
   const replayGreeting = useCallback(() => {
     setSpeaking(true)
     setTimeout(() => setSpeaking(false), 2500)
   }, [])
 
+  const viewWorkLog = useCallback(() => setShowWorkLog(true), [])
+  const closeWorkLog = useCallback(() => setShowWorkLog(false), [])
+
+  const clearWorkLog = useCallback(() => {
+    const n = workLog.length
+    const fresh: WorkLogEntry[] = []
+    saveWorkLog(fresh)
+    setWorkLog(fresh)
+    appendWorkLog('CLEAR', `Work log cleared (${n} entries removed)`)
+  }, [workLog.length, appendWorkLog])
+
+  const minimizeToTray = useCallback(() => {
+    setMinimized(true)
+    appendWorkLog('MINIMIZE', 'Minimized to tray — critical alerts only')
+  }, [appendWorkLog])
+
+  const restoreFromTray = useCallback(() => {
+    setMinimized(false)
+    setTrayAlert(null)
+  }, [])
+
   return {
-    started, start, cpu, ram, disk, cycles, vigilance, greeting, speaking,
-    feed, closeable, toggleVigilance, closeApp, replayGreeting,
-    network, networkLoading,
+    agentStarted,
+    startAgent,
+    cpu,
+    ram,
+    disk,
+    cycles,
+    vigilance,
+    greeting,
+    speaking,
+    feed,
+    closeable,
+    toggleVigilance,
+    closeApp,
+    replayGreeting,
+    network,
+    networkLoading,
+    workLog,
+    showWorkLog,
+    viewWorkLog,
+    closeWorkLog,
+    clearWorkLog,
+    minimized,
+    minimizeToTray,
+    restoreFromTray,
+    trayAlert,
   }
 }

@@ -85,15 +85,23 @@ def run_once(
         conn_alerts = ConnectionMonitor(store, config, whitelists).run(monitor_only=monitor_only)
         for alert in conn_alerts:
             if enable_toasts:
-                show_toast("DVielle", f"Suspicious: {alert.process_name} -> {alert.remote_addr}")
+                show_toast(
+                    "DVielle",
+                    f"Suspicious: {alert.process_name} -> {alert.remote_addr}",
+                    severity="WARNING",
+                )
 
     if modules.get("attacks", True):
         attack_alerts = AttackMonitor(store, config, scripts_dir).run(enable_auto_block=enable_auto_block)
         for alert in attack_alerts:
             if alert.should_block and enable_toasts:
-                show_toast("DVielle", f"Blocked attacker IP: {alert.source_ip}")
+                show_toast("DVielle", f"Blocked attacker IP: {alert.source_ip}", severity="CRITICAL")
             elif alert.attempt_count >= 3 and enable_toasts:
-                show_toast("DVielle", f"Failed logons from {alert.source_ip} ({alert.attempt_count})")
+                show_toast(
+                    "DVielle",
+                    f"Failed logons from {alert.source_ip} ({alert.attempt_count})",
+                    severity="WARNING",
+                )
 
     if modules.get("ram", True):
         ram = RamMonitor(store, config, scripts_dir).run(
@@ -109,6 +117,7 @@ def run_once(
                     f"DVielle — {advice.resource}",
                     f"{advice.headline}\n{advice.suggestion}",
                     duration=12,
+                    severity="WARNING",
                 )
 
     if modules.get("disk", True):
@@ -120,7 +129,11 @@ def run_once(
             health["disk_percent_used"] = primary.percent_used
             health["disk_free_gb"] = primary.free_gb
             if primary.low_space and enable_toasts:
-                show_toast("DVielle", f"Low disk: {primary.free_gb:.1f} GB free on {primary.mount}")
+                show_toast(
+                    "DVielle",
+                    f"Low disk: {primary.free_gb:.1f} GB free on {primary.mount}",
+                    severity="WARNING",
+                )
 
     if modules.get("security", True):
         sec = SecurityMonitor(store, config).run()
@@ -129,7 +142,7 @@ def run_once(
         health["details"] = {"issues": sec.issues}
         for issue in sec.issues:
             if enable_toasts:
-                show_toast("DVielle", issue)
+                show_toast("DVielle", issue, severity="CRITICAL")
 
     if modules.get("privacy_guard", True):
         PrivacyGuard(store, config, telemetry_file).run()
@@ -141,7 +154,7 @@ def run_once(
         ).run(monitor_only=monitor_only)
         for alert in ms_alerts:
             if enable_toasts and alert.kind in ("connection", "process"):
-                show_toast("DVielle — Privacy", alert.message[:200])
+                show_toast("DVielle — Privacy", alert.message[:200], severity="WARNING")
 
     if modules.get("network_info", True):
         NetworkMonitor(store).run()

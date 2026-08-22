@@ -126,7 +126,14 @@ def set_process_priority(priority: str) -> None:
         pass
 
 
-def show_toast(title: str, message: str, duration: int = 8) -> None:
+def show_toast(title: str, message: str, duration: int = 8, severity: str = "INFO") -> None:
+    try:
+        from dvielle.gui.notify_policy import should_popup
+        if not should_popup(severity):
+            logging.getLogger("dvielle").info("LOG [%s/%s]: %s", severity, title, message)
+            return
+    except ImportError:
+        pass
     if not IS_WINDOWS:
         logging.getLogger("dvielle").info("TOAST [%s]: %s", title, message)
         return

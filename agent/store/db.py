@@ -111,6 +111,16 @@ class AgentStore:
                 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
                 CREATE INDEX IF NOT EXISTS idx_connections_ts ON connections(ts);
                 CREATE INDEX IF NOT EXISTS idx_failed_logons_ip ON failed_logons(source_ip);
+
+                CREATE TABLE IF NOT EXISTS work_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    details TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_work_log_ts ON work_log(ts);
                 """
             )
 
@@ -129,6 +139,37 @@ class AgentStore:
                 """,
                 (utc_now(), module, severity, message, json.dumps(details) if details else None),
             )
+        if severity in ("INFO", "WARNING", "CRITICAL"):
+            self.log_work(module.upper(), message, details)
+
+    def log_work(
+        self,
+        action: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO work_log (ts, action, message, details)
+                VALUES (?, ?, ?, ?)
+                """,
+                (utc_now(), action, message, json.dumps(details) if details else None),
+            )
+
+    def get_work_log(self, limit: int = 500) -> list[sqlite3.Row]:
+        with self._conn() as conn:
+            return list(
+                conn.execute(
+                    "SELECT id, ts, action, message, details FROM work_log ORDER BY id ASC LIMIT ?",
+                    (limit,),
+                ).fetchall()
+            )
+
+    def clear_work_log(self) -> int:
+        with self._conn() as conn:
+            cur = conn.execute("DELETE FROM work_log")
+            return cur.rowcount
 
     def log_connection(
         self,
