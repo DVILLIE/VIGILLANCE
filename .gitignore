@@ -6,6 +6,7 @@ dist/
 build/
 .pytest_cache/
 data/
+DVILLIE/
 *.db
 *.db-wal
 *.db-shm

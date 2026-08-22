@@ -43,8 +43,9 @@ modules:
   disk: true
   security: true
   privacy_guard: true
-  resource_advisor: true          # smart CPU/RAM popups with close suggestions
-  microsoft_guard: true             # stop Microsoft spying / background uploads
+  resource_advisor: true
+  microsoft_guard: true
+  network_info: true
   usb_watch: false
   dns_cache: false
 

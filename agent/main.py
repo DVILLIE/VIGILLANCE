@@ -13,6 +13,7 @@ from agent.modules.attacks import AttackMonitor
 from agent.modules.connections import ConnectionMonitor
 from agent.modules.disk import DiskMonitor
 from agent.modules.microsoft_guard import MicrosoftGuard
+from agent.modules.network_info import NetworkMonitor, collect_network_snapshot
 from agent.modules.privacy_guard import PrivacyGuard
 from agent.modules.ram import RamMonitor
 from agent.modules.resource_advisor import ResourceAdvisor
@@ -141,6 +142,9 @@ def run_once(
         for alert in ms_alerts:
             if enable_toasts and alert.kind in ("connection", "process"):
                 show_toast("DVielle — Privacy", alert.message[:200])
+
+    if modules.get("network_info", True):
+        NetworkMonitor(store).run()
 
     if health:
         store.log_health_snapshot(health)

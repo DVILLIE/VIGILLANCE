@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import sys
+import threading
 from datetime import datetime
 from pathlib import Path
 
 import psutil
 
 from agent.controller import AgentController
+from agent.modules.network_info import collect_network_snapshot
 from agent.modules.resource_advisor import close_process, get_closeable_processes
-from agent.utils import PROJECT_ROOT
+from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT
 from dvielle import APP_NAME, TAGLINE, VERSION
 from dvielle.gui import theme as T
 from dvielle.gui.hologram import HologramRing
+from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.tray import notify_tray, setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
 
@@ -36,18 +39,20 @@ class DVielleApp:
             config_dir=self.config_dir if (self.config_dir / "config.yaml").exists() else None,
             on_cycle=self._on_cycle,
         )
+        self._started = False
         self._pulse_on = True
         self._tray_ok = False
         self._close_buttons: list[ctk.CTkButton] = []
         self._greeting_idx = 0
+        self._body_frame: ctk.CTkFrame | None = None
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
 
         self.root = ctk.CTk()
         self.root.title(f"{APP_NAME} — {TAGLINE}")
-        self.root.geometry("1060x720")
-        self.root.minsize(920, 640)
+        self.root.geometry("1120x760")
+        self.root.minsize(980, 680)
         self.root.configure(fg_color=T.BG_DARK)
         self.root.protocol("WM_DELETE_WINDOW", self._minimize_to_tray)
 
@@ -59,18 +64,38 @@ class DVielleApp:
             on_toggle_vigilance=self._toggle_vigilance,
         )
 
-        greeting = greet_on_startup()
-        self.jarvis_line.configure(text=f'"{greeting}"')
-        self._append_log(f"[DVIELLE] {greeting}")
+        self.greeting_lbl.configure(text="Press START to begin deep vigilance.")
+        self._append_log(f"[DVIELLE] Ready. Press START to scan network, VPN, and DNS.")
 
         self._tick_stats()
-        self._tick_logs()
-        self._tick_close_panel()
-        self._tick_greeting()
         self._pulse_status()
-        self.controller.start()
 
     def _build_ui(self) -> None:
+        # ── START bar (top) ──
+        start_bar = ctk.CTkFrame(self.root, fg_color=T.BG_DARK, corner_radius=0, height=52)
+        start_bar.pack(fill="x")
+        start_bar.pack_propagate(False)
+
+        self.start_btn = ctk.CTkButton(
+            start_bar,
+            text="▶  START",
+            font=T.FONT_TITLE,
+            width=200,
+            height=36,
+            fg_color=T.ACCENT_DIM,
+            hover_color=T.ACCENT,
+            text_color=T.BG_DARK,
+            border_color=T.ACCENT_GLOW,
+            border_width=2,
+            command=self._on_start,
+        )
+        self.start_btn.pack(pady=8)
+
+        self.live_lbl = ctk.CTkLabel(
+            start_bar, text="", font=T.FONT_MONO, text_color=T.SUCCESS,
+        )
+        # packed when started
+
         header = ctk.CTkFrame(self.root, fg_color=T.BG_PANEL, corner_radius=0, height=100)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -93,16 +118,19 @@ class DVielleApp:
         right_h.pack(side="right", padx=24, pady=16)
         self.status_dot = ctk.CTkLabel(right_h, text="●", font=("Segoe UI", 22), text_color=T.SUCCESS)
         self.status_dot.pack(side="left", padx=(0, 8))
-        self.status_label = ctk.CTkLabel(right_h, text="VIGILANCE ACTIVE", font=T.FONT_TITLE, text_color=T.SUCCESS)
+        self.status_label = ctk.CTkLabel(right_h, text="AWAITING START", font=T.FONT_TITLE, text_color=T.TEXT_DIM)
         self.status_label.pack(side="left")
 
-        body = ctk.CTkFrame(self.root, fg_color="transparent")
-        body.pack(fill="both", expand=True, padx=16, pady=12)
+        self._body_frame = ctk.CTkFrame(self.root, fg_color="transparent")
+        self._body_frame.pack(fill="both", expand=True, padx=16, pady=12)
+        body = self._body_frame
         body.columnconfigure(0, weight=1)
-        body.columnconfigure(1, weight=2)
-        body.columnconfigure(2, weight=1)
+        body.columnconfigure(1, weight=1)
+        body.columnconfigure(2, weight=2)
+        body.columnconfigure(3, weight=1)
         body.rowconfigure(0, weight=1)
 
+        self._build_network_panel(body)
         self._build_vitals_panel(body)
         self._build_log_panel(body)
         self._build_shield_panel(body)
@@ -132,9 +160,17 @@ class DVielleApp:
         ctk.CTkLabel(frame, text=title, font=T.FONT_TITLE, text_color=T.ACCENT).pack(anchor="w", padx=14, pady=(12, 6))
         return frame
 
+    def _build_network_panel(self, parent) -> None:
+        panel = self._panel(parent, "NETWORK & VPN")
+        panel.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        inner = ctk.CTkFrame(panel, fg_color="transparent")
+        inner.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        self.network_panel = NetworkPanel(inner)
+        self.network_panel.pack(fill="both", expand=True)
+
     def _build_vitals_panel(self, parent) -> None:
         panel = self._panel(parent, "SYSTEM VITALS")
-        panel.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        panel.grid(row=0, column=1, sticky="nsew", padx=4)
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=14, pady=(0, 8))
 
@@ -165,7 +201,7 @@ class DVielleApp:
 
     def _build_log_panel(self, parent) -> None:
         panel = self._panel(parent, "INTELLIGENCE FEED")
-        panel.grid(row=0, column=1, sticky="nsew", padx=4)
+        panel.grid(row=0, column=2, sticky="nsew", padx=4)
         self.log_box = ctk.CTkTextbox(
             panel, font=T.FONT_MONO, fg_color=T.BG_DARK, text_color=T.ACCENT_GLOW,
             border_color=T.BORDER, border_width=1, wrap="word",
@@ -176,7 +212,7 @@ class DVielleApp:
 
     def _build_shield_panel(self, parent) -> None:
         panel = self._panel(parent, "PROTECTION MATRIX")
-        panel.grid(row=0, column=2, sticky="nsew", padx=(8, 0))
+        panel.grid(row=0, column=3, sticky="nsew", padx=(6, 0))
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=14, pady=(0, 14))
 
@@ -201,6 +237,49 @@ class DVielleApp:
             fg_color=T.BG_PANEL_ALT, hover_color=T.BORDER,
         ).pack(side="bottom", pady=(8, 0))
 
+    def _on_start(self) -> None:
+        if self._started:
+            return
+        self._started = True
+        self.start_btn.configure(state="disabled", text="● LIVE")
+        self.live_lbl.configure(text="Real-time monitoring active")
+        self.live_lbl.pack(side="left", padx=16)
+
+        greeting = greet_on_startup()
+        self.jarvis_line.configure(text=f'"{greeting}"')
+        self.greeting_lbl.configure(text=greeting[:70])
+        self._append_log(f"[DVIELLE] {greeting}")
+        self.status_label.configure(text="VIGILANCE ACTIVE", text_color=T.SUCCESS)
+        self.status_dot.configure(text_color=T.SUCCESS)
+
+        self.controller.start()
+        self._tick_logs()
+        self._tick_close_panel()
+        self._tick_greeting()
+        self._refresh_network_async()
+
+        marker = DEFAULT_DATA_DIR / ".started"
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(datetime.now().isoformat(), encoding="utf-8")
+
+    def _refresh_network_async(self) -> None:
+        def _work() -> None:
+            try:
+                snap = collect_network_snapshot()
+                self.root.after(0, lambda: self.network_panel.update_snapshot(snap))
+                vpn_msg = (
+                    f"VPN ACTIVE: {snap.vpn_adapter} | IP {snap.vpn_ip} | DNS {', '.join(snap.dns_servers[:3])}"
+                    if snap.vpn_active
+                    else f"No VPN. Public IP {snap.public_ip} | DNS {', '.join(snap.dns_servers[:3])}"
+                )
+                self.root.after(0, lambda: self._append_log(f"[NETWORK] {vpn_msg}"))
+            except Exception as exc:
+                self.root.after(0, lambda: self._append_log(f"[NETWORK] Scan error: {exc}"))
+
+        threading.Thread(target=_work, daemon=True).start()
+        if self._started:
+            self.root.after(15000, self._refresh_network_async)
+
     def _replay_greeting(self) -> None:
         text = greet_on_startup()
         self.jarvis_line.configure(text=f'"{text}"')
@@ -220,6 +299,15 @@ class DVielleApp:
         self.root.after(0, lambda: self._append_log(f"[{ts}] Cycle {status.cycle_count} — {mode} scan complete."))
 
     def _tick_stats(self) -> None:
+        if not self._started:
+            self.cpu_bar.set(0)
+            self.ram_bar.set(0)
+            self.disk_bar.set(0)
+            self.cpu_lbl.configure(text="—")
+            self.ram_lbl.configure(text="—")
+            self.disk_lbl.configure(text="—")
+            self.root.after(2000, self._tick_stats)
+            return
         cpu = psutil.cpu_percent(interval=None)
         mem = psutil.virtual_memory()
         try:
@@ -246,6 +334,9 @@ class DVielleApp:
         self.root.after(2000, self._tick_stats)
 
     def _tick_close_panel(self) -> None:
+        if not self._started:
+            self.root.after(5000, self._tick_close_panel)
+            return
         for btn in self._close_buttons:
             btn.destroy()
         self._close_buttons.clear()
@@ -277,6 +368,9 @@ class DVielleApp:
             self.jarvis_line.configure(text=f'"Released resources from {name}."')
 
     def _tick_logs(self) -> None:
+        if not self._started:
+            self.root.after(8000, self._tick_logs)
+            return
         try:
             seen = self.log_box.get("1.0", "end")
             for ev in reversed(self.controller.recent_events(6)):
@@ -305,6 +399,8 @@ class DVielleApp:
         self.root.after(900, self._pulse_status)
 
     def _toggle_vigilance(self) -> None:
+        if not self._started:
+            return
         if self.controller.status.running:
             self.controller.stop()
             self.status_label.configure(text="STANDBY", text_color=T.WARNING)
