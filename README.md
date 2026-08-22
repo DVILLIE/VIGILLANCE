@@ -30,8 +30,8 @@ No cloud server is required to use DVielle after install.
 
 ```bat
 cd %USERPROFILE%\Documents
-git clone <your-repo-url> dvielle
-cd dvielle
+git clone https://github.com/DVILLIE/VIGILLANCE.git
+cd VIGILLANCE
 git checkout cursor/dvielle-demo-ux-1fb4
 ```
 

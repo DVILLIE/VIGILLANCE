@@ -10,7 +10,16 @@ Do these steps **on the Windows laptop** in Cursor Desktop or File Explorer.
 3. Branch: `cursor/dvielle-demo-ux-1fb4`
 4. In the left file tree you should see `installer\`, `demo\`, `dvielle\`.
 
-If you do not see those folders, the project is not on the laptop yet — clone or download the repo first.
+If you do not see those folders, clone the repo first:
+
+```bat
+cd %USERPROFILE%\Documents
+git clone https://github.com/DVILLIE/VIGILLANCE.git
+cd VIGILLANCE
+git checkout cursor/dvielle-demo-ux-1fb4
+```
+
+Then in Cursor: **File → Open Folder** → `Documents\VIGILLANCE`
 
 ## B. Create `C:\DVILLIE`
 
