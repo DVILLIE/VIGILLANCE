@@ -12,8 +12,10 @@ from pathlib import Path
 from agent.modules.attacks import AttackMonitor
 from agent.modules.connections import ConnectionMonitor
 from agent.modules.disk import DiskMonitor
+from agent.modules.microsoft_guard import MicrosoftGuard
 from agent.modules.privacy_guard import PrivacyGuard
 from agent.modules.ram import RamMonitor
+from agent.modules.resource_advisor import ResourceAdvisor
 from agent.modules.security import SecurityMonitor
 from agent.store.db import AgentStore
 from agent.utils import (
@@ -73,6 +75,7 @@ def run_once(
     )
     enable_auto_block = modes.get("enable_auto_block", False) and not monitor_only
     enable_toasts = modes.get("enable_toasts", True)
+    enable_ms_guard = modes.get("enable_microsoft_guard", True)
 
     health: dict = {}
 
@@ -96,8 +99,15 @@ def run_once(
         )
         health["ram_percent"] = ram.percent
         health["ram_available_mb"] = ram.available_mb
-        if ram.critical and enable_toasts:
-            show_toast("Fortoro Agent", f"RAM critical: {ram.percent:.0f}% used")
+
+    if modules.get("resource_advisor", True):
+        for advice in ResourceAdvisor(store, config).run():
+            if enable_toasts:
+                show_toast(
+                    f"Fortoro — {advice.resource} Alert",
+                    f"{advice.headline}\n{advice.suggestion}",
+                    duration=12,
+                )
 
     if modules.get("disk", True):
         disks = DiskMonitor(store, config).run(
@@ -121,6 +131,15 @@ def run_once(
 
     if modules.get("privacy_guard", True):
         PrivacyGuard(store, config, telemetry_file).run()
+
+    if modules.get("microsoft_guard", True) and enable_ms_guard:
+        never_block = whitelists.get("never_block_domains", [])
+        ms_alerts = MicrosoftGuard(
+            store, config, telemetry_file, scripts_dir, never_block
+        ).run(monitor_only=monitor_only)
+        for alert in ms_alerts:
+            if enable_toasts and alert.kind in ("connection", "process"):
+                show_toast("Fortoro — Privacy", alert.message[:200])
 
     if health:
         store.log_health_snapshot(health)

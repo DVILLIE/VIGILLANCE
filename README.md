@@ -14,6 +14,30 @@ A lightweight 24/7 background agent for Windows laptops. Monitors network connec
 | **Disk** | Free space + SMART status; optional temp cleanup when low (disabled by default) |
 | **Security** | Windows Defender + firewall profile health |
 | **Privacy guard** | Re-checks telemetry/Cortana/ad ID registry values; alerts on drift |
+| **Microsoft guard** | Blocks telemetry uploads, stops spy processes, hosts + firewall blocking |
+| **Resource advisor** | CPU/RAM popups naming the culprit app and what to close |
+
+## Smart popups (CPU / RAM)
+
+When CPU or RAM is high, you get a brief toast like:
+
+> **RAM 92%** — chrome.exe using 2.1 GB  
+> Running in background — safe to close: Discord (800 MB), Steam (400 MB)
+
+Popups are limited to once every 5 minutes per type so they won't spam you.
+
+## Microsoft privacy (your internet, your rules)
+
+With `microsoft_guard` enabled (after the 7-day baseline):
+
+- Blocks telemetry domains in the **hosts file**
+- **Firewall blocks** outbound from CompatTelRunner, DeviceCensus, etc.
+- **Stops** DiagTrack and other telemetry services
+- **Re-applies** registry privacy settings if Microsoft resets them
+- **Terminates** active telemetry upload connections
+- **Preserves** Windows Update — updates still work
+
+Run once as Administrator: `scripts\harden-once.ps1`, then set `enable_microsoft_guard: true` in config.
 
 ## Requirements
 
@@ -48,15 +72,19 @@ Key settings:
 
 ```yaml
 modes:
-  monitor_only: true        # v1 default — log only
-  enable_auto_block: false  # enable after 7-day baseline + testing
-  enable_ram_trim: false
-  enable_disk_cleanup: false
+  monitor_only: true
+  enable_microsoft_guard: true  # after baseline — blocks MS telemetry uploads
 
 thresholds:
+  cpu_alert_percent: 80         # popup threshold
+  ram_alert_percent: 85
   failed_logon_block_after: 5
   ram_critical_percent: 90
   disk_low_percent: 15
+
+resource_advisor:
+  enabled: true
+  toast_cooldown_seconds: 300   # 5 min between popups
 ```
 
 Whitelists: `config/whitelists.yaml` — trusted processes, IPs, domains.

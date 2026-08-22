@@ -102,12 +102,36 @@ def set_process_priority(priority: str) -> None:
         pass
 
 
-def show_toast(title: str, message: str) -> None:
+def show_toast(title: str, message: str, duration: int = 8) -> None:
     if not IS_WINDOWS:
+        logging.getLogger("fortoro").info("TOAST [%s]: %s", title, message)
         return
     try:
         from win10toast import ToastNotifier
 
-        ToastNotifier().show_toast(title, message, duration=8, threaded=True)
+        ToastNotifier().show_toast(title, message, duration=duration, threaded=True)
     except Exception:
-        pass
+        logging.getLogger("fortoro").info("TOAST [%s]: %s", title, message)
+
+
+def get_foreground_process() -> tuple[int | None, str | None]:
+    """Return (pid, process_name) of the foreground window on Windows."""
+    if not IS_WINDOWS:
+        return None, None
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+        hwnd = user32.GetForegroundWindow()
+        if not hwnd:
+            return None, None
+        pid = wintypes.DWORD()
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if not pid.value:
+            return None, None
+        import psutil
+
+        return pid.value, psutil.Process(pid.value).name()
+    except Exception:
+        return None, None

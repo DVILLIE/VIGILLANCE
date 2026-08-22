@@ -66,19 +66,21 @@ if (-not $SkipBloatware) {
 
 # 7. Hosts file telemetry blocks
 if (-not $SkipHosts) {
-    Write-Step "Blocking telemetry domains in hosts file..."
-    $hostsPath = "$env:SystemRoot\System32\drivers\etc\hosts"
-    $domainsFile = Join-Path $PSScriptRoot "..\config\telemetry-domains.txt"
-    if (Test-Path $domainsFile) {
-        $content = Get-Content $hostsPath -Raw -ErrorAction SilentlyContinue
-        if ($content -notlike "*$FortoroMarker*") {
-            Add-Content -Path $hostsPath -Value "`n$FortoroMarker"
-            Get-Content $domainsFile | Where-Object { $_ -and $_ -notmatch '^\s*#' } | ForEach-Object {
-                Add-Content -Path $hostsPath -Value "0.0.0.0 $_"
+    Write-Step "Blocking telemetry domains (hosts + firewall)..."
+    $blockScript = Join-Path $PSScriptRoot "block-telemetry-firewall.ps1"
+    if (Test-Path $blockScript) {
+        & $blockScript -DomainsFile (Join-Path $PSScriptRoot "..\config\telemetry-domains.txt")
+    } else {
+        $hostsPath = "$env:SystemRoot\System32\drivers\etc\hosts"
+        $domainsFile = Join-Path $PSScriptRoot "..\config\telemetry-domains.txt"
+        if (Test-Path $domainsFile) {
+            $content = Get-Content $hostsPath -Raw -ErrorAction SilentlyContinue
+            if ($content -notlike "*$FortoroMarker*") {
+                Add-Content -Path $hostsPath -Value "`n$FortoroMarker"
+                Get-Content $domainsFile | Where-Object { $_ -and $_ -notmatch '^\s*#' } | ForEach-Object {
+                    Add-Content -Path $hostsPath -Value "0.0.0.0 $_"
+                }
             }
-            Write-Step "Hosts entries added."
-        } else {
-            Write-Step "Hosts entries already present."
         }
     }
 }
