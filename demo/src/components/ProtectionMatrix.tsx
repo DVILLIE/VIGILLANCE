@@ -40,7 +40,7 @@ export function ProtectionMatrix({
         onClick={onReplayGreeting}
         className="mt-3 w-full py-2 rounded-md border border-[#1a3a5c] bg-[#0d1a2d] text-xs text-[#00e5ff] hover:border-[#00e5ff] hover:bg-[#00e5ff]/10 transition-all tracking-wide"
       >
-        Replay greeting
+        🔊 Replay greeting (voice)
       </button>
     </div>
   )

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { primeJarvisVoice, queueBootVoice, randomJarvisGreeting, speakJarvis, flushBootVoice } from '../lib/jarvisVoice'
 
 export interface NetworkInfo {
   localIp: string
@@ -136,6 +137,17 @@ export function useDemoSimulation() {
   const [feed, setFeed] = useState<FeedEvent[]>([])
   const [closeable, setCloseable] = useState<CloseableApp[]>(INITIAL_APPS)
   const [speaking, setSpeaking] = useState(false)
+  const speakTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const playVoice = useCallback(async (text: string, ms = 3500): Promise<boolean> => {
+    primeJarvisVoice()
+    await flushBootVoice()
+    setSpeaking(true)
+    if (speakTimer.current) clearTimeout(speakTimer.current)
+    const ok = await speakJarvis(text)
+    speakTimer.current = setTimeout(() => setSpeaking(false), ok ? ms : 1200)
+    return ok
+  }, [])
   const [network, setNetwork] = useState<NetworkInfo | null>(null)
   const [networkLoading, setNetworkLoading] = useState(true)
   const [workLog, setWorkLog] = useState<WorkLogEntry[]>(() => loadWorkLog())
@@ -173,11 +185,18 @@ export function useDemoSimulation() {
     return info
   }, [])
 
-  // Stats always live on launch
+  // Stats always live on launch + Jarvis speaks on open
   useEffect(() => {
     if (bootLogged.current) return
     bootLogged.current = true
+    primeJarvisVoice()
+    const openLine = 'Good to see you. DVielle online. Stats monitoring active.'
     appendWorkLog('OPEN', 'DVielle interface launched — stats monitoring active')
+    setGreeting(openLine)
+    queueBootVoice(openLine)
+    void playVoice(openLine, 4500).then((ok) => {
+      if (!ok) queueBootVoice(openLine)
+    })
     setFeed([
       {
         id: 'boot',
@@ -204,8 +223,9 @@ export function useDemoSimulation() {
     return () => {
       clearInterval(t)
       clearInterval(netT)
+      if (speakTimer.current) clearTimeout(speakTimer.current)
     }
-  }, [appendWorkLog, refreshNetwork])
+  }, [appendWorkLog, refreshNetwork, playVoice])
 
   // Agent cycles only after START
   useEffect(() => {
@@ -234,13 +254,12 @@ export function useDemoSimulation() {
     const g = 'DVielle online. Deep vigilance agent initiated.'
     setGreeting(g)
     appendWorkLog('START', 'Deep vigilance agent started')
+    void playVoice(g, 4000)
     setFeed((prev) => [
       { id: String(Date.now()), time: nowTime(), level: 'info', module: 'dvielle', message: g },
       ...prev,
     ])
-    setSpeaking(true)
-    setTimeout(() => setSpeaking(false), 2500)
-  }, [agentStarted, appendWorkLog])
+  }, [agentStarted, appendWorkLog, playVoice])
 
   const toggleVigilance = useCallback(() => {
     if (!agentStarted) return
@@ -265,9 +284,10 @@ export function useDemoSimulation() {
   )
 
   const replayGreeting = useCallback(() => {
-    setSpeaking(true)
-    setTimeout(() => setSpeaking(false), 2500)
-  }, [])
+    const text = randomJarvisGreeting()
+    setGreeting(text)
+    void playVoice(text, 4000)
+  }, [playVoice])
 
   const viewWorkLog = useCallback(() => setShowWorkLog(true), [])
   const closeWorkLog = useCallback(() => setShowWorkLog(false), [])

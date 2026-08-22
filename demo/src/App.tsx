@@ -6,6 +6,7 @@ import { ProtectionMatrix } from './components/ProtectionMatrix'
 import { QuickClose } from './components/QuickClose'
 import { VitalBar } from './components/VitalBar'
 import { WorkLogModal } from './components/WorkLogModal'
+import { flushBootVoice } from './lib/jarvisVoice'
 import { useDemoSimulation } from './hooks/useDemoSimulation'
 
 function Panel({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
@@ -46,7 +47,12 @@ export default function App() {
   }
 
   return (
-    <div className="scanlines grid-bg h-full flex flex-col relative">
+    <div
+      className="scanlines grid-bg h-full flex flex-col relative"
+      onClick={() => void flushBootVoice()}
+      onKeyDown={() => void flushBootVoice()}
+      role="presentation"
+    >
       <div className="bg-[#00e5ff]/10 border-b border-[#00e5ff]/30 px-4 py-1.5 text-center">
         <span className="font-mono text-[10px] tracking-widest text-[#00e5ff] uppercase">
           Demo UX — stats live on launch · START activates vigilance agent only

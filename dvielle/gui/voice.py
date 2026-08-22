@@ -1,8 +1,10 @@
-"""Jarvis-style voice greetings — optional TTS on Windows."""
+"""Jarvis-style voice greetings — Windows SAPI TTS with reliable worker thread."""
 
 from __future__ import annotations
 
 import logging
+import platform
+import queue
 import random
 import threading
 
@@ -21,52 +23,131 @@ GREETINGS = [
     "I am DVielle. Every connection, every process — under my watch.",
 ]
 
-_ON_WINDOWS = False
-_engine = None
+_ON_WINDOWS = platform.system() == "Windows"
+_speech_queue: queue.Queue[str | None] | None = None
+_worker_started = False
+_worker_lock = threading.Lock()
 
-try:
-    import platform
-    if platform.system() == "Windows":
-        _ON_WINDOWS = True
-except Exception:
-    pass
+_VOICE_PREFS = (
+    "david",
+    "mark",
+    "george",
+    "james",
+    "male",
+    "zira",  # fallback female if no male voice
+)
 
 
-def _get_engine():
-    global _engine
-    if _engine is not None:
-        return _engine
-    if not _ON_WINDOWS:
-        return None
+def _pick_voice_id(engine) -> None:
+    try:
+        voices = engine.getProperty("voices") or []
+        lowered = [(v, v.name.lower()) for v in voices]
+        for pref in _VOICE_PREFS:
+            for voice, name in lowered:
+                if pref in name:
+                    engine.setProperty("voice", voice.id)
+                    return
+        if voices:
+            engine.setProperty("voice", voices[0].id)
+    except Exception as exc:
+        logger.debug("Voice selection skipped: %s", exc)
+
+
+def _speak_sapi_com(text: str) -> bool:
+    """Primary path: Windows SAPI via win32com (most reliable in worker threads)."""
+    try:
+        import pythoncom
+        import win32com.client  # type: ignore[import-untyped]
+
+        pythoncom.CoInitialize()
+        try:
+            speaker = win32com.client.Dispatch("SAPI.SpVoice")
+            speaker.Volume = 100
+            speaker.Rate = 2
+            for voice in speaker.GetVoices():
+                name = str(voice.GetDescription()).lower()
+                if any(p in name for p in _VOICE_PREFS[:5]):
+                    speaker.Voice = voice
+                    break
+            speaker.Speak(text, 0)
+            return True
+        finally:
+            pythoncom.CoUninitialize()
+    except Exception as exc:
+        logger.warning("SAPI COM speech failed: %s", exc)
+        return False
+
+
+def _speak_pyttsx3(text: str) -> bool:
+    """Fallback: fresh pyttsx3 engine per utterance in this thread."""
     try:
         import pyttsx3
-        _engine = pyttsx3.init()
-        _engine.setProperty("rate", 165)
-        voices = _engine.getProperty("voices")
-        for v in voices:
-            if "david" in v.name.lower() or "male" in v.name.lower():
-                _engine.setProperty("voice", v.id)
-                break
-        return _engine
+
+        engine = pyttsx3.init("sapi5")
+        engine.setProperty("rate", 165)
+        engine.setProperty("volume", 1.0)
+        _pick_voice_id(engine)
+        engine.say(text)
+        engine.runAndWait()
+        try:
+            engine.stop()
+        except Exception:
+            pass
+        return True
     except Exception as exc:
-        logger.debug("TTS unavailable: %s", exc)
-        return None
+        logger.warning("pyttsx3 speech failed: %s", exc)
+        return False
+
+
+def _speak_blocking(text: str) -> None:
+    if not _ON_WINDOWS:
+        logger.info("[DVIELLE speaks] %s", text)
+        return
+    if _speak_sapi_com(text):
+        return
+    if _speak_pyttsx3(text):
+        return
+    logger.error("Jarvis voice unavailable — check Windows sound output and pywin32 install")
+
+
+def _speech_worker() -> None:
+    assert _speech_queue is not None
+    while True:
+        text = _speech_queue.get()
+        try:
+            if text is None:
+                break
+            _speak_blocking(text)
+        except Exception:
+            logger.exception("Speech worker error")
+        finally:
+            _speech_queue.task_done()
+
+
+def _ensure_worker() -> None:
+    global _speech_queue, _worker_started
+    with _worker_lock:
+        if _worker_started:
+            return
+        _speech_queue = queue.Queue()
+        threading.Thread(
+            target=_speech_worker,
+            daemon=True,
+            name="DVielle-TTS-Worker",
+        ).start()
+        _worker_started = True
 
 
 def speak_async(text: str) -> None:
-    """Speak in background thread — never blocks GUI."""
-    def _run() -> None:
-        engine = _get_engine()
-        if engine:
-            try:
-                engine.say(text)
-                engine.runAndWait()
-            except Exception as exc:
-                logger.debug("TTS failed: %s", exc)
-        else:
-            logger.info("[DVIELLE speaks] %s", text)
-
-    threading.Thread(target=_run, daemon=True, name="DVielle-TTS").start()
+    """Queue speech on a dedicated TTS thread — safe from GUI threads."""
+    if not text.strip():
+        return
+    if not _ON_WINDOWS:
+        logger.info("[DVIELLE speaks] %s", text)
+        return
+    _ensure_worker()
+    assert _speech_queue is not None
+    _speech_queue.put(text)
 
 
 def random_greeting() -> str:

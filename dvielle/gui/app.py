@@ -67,6 +67,8 @@ class DVielleApp:
             on_toggle_vigilance=self._toggle_vigilance,
         )
 
+        launch_greeting = greet_on_startup()
+        self.jarvis_line.configure(text=f'"{launch_greeting}"')
         self.greeting_lbl.configure(text="Stats live. Press START to activate deep vigilance agent.")
         self._append_log("[DVIELLE] Installed. All stats updating in real time.")
         self._append_log("[DVIELLE] Press START to begin background vigilance agent.")
@@ -223,7 +225,7 @@ class DVielleApp:
             ctk.CTkLabel(row, text="READY", font=T.FONT_MONO, text_color=T.ACCENT_DIM).pack(side="right", padx=10, pady=8)
         self.jarvis_line = ctk.CTkLabel(inner, text='"At your service."', font=("Segoe UI", 10, "italic"), text_color=T.ACCENT_DIM, wraplength=220)
         self.jarvis_line.pack(side="bottom", pady=(16, 0))
-        ctk.CTkButton(inner, text="Replay greeting", width=180, command=self._replay_greeting, fg_color=T.BG_PANEL_ALT).pack(side="bottom", pady=(8, 0))
+        ctk.CTkButton(inner, text="🔊 Replay greeting", width=180, command=self._replay_greeting, fg_color=T.BG_PANEL_ALT).pack(side="bottom", pady=(8, 0))
 
     def _on_start_agent(self) -> None:
         if self._agent_started:
