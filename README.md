@@ -66,6 +66,7 @@ Double-click `installer\Uninstall-DVielle.bat` → UAC → removes shortcuts, st
 |---------|-------------|
 | Hologram ring | Rotating cyan arc animation in header |
 | Voice | Jarvis-style spoken greeting on launch |
+| **Chat** | **Jarvis (US male) & KT (British female)** — reads live stats, plain-English help |
 | System vitals | Live CPU / RAM / disk gauges |
 | Quick Close | Buttons to close background hogs instantly |
 | Intelligence feed | Real-time security event stream |
@@ -80,6 +81,25 @@ python scripts\smoke_test.py     # verify install
 python -m dvielle                 # launch GUI
 python -m dvielle --headless      # background only
 ```
+
+## Chat — Jarvis & KT (free)
+
+| Feature | Detail |
+|---------|--------|
+| **Jarvis** | US English, male voice — security co-pilot |
+| **KT** | British English, female voice — patient plain-English explanations |
+| **Screen stats** | Ask "how is my RAM?" / "am I on VPN?" — reads live gauges |
+| **Web lookup** | **Microphone only** — DuckDuckGo search for general questions |
+| **Free AI** | [Ollama](https://ollama.com) locally (`ollama pull llama3.2`) — no API key |
+| **Cloud fallback** | Optional `GROQ_API_KEY` env (free tier at groq.com) |
+
+Open **💬 Chat (Jarvis / KT)** in the footer. Type for stats; use **🎤** for voice + web.
+
+```powershell
+ollama pull llama3.2   # optional — smarter answers, still free
+```
+
+Without Ollama, built-in plain-English stat explanations work offline.
 
 ## Privacy hardening (once, as Admin)
 

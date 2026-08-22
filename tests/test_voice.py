@@ -19,14 +19,14 @@ def test_speak_async_queues_on_windows(monkeypatch) -> None:
     with patch.object(voice, "_ensure_worker") as mock_ensure:
         mock_q = MagicMock()
         voice._speech_queue = mock_q
-        voice.speak_async("Hello operator")
+        voice.speak_async("Hello operator", persona="kt")
         mock_ensure.assert_called_once()
-        mock_q.put.assert_called_once_with("Hello operator")
+        mock_q.put.assert_called_once_with(("Hello operator", "kt"))
 
 
 def test_greet_on_startup_returns_and_speaks(monkeypatch) -> None:
     spoken: list[str] = []
-    monkeypatch.setattr(voice, "speak_async", lambda t: spoken.append(t))
+    monkeypatch.setattr(voice, "speak_async", lambda t, persona="jarvis": spoken.append(t))
     text = voice.greet_on_startup()
     assert text in voice.GREETINGS
     assert spoken == [text]

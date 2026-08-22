@@ -1,4 +1,4 @@
-"""Jarvis-style voice greetings — Windows SAPI TTS with reliable worker thread."""
+"""Jarvis-style voice — persona-specific US/UK TTS."""
 
 from __future__ import annotations
 
@@ -7,10 +7,13 @@ import platform
 import queue
 import random
 import threading
+from typing import Literal
 
 from dvielle import APP_NAME, TAGLINE
 
 logger = logging.getLogger("dvielle.voice")
+
+PersonaId = Literal["jarvis", "kt"]
 
 GREETINGS = [
     f"Good to see you. {APP_NAME} online. {TAGLINE} active.",
@@ -24,37 +27,69 @@ GREETINGS = [
 ]
 
 _ON_WINDOWS = platform.system() == "Windows"
-_speech_queue: queue.Queue[str | None] | None = None
+_speech_queue: queue.Queue[tuple[str, PersonaId] | None] | None = None
 _worker_started = False
 _worker_lock = threading.Lock()
 
-_VOICE_PREFS = (
-    "david",
-    "mark",
-    "george",
-    "james",
-    "male",
-    "zira",  # fallback female if no male voice
-)
+# Windows SAPI language codes
+_LANG_US = 1033
+_LANG_GB = 2057
+
+_PERSONA_NAME_HINTS: dict[PersonaId, tuple[str, ...]] = {
+    "jarvis": ("david", "mark", "guy", "james", "richard"),
+    "kt": ("hazel", "sonia", "susan", "zira", "linda", "heera"),
+}
 
 
-def _pick_voice_id(engine) -> None:
+def _voice_matches_persona(desc: str, persona: PersonaId) -> bool:
+    name = desc.lower()
+    hints = _PERSONA_NAME_HINTS.get(persona, ())
+    if persona == "jarvis":
+        return any(h in name for h in hints) or ("english" in name and "united states" in name)
+    return any(h in name for h in hints) or ("english" in name and "great britain" in name)
+
+
+def _pick_sapi_voice(speaker, persona: PersonaId) -> None:
+    want_lang = _LANG_US if persona == "jarvis" else _LANG_GB
+    best = None
+    fallback = None
+    for voice in speaker.GetVoices():
+        try:
+            lang = int(voice.GetAttribute("Language"))
+        except Exception:
+            lang = 0
+        desc = str(voice.GetDescription())
+        if lang == want_lang and _voice_matches_persona(desc, persona):
+            best = voice
+            break
+        if lang == want_lang and fallback is None:
+            fallback = voice
+    chosen = best or fallback
+    if chosen is not None:
+        speaker.Voice = chosen
+
+
+def _pick_pyttsx_voice(engine, persona: PersonaId) -> None:
     try:
         voices = engine.getProperty("voices") or []
-        lowered = [(v, v.name.lower()) for v in voices]
-        for pref in _VOICE_PREFS:
-            for voice, name in lowered:
-                if pref in name:
-                    engine.setProperty("voice", voice.id)
+        want_lang = "en-us" if persona == "jarvis" else "en-gb"
+        for v in voices:
+            vid = (getattr(v, "id", "") or "").lower()
+            name = (getattr(v, "name", "") or "").lower()
+            if want_lang.replace("-", "_") in vid or want_lang in name:
+                if _voice_matches_persona(name, persona):
+                    engine.setProperty("voice", v.id)
                     return
-        if voices:
-            engine.setProperty("voice", voices[0].id)
+        for v in voices:
+            name = (getattr(v, "name", "") or "").lower()
+            if _voice_matches_persona(name, persona):
+                engine.setProperty("voice", v.id)
+                return
     except Exception as exc:
-        logger.debug("Voice selection skipped: %s", exc)
+        logger.debug("pyttsx voice pick skipped: %s", exc)
 
 
-def _speak_sapi_com(text: str) -> bool:
-    """Primary path: Windows SAPI via win32com (most reliable in worker threads)."""
+def _speak_sapi_com(text: str, persona: PersonaId) -> bool:
     try:
         import pythoncom
         import win32com.client  # type: ignore[import-untyped]
@@ -63,12 +98,8 @@ def _speak_sapi_com(text: str) -> bool:
         try:
             speaker = win32com.client.Dispatch("SAPI.SpVoice")
             speaker.Volume = 100
-            speaker.Rate = 2
-            for voice in speaker.GetVoices():
-                name = str(voice.GetDescription()).lower()
-                if any(p in name for p in _VOICE_PREFS[:5]):
-                    speaker.Voice = voice
-                    break
+            speaker.Rate = 2 if persona == "jarvis" else 1
+            _pick_sapi_voice(speaker, persona)
             speaker.Speak(text, 0)
             return True
         finally:
@@ -78,15 +109,14 @@ def _speak_sapi_com(text: str) -> bool:
         return False
 
 
-def _speak_pyttsx3(text: str) -> bool:
-    """Fallback: fresh pyttsx3 engine per utterance in this thread."""
+def _speak_pyttsx3(text: str, persona: PersonaId) -> bool:
     try:
         import pyttsx3
 
         engine = pyttsx3.init("sapi5")
-        engine.setProperty("rate", 165)
+        engine.setProperty("rate", 168 if persona == "jarvis" else 155)
         engine.setProperty("volume", 1.0)
-        _pick_voice_id(engine)
+        _pick_pyttsx_voice(engine, persona)
         engine.say(text)
         engine.runAndWait()
         try:
@@ -99,25 +129,26 @@ def _speak_pyttsx3(text: str) -> bool:
         return False
 
 
-def _speak_blocking(text: str) -> None:
+def _speak_blocking(text: str, persona: PersonaId) -> None:
     if not _ON_WINDOWS:
-        logger.info("[DVIELLE speaks] %s", text)
+        logger.info("[%s speaks] %s", persona.upper(), text)
         return
-    if _speak_sapi_com(text):
+    if _speak_sapi_com(text, persona):
         return
-    if _speak_pyttsx3(text):
+    if _speak_pyttsx3(text, persona):
         return
-    logger.error("Jarvis voice unavailable — check Windows sound output and pywin32 install")
+    logger.error("Voice unavailable for %s — check Windows sound output", persona)
 
 
 def _speech_worker() -> None:
     assert _speech_queue is not None
     while True:
-        text = _speech_queue.get()
+        item = _speech_queue.get()
         try:
-            if text is None:
+            if item is None:
                 break
-            _speak_blocking(text)
+            text, persona = item
+            _speak_blocking(text, persona)
         except Exception:
             logger.exception("Speech worker error")
         finally:
@@ -138,23 +169,23 @@ def _ensure_worker() -> None:
         _worker_started = True
 
 
-def speak_async(text: str) -> None:
-    """Queue speech on a dedicated TTS thread — safe from GUI threads."""
+def speak_async(text: str, persona: PersonaId = "jarvis") -> None:
+    """Queue speech with Jarvis (US) or KT (British) voice."""
     if not text.strip():
         return
     if not _ON_WINDOWS:
-        logger.info("[DVIELLE speaks] %s", text)
+        logger.info("[%s speaks] %s", persona.upper(), text)
         return
     _ensure_worker()
     assert _speech_queue is not None
-    _speech_queue.put(text)
+    _speech_queue.put((text, persona))
 
 
 def random_greeting() -> str:
     return random.choice(GREETINGS)
 
 
-def greet_on_startup() -> str:
+def greet_on_startup(persona: PersonaId = "jarvis") -> str:
     text = random_greeting()
-    speak_async(text)
+    speak_async(text, persona=persona)
     return text

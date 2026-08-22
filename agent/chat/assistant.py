@@ -1,0 +1,138 @@
+"""Chat orchestrator — personas, stats, web (voice only), free LLM."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from typing import Any
+
+from agent.chat.context import format_stats_block, gather_stats_context
+from agent.chat.local_explainer import local_answer
+from agent.chat.llm import chat_completion
+from agent.chat.personas import Persona, get_persona
+from agent.chat.web_lookup import needs_web_search, search_web
+
+logger = logging.getLogger("dvielle.chat")
+
+
+@dataclass
+class ChatMessage:
+    role: str  # user | assistant
+    content: str
+    persona: str = "jarvis"
+
+
+@dataclass
+class ChatResponse:
+    text: str
+    persona: str
+    used_web: bool = False
+    used_llm: bool = False
+    used_local: bool = False
+
+
+@dataclass
+class ChatAssistant:
+    ollama_model: str = "llama3.2"
+    history: list[ChatMessage] = field(default_factory=list)
+    max_history: int = 12
+
+    def ask(
+        self,
+        question: str,
+        *,
+        persona_id: str = "jarvis",
+        from_voice: bool = False,
+        agent_started: bool = False,
+        cycle_count: int = 0,
+        stats_override: dict[str, Any] | None = None,
+    ) -> ChatResponse:
+        persona = get_persona(persona_id)
+        q = question.strip()
+        if not q:
+            return ChatResponse(
+                text="I didn't catch that. Try again?",
+                persona=persona.id,
+            )
+
+        stats = stats_override or gather_stats_context(agent_started, cycle_count)
+        stats_block = format_stats_block(stats)
+
+        web_note = ""
+        used_web = False
+        if from_voice and needs_web_search(q):
+            web_note = search_web(q)
+            used_web = bool(web_note)
+
+        local = local_answer(q, stats, persona)
+        if local and not used_web:
+            self._remember(q, local, persona.id)
+            return ChatResponse(text=local, persona=persona.id, used_local=True)
+
+        llm_text = self._llm_reply(q, persona, stats_block, web_note)
+        if llm_text:
+            self._remember(q, llm_text, persona.id)
+            return ChatResponse(
+                text=llm_text,
+                persona=persona.id,
+                used_web=used_web,
+                used_llm=True,
+            )
+
+        fallback = local or self._generic_fallback(stats, persona, used_web)
+        self._remember(q, fallback, persona.id)
+        return ChatResponse(
+            text=fallback,
+            persona=persona.id,
+            used_web=used_web,
+            used_local=bool(local),
+        )
+
+    def _llm_reply(
+        self,
+        question: str,
+        persona: Persona,
+        stats_block: str,
+        web_note: str,
+    ) -> str | None:
+        extra = ""
+        if web_note:
+            extra = f"\n\nWEB SEARCH RESULTS (voice query only):\n{web_note[:2000]}"
+        system = f"{persona.system_prompt}\n\n{stats_block}{extra}"
+        messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        for msg in self.history[-self.max_history :]:
+            role = "assistant" if msg.role == "assistant" else "user"
+            messages.append({"role": role, "content": msg.content})
+        messages.append({"role": "user", "content": question})
+
+        reply = chat_completion(messages, model=self.ollama_model)
+        if reply:
+            return reply.strip()
+        return None
+
+    def _remember(self, question: str, answer: str, persona_id: str) -> None:
+        self.history.append(ChatMessage("user", question, persona_id))
+        self.history.append(ChatMessage("assistant", answer, persona_id))
+        if len(self.history) > self.max_history * 2:
+            self.history = self.history[-self.max_history * 2 :]
+
+    def clear_history(self) -> None:
+        self.history.clear()
+
+    @staticmethod
+    def _generic_fallback(stats: dict[str, Any], persona: Persona, tried_web: bool) -> str:
+        if persona.id == "kt":
+            base = (
+                "I'm not entirely sure about that one. "
+                "I can read your on-screen stats — try asking about CPU, memory, VPN, or disk. "
+            )
+        else:
+            base = (
+                "I'm not sure on that. I can read your live stats — ask about CPU, RAM, VPN, or disk. "
+            )
+        if tried_web:
+            base += "I searched the web but didn't get a clear answer."
+        else:
+            base += "For general web questions, use the microphone so I can look it up."
+        base += f"\n\n{format_stats_block(stats)}"
+        return base

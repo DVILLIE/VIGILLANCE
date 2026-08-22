@@ -1,3 +1,5 @@
+export type PersonaId = 'jarvis' | 'kt'
+
 const GREETINGS = [
   'Good to see you. DVielle online. Deep Vigilance active.',
   'All systems nominal. Your machine is under deep vigilance.',
@@ -7,16 +9,10 @@ const GREETINGS = [
   'I am DVielle. Every connection, every process — under my watch.',
 ]
 
-const VOICE_PREFS = [
-  'microsoft david',
-  'microsoft mark',
-  'google uk english male',
-  'daniel',
-  'alex',
-  'microsoft george',
-  'male',
-  'english',
-]
+const VOICE_PREFS: Record<PersonaId, string[]> = {
+  jarvis: ['microsoft david', 'microsoft mark', 'google us english', 'guy', 'alex', 'male'],
+  kt: ['microsoft hazel', 'google uk english female', 'sonia', 'susan', 'serena', 'female'],
+}
 
 function canSpeak(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -38,12 +34,16 @@ function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   })
 }
 
-function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  const lowered = voices.map((v) => ({ v, name: v.name.toLowerCase() }))
-  for (const pref of VOICE_PREFS) {
+function pickVoice(voices: SpeechSynthesisVoice[], persona: PersonaId): SpeechSynthesisVoice | null {
+  const prefs = VOICE_PREFS[persona]
+  const wantLang = persona === 'jarvis' ? 'en-us' : 'en-gb'
+  const lowered = voices.map((v) => ({ v, name: v.name.toLowerCase(), lang: v.lang.toLowerCase() }))
+  for (const pref of prefs) {
     const hit = lowered.find((x) => x.name.includes(pref))
     if (hit) return hit.v
   }
+  const langHit = lowered.find((x) => x.lang.startsWith(wantLang))
+  if (langHit) return langHit.v
   return voices.find((v) => v.lang.toLowerCase().startsWith('en')) ?? voices[0] ?? null
 }
 
@@ -57,16 +57,16 @@ export function queueBootVoice(text: string): void {
   bootVoicePending = text
 }
 
-export async function speakJarvis(text: string): Promise<boolean> {
+export async function speakJarvis(text: string, persona: PersonaId = 'jarvis'): Promise<boolean> {
   if (!canSpeak()) {
     console.warn('[DVielle] Web Speech API not available in this browser')
     return false
   }
   const voices = await loadVoices()
   const utter = new SpeechSynthesisUtterance(text)
-  utter.voice = pickVoice(voices)
-  utter.rate = 0.92
-  utter.pitch = 0.88
+  utter.voice = pickVoice(voices, persona)
+  utter.rate = persona === 'jarvis' ? 0.95 : 0.9
+  utter.pitch = persona === 'jarvis' ? 0.88 : 1.02
   utter.volume = 1
   speechSynthesis.cancel()
   return new Promise((resolve) => {

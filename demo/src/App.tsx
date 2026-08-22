@@ -6,8 +6,11 @@ import { ProtectionMatrix } from './components/ProtectionMatrix'
 import { QuickClose } from './components/QuickClose'
 import { VitalBar } from './components/VitalBar'
 import { WorkLogModal } from './components/WorkLogModal'
+import { ChatPanel } from './components/ChatPanel'
 import { flushBootVoice } from './lib/jarvisVoice'
 import { useDemoSimulation } from './hooks/useDemoSimulation'
+import { useState } from 'react'
+import type { ChatStats } from './lib/chatAssistant'
 
 function Panel({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
@@ -22,6 +25,16 @@ function Panel({ title, children, className = '' }: { title: string; children: R
 
 export default function App() {
   const demo = useDemoSimulation()
+  const [chatOpen, setChatOpen] = useState(false)
+
+  const chatStats: ChatStats = {
+    agentStarted: demo.agentStarted,
+    agentCycles: demo.cycles,
+    cpu: demo.cpu,
+    ram: demo.ram,
+    disk: demo.disk || 58,
+    network: demo.network,
+  }
 
   if (demo.minimized) {
     return (
@@ -138,6 +151,13 @@ export default function App() {
           <span className="font-mono text-[10px] text-[#6b8fa3]">v1.3 DEMO · C:\DVILLIE</span>
           <button
             type="button"
+            onClick={() => setChatOpen(true)}
+            className="px-3 py-1.5 rounded border border-[#00e5ff]/50 bg-[#00e5ff]/15 text-[10px] text-[#00fff7] hover:bg-[#00e5ff]/25 tracking-wider"
+          >
+            💬 Chat (Jarvis / KT)
+          </button>
+          <button
+            type="button"
             onClick={demo.viewWorkLog}
             className="px-3 py-1.5 rounded border border-[#1a3a5c] bg-[#0d1a2d] text-[10px] text-[#6b8fa3] hover:border-[#00e5ff] hover:text-[#00e5ff] tracking-wider"
           >
@@ -161,6 +181,7 @@ export default function App() {
       </footer>
 
       {demo.showWorkLog && <WorkLogModal entries={demo.workLog} onClose={demo.closeWorkLog} />}
+      {chatOpen && <ChatPanel stats={chatStats} onClose={() => setChatOpen(false)} />}
     </div>
   )
 }

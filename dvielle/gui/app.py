@@ -9,6 +9,7 @@ from pathlib import Path
 
 import psutil
 
+from agent.chat.assistant import ChatAssistant
 from agent.controller import AgentController
 from agent.modules.network_info import collect_network_snapshot
 from agent.modules.resource_advisor import close_process, get_closeable_processes
@@ -21,6 +22,7 @@ from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
 from dvielle.gui.tray import notify_tray, setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
+from dvielle.gui.chat_window import ChatWindow
 from dvielle.gui.work_log_window import WorkLogWindow
 
 try:
@@ -50,6 +52,8 @@ class DVielleApp:
         self._greeting_idx = 0
         self._seen_events: set[str] = set()
         self._last_network_key: str | None = None
+        self._chat: ChatAssistant | None = None
+        self._chat_win: ChatWindow | None = None
 
         ctk.set_appearance_mode("dark")
         self.root = ctk.CTk()
@@ -154,6 +158,11 @@ class DVielleApp:
             command=self._clear_work_log, fg_color=T.BG_PANEL_ALT, hover_color=T.DANGER,
             font=T.FONT_TAGLINE,
         ).pack(side="left", padx=6)
+        ctk.CTkButton(
+            left_footer, text="💬 Chat (Jarvis / KT)", width=150, height=32,
+            command=self._open_chat, fg_color=T.ACCENT_DIM, hover_color=T.ACCENT,
+            text_color=T.BG_DARK, font=T.FONT_TAGLINE,
+        ).pack(side="left", padx=6)
 
         btn_frame = ctk.CTkFrame(footer, fg_color="transparent")
         btn_frame.pack(side="right", padx=16, pady=8)
@@ -243,6 +252,29 @@ class DVielleApp:
 
         self.controller.start()
         self._tick_greeting()
+
+    def _open_chat(self) -> None:
+        if self._chat is None:
+            self._chat = ChatAssistant()
+        if self._chat_win is not None and self._chat_win.winfo_exists():
+            self._chat_win.lift()
+            return
+
+        from agent.chat.context import gather_stats_context
+
+        def stats() -> dict:
+            return gather_stats_context(
+                self._agent_started,
+                self.controller.status.cycle_count if self._agent_started else 0,
+            )
+
+        self._chat_win = ChatWindow(
+            self.root,
+            self._chat,
+            agent_started=lambda: self._agent_started,
+            cycle_count=lambda: self.controller.status.cycle_count if self._agent_started else 0,
+            stats_provider=stats,
+        )
 
     def _view_work_log(self) -> None:
         WorkLogWindow(self.root, self._store)
