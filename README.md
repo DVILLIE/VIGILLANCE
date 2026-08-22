@@ -1,92 +1,78 @@
 # DVielle — DEEP VIGILLANCE
 
-A futuristic Windows security agent with a Jarvis-inspired command interface. Monitors connections, blocks Microsoft telemetry, detects attacks, and advises you when CPU/RAM is under pressure — all from a sleek holographic GUI that lives in your system tray.
+Futuristic Jarvis-style Windows security agent. Holographic GUI, voice greetings, one-click app closer, Microsoft telemetry blocker, and deep system vigilance.
 
-**DVielle** = **DEEP VIGILLANCE**
+**Install location:** `C:\DVILLIE`
 
-## Features
+## New in v1.2
 
-| Module | Behavior |
-|--------|----------|
-| **Jarvis GUI** | Futuristic dark/cyan interface — vitals, intelligence feed, protection matrix |
-| **System tray** | Minimize to taskbar tray; restore with one click |
-| **Connections** | Logs and flags suspicious outbound traffic |
-| **Attacks** | Failed logon / brute-force detection |
-| **Microsoft guard** | Blocks telemetry uploads — your internet stays yours |
-| **Resource advisor** | Popups naming culprit apps + what to close |
-| **Security** | Defender + firewall health |
+- **Rotating hologram ring** — Jarvis-style animated core in the header
+- **Voice greetings** — speaks on startup (Windows TTS via pyttsx3)
+- **Quick Close panel** — one-click buttons to close background resource hogs
+- **Replay greeting** button in the protection panel
+- **Install to C:\DVILLIE** — everything in one folder
 
-## Install (Windows — one click, UAC prompt)
+## Install on your laptop (Administrator UAC)
 
-1. Install **Python 3.12+** from [python.org](https://python.org)
-2. Double-click:
+1. Install **Python 3.12+** from [python.org](https://python.org) — check **Add to PATH**
+2. Copy this repo to your laptop (or clone)
+3. Double-click:
 
 ```
 installer\Install-DVielle.bat
 ```
 
-Windows will ask for **Administrator approval** (UAC) — click Yes.
+Click **Yes** on the UAC prompt. The installer will:
+- Create **`C:\DVILLIE`** and copy all files
+- Install Python packages (CustomTkinter, psutil, pyttsx3, etc.)
+- Run **smoke test** automatically
+- Create Desktop + Start Menu shortcuts
+- Start DVielle at Windows login
+- Launch the GUI
 
-This installs to `C:\Program Files\DVielle`, creates Start Menu + Desktop shortcuts, and starts DVielle at login.
+## Folder layout after install
+
+```
+C:\DVILLIE\
+  agent\          # monitoring engine
+  dvielle\        # GUI (Jarvis interface)
+  config\         # settings
+  data\           # logs + SQLite database
+  scripts\        # hardening + smoke test
+  installer\      # install/uninstall
+```
 
 ## Uninstall
 
-Double-click:
+Double-click `installer\Uninstall-DVielle.bat` → UAC → removes shortcuts, startup task, and optionally deletes `C:\DVILLIE`.
 
-```
-installer\Uninstall-DVielle.bat
-```
+## GUI features
 
-UAC prompt → removes program, shortcuts, startup task. Optionally keeps your logs/database.
+| Feature | Description |
+|---------|-------------|
+| Hologram ring | Rotating cyan arc animation in header |
+| Voice | Jarvis-style spoken greeting on launch |
+| System vitals | Live CPU / RAM / disk gauges |
+| Quick Close | Buttons to close background hogs instantly |
+| Intelligence feed | Real-time security event stream |
+| System tray | Minimize to tray; restore from taskbar icon |
 
-Or use **Settings → Apps → DVielle → Uninstall**.
-
-## Manual run (development)
+## Manual commands
 
 ```powershell
+cd C:\DVILLIE
 pip install -r requirements.txt
-python -m dvielle                  # GUI (default)
-python -m dvielle --headless       # background only, no GUI
-python -m dvielle --config-dir config
+python scripts\smoke_test.py     # verify install
+python -m dvielle                 # launch GUI
+python -m dvielle --headless      # background only
 ```
 
-## GUI overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  DVIELLE                          ● VIGILANCE ACTIVE    │
-│  DEEP VIGILLANCE                                        │
-├──────────┬──────────────────────────┬───────────────────┤
-│ VITALS   │  INTELLIGENCE FEED       │ PROTECTION MATRIX │
-│ CPU ███  │  [live event stream]     │ Network   ACTIVE  │
-│ RAM ███  │                          │ Privacy   ACTIVE  │
-│ DISK ██  │                          │ MS Block  ACTIVE  │
-├──────────┴──────────────────────────┴───────────────────┤
-│  v1.1.0  |  Your system. Your internet.    [Tray] [⏸] │
-└─────────────────────────────────────────────────────────┘
-```
-
-- **X button** → minimizes to system tray (stays running)
-- **Tray icon** → right-click: Open, Minimize, Toggle vigilance, Exit
-- **Pause Vigilance** → stops monitoring without closing GUI
-
-## Privacy hardening (optional, once)
-
-After install, run as Administrator:
+## Privacy hardening (once, as Admin)
 
 ```powershell
-cd "C:\Program Files\DVielle"
+cd C:\DVILLIE
 powershell -ExecutionPolicy Bypass -File scripts\harden-once.ps1
 ```
-
-## Configuration
-
-`%ProgramData%\DVielle\config\config.yaml`
-
-## Data
-
-- Logs: `%ProgramData%\DVielle\logs\agent.log`
-- Database: `%ProgramData%\DVielle\agent.db`
 
 ## License
 
