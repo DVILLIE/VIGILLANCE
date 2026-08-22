@@ -1,0 +1,20 @@
+# Known Microsoft telemetry / advertising domains
+# Used by privacy_guard and optional hosts hardening script
+telemetry.microsoft.com
+vortex.data.microsoft.com
+settings-win.data.microsoft.com
+watson.telemetry.microsoft.com
+oca.telemetry.microsoft.com
+sqm.telemetry.microsoft.com
+watson.microsoft.com
+redir.metaservices.microsoft.com
+choice.microsoft.com
+df.telemetry.microsoft.com
+reports.wes.df.telemetry.microsoft.com
+wes.df.telemetry.microsoft.com
+services.wes.df.telemetry.microsoft.com
+sqm.df.telemetry.microsoft.com
+telemetry.urs.microsoft.com
+settings-sandbox.data.microsoft.com
+v10.vortex-win.data.microsoft.com
+v20.vortex-win.data.microsoft.com

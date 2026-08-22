@@ -1,0 +1,4 @@
+psutil>=5.9.8
+PyYAML>=6.0.1
+win10toast>=0.9; sys_platform == "win32"
+pywin32>=306; sys_platform == "win32"

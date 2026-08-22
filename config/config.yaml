@@ -1,0 +1,37 @@
+# Fortoro Windows Agent — main configuration
+# Copy to %ProgramData%\FortoroAgent\config.yaml after install
+
+agent:
+  name: FortoroAgent
+  interval_seconds: 60          # poll interval (30–300 recommended)
+  process_priority: below_normal # idle | below_normal | normal
+  baseline_days: 7              # learning period before auto-actions allowed
+  data_dir: null                # null = auto (%ProgramData%\FortoroAgent)
+
+modes:
+  monitor_only: true            # v1 default: log only, no destructive actions
+  enable_toasts: true           # Windows toast on critical alerts (Win10+)
+  enable_auto_block: false      # set true after baseline + testing
+  enable_ram_trim: false        # set true in v2 after testing
+  enable_disk_cleanup: false    # set true in v2; runs only when disk < threshold
+
+thresholds:
+  ram_critical_percent: 90      # sustained RAM % before trim (if enabled)
+  ram_sustained_checks: 3       # consecutive checks above threshold
+  disk_low_percent: 15          # free space % triggers cleanup alert
+  failed_logon_block_after: 5   # attempts from same IP before auto-block
+
+modules:
+  connections: true
+  attacks: true
+  ram: true
+  disk: true
+  security: true
+  privacy_guard: true           # re-check hardening settings only
+  usb_watch: false              # tier 1, optional
+  dns_cache: false              # tier 1, optional
+
+logging:
+  level: INFO
+  max_file_mb: 10
+  backup_count: 3

@@ -1,0 +1,42 @@
+# Trusted processes (exe name, case-insensitive) — extend during baseline learning
+processes:
+  - System
+  - svchost.exe
+  - explorer.exe
+  - SearchHost.exe
+  - MsMpEng.exe          # Windows Defender
+  - SecurityHealthService.exe
+  - chrome.exe
+  - firefox.exe
+  - msedge.exe
+  - Discord.exe
+  - steam.exe
+  - OneDrive.exe
+  - python.exe
+  - pythonw.exe
+
+# Trusted remote IP prefixes (CIDR or exact)
+ips:
+  - 127.0.0.1
+  - ::1
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+
+# Domains never flagged (substring match)
+domains:
+  - microsoft.com
+  - windowsupdate.com
+  - live.com
+  - office.com
+  - azure.com
+  - github.com
+  - githubusercontent.com
+
+# Windows Update / critical Microsoft endpoints — never block
+never_block_domains:
+  - download.windowsupdate.com
+  - update.microsoft.com
+  - windowsupdate.com
+  - ctldl.windowsupdate.com
+  - fe2cr.update.microsoft.com

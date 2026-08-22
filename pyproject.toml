@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fortoro-agent"
+version = "1.0.0"
+description = "Lightweight Windows monitoring and hardening agent"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "psutil>=5.9.8",
+    "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+windows = ["win10toast>=0.9", "pywin32>=306"]
+
+[project.scripts]
+fortoro-agent = "agent.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
