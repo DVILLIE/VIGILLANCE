@@ -1,123 +1,92 @@
-# Fortoro Windows Monitoring & Hardening Agent
+# DVielle — DEEP VIGILLANCE
 
-A lightweight 24/7 background agent for Windows laptops. Monitors network connections, failed logons, RAM, disk, Defender/firewall status, and privacy setting drift — with optional auto-response after a baseline learning period.
+A futuristic Windows security agent with a Jarvis-inspired command interface. Monitors connections, blocks Microsoft telemetry, detects attacks, and advises you when CPU/RAM is under pressure — all from a sleek holographic GUI that lives in your system tray.
 
-**Design goals:** under 100 MB RAM, 0–1% CPU, poll-based (no packet sniffing), monitor-first rollout.
+**DVielle** = **DEEP VIGILLANCE**
 
-## Features (v1)
+## Features
 
 | Module | Behavior |
 |--------|----------|
-| **Connections** | Logs established connections; flags unknown IPs/processes; builds baseline allowlist |
-| **Attacks** | Scans Security log for Event 4625/4776; optional auto-block after N failures |
-| **RAM** | Alerts on high usage; optional trim when critically high (disabled by default) |
-| **Disk** | Free space + SMART status; optional temp cleanup when low (disabled by default) |
-| **Security** | Windows Defender + firewall profile health |
-| **Privacy guard** | Re-checks telemetry/Cortana/ad ID registry values; alerts on drift |
-| **Microsoft guard** | Blocks telemetry uploads, stops spy processes, hosts + firewall blocking |
-| **Resource advisor** | CPU/RAM popups naming the culprit app and what to close |
+| **Jarvis GUI** | Futuristic dark/cyan interface — vitals, intelligence feed, protection matrix |
+| **System tray** | Minimize to taskbar tray; restore with one click |
+| **Connections** | Logs and flags suspicious outbound traffic |
+| **Attacks** | Failed logon / brute-force detection |
+| **Microsoft guard** | Blocks telemetry uploads — your internet stays yours |
+| **Resource advisor** | Popups naming culprit apps + what to close |
+| **Security** | Defender + firewall health |
 
-## Smart popups (CPU / RAM)
+## Install (Windows — one click, UAC prompt)
 
-When CPU or RAM is high, you get a brief toast like:
+1. Install **Python 3.12+** from [python.org](https://python.org)
+2. Double-click:
 
-> **RAM 92%** — chrome.exe using 2.1 GB  
-> Running in background — safe to close: Discord (800 MB), Steam (400 MB)
+```
+installer\Install-DVielle.bat
+```
 
-Popups are limited to once every 5 minutes per type so they won't spam you.
+Windows will ask for **Administrator approval** (UAC) — click Yes.
 
-## Microsoft privacy (your internet, your rules)
+This installs to `C:\Program Files\DVielle`, creates Start Menu + Desktop shortcuts, and starts DVielle at login.
 
-With `microsoft_guard` enabled (after the 7-day baseline):
+## Uninstall
 
-- Blocks telemetry domains in the **hosts file**
-- **Firewall blocks** outbound from CompatTelRunner, DeviceCensus, etc.
-- **Stops** DiagTrack and other telemetry services
-- **Re-applies** registry privacy settings if Microsoft resets them
-- **Terminates** active telemetry upload connections
-- **Preserves** Windows Update — updates still work
+Double-click:
 
-Run once as Administrator: `scripts\harden-once.ps1`, then set `enable_microsoft_guard: true` in config.
+```
+installer\Uninstall-DVielle.bat
+```
 
-## Requirements
+UAC prompt → removes program, shortcuts, startup task. Optionally keeps your logs/database.
 
-- Windows 10/11 (Home or Pro)
-- Python 3.12+
-- Administrator rights for install, hardening, and firewall blocks
+Or use **Settings → Apps → DVielle → Uninstall**.
 
-## Quick start
+## Manual run (development)
 
 ```powershell
-# Clone repo, then from repo root:
 pip install -r requirements.txt
+python -m dvielle                  # GUI (default)
+python -m dvielle --headless       # background only, no GUI
+python -m dvielle --config-dir config
+```
 
-# Run one cycle (dev / test):
-python -m agent.main --once
+## GUI overview
 
-# Install as scheduled task (Administrator):
-powershell -ExecutionPolicy Bypass -File scripts\install.ps1
+```
+┌─────────────────────────────────────────────────────────┐
+│  DVIELLE                          ● VIGILANCE ACTIVE    │
+│  DEEP VIGILLANCE                                        │
+├──────────┬──────────────────────────┬───────────────────┤
+│ VITALS   │  INTELLIGENCE FEED       │ PROTECTION MATRIX │
+│ CPU ███  │  [live event stream]     │ Network   ACTIVE  │
+│ RAM ███  │                          │ Privacy   ACTIVE  │
+│ DISK ██  │                          │ MS Block  ACTIVE  │
+├──────────┴──────────────────────────┴───────────────────┤
+│  v1.1.0  |  Your system. Your internet.    [Tray] [⏸] │
+└─────────────────────────────────────────────────────────┘
+```
 
-# One-time privacy hardening (Administrator, run once):
+- **X button** → minimizes to system tray (stays running)
+- **Tray icon** → right-click: Open, Minimize, Toggle vigilance, Exit
+- **Pause Vigilance** → stops monitoring without closing GUI
+
+## Privacy hardening (optional, once)
+
+After install, run as Administrator:
+
+```powershell
+cd "C:\Program Files\DVielle"
 powershell -ExecutionPolicy Bypass -File scripts\harden-once.ps1
-
-# Start the agent:
-Start-ScheduledTask -TaskName FortoroAgent
 ```
 
 ## Configuration
 
-Edit `%ProgramData%\FortoroAgent\config\config.yaml` after install (or `config/config.yaml` in dev).
+`%ProgramData%\DVielle\config\config.yaml`
 
-Key settings:
+## Data
 
-```yaml
-modes:
-  monitor_only: true
-  enable_microsoft_guard: true  # after baseline — blocks MS telemetry uploads
-
-thresholds:
-  cpu_alert_percent: 80         # popup threshold
-  ram_alert_percent: 85
-  failed_logon_block_after: 5
-  ram_critical_percent: 90
-  disk_low_percent: 15
-
-resource_advisor:
-  enabled: true
-  toast_cooldown_seconds: 300   # 5 min between popups
-```
-
-Whitelists: `config/whitelists.yaml` — trusted processes, IPs, domains.
-
-## Rollout phases
-
-1. **Baseline (7 days)** — monitor-only, builds process allowlist
-2. **Alerts** — toasts on critical events
-3. **Auto-block** — enable `enable_auto_block` after testing
-4. **Hardening** — run `harden-once.ps1` once; agent guards settings
-5. **RAM/disk actions** — enable in v2 after validation
-
-## Project structure
-
-```
-agent/           Python monitor loop and modules
-config/          YAML config, whitelists, telemetry domain list
-scripts/         PowerShell: install, harden-once, block-ip
-docs/            Design decisions
-data/            Local SQLite + logs (dev); %ProgramData%\FortoroAgent (prod)
-```
-
-## Logs and database
-
-- Log file: `%ProgramData%\FortoroAgent\logs\agent.log`
-- SQLite DB: `%ProgramData%\FortoroAgent\agent.db`
-
-## Safety notes
-
-- Auto-blocking is **off** by default to avoid breaking Windows Update, Store, or games
-- `harden-once.ps1` creates a restore point before changes
-- Defender exclusions added for install/data dirs during `install.ps1`
-- "Complete" telemetry block is not guaranteed — Microsoft endpoints change
+- Logs: `%ProgramData%\DVielle\logs\agent.log`
+- Database: `%ProgramData%\DVielle\agent.db`
 
 ## License
 

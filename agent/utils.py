@@ -1,4 +1,4 @@
-"""Shared utilities for Fortoro Agent."""
+"""Shared utilities for DVielle Agent."""
 
 from __future__ import annotations
 
@@ -13,14 +13,23 @@ from typing import Any, Iterable
 
 import yaml
 
+from dvielle import APP_NAME, DATA_DIR_NAME
+
 IS_WINDOWS = platform.system() == "Windows"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA_DIR = (
-    Path(os.environ.get("PROGRAMDATA", "C:/ProgramData")) / "FortoroAgent"
-    if IS_WINDOWS
-    else PROJECT_ROOT / "data"
-)
+
+def _default_data_dir() -> Path:
+    if IS_WINDOWS:
+        base = Path(os.environ.get("PROGRAMDATA", "C:/ProgramData"))
+        dvielle = base / DATA_DIR_NAME
+        legacy = base / "FortoroAgent"
+        if legacy.exists() and not dvielle.exists():
+            return legacy
+        return dvielle
+    return PROJECT_ROOT / "data"
+
+DEFAULT_DATA_DIR = _default_data_dir()
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -43,7 +52,7 @@ def resolve_config_paths(data_dir: Path | None = None) -> tuple[Path, Path, Path
 def setup_logging(data_dir: Path, level: str = "INFO", max_mb: int = 10, backup_count: int = 3) -> logging.Logger:
     log_dir = data_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger("fortoro")
+    logger = logging.getLogger("dvielle")
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
     logger.handlers.clear()
 
@@ -104,14 +113,14 @@ def set_process_priority(priority: str) -> None:
 
 def show_toast(title: str, message: str, duration: int = 8) -> None:
     if not IS_WINDOWS:
-        logging.getLogger("fortoro").info("TOAST [%s]: %s", title, message)
+        logging.getLogger("dvielle").info("TOAST [%s]: %s", title, message)
         return
     try:
         from win10toast import ToastNotifier
 
         ToastNotifier().show_toast(title, message, duration=duration, threaded=True)
     except Exception:
-        logging.getLogger("fortoro").info("TOAST [%s]: %s", title, message)
+        logging.getLogger("dvielle").info("TOAST [%s]: %s", title, message)
 
 
 def get_foreground_process() -> tuple[int | None, str | None]:

@@ -3,25 +3,29 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fortoro-agent"
-version = "1.0.0"
-description = "Lightweight Windows monitoring and hardening agent"
+name = "dvielle"
+version = "1.1.0"
+description = "DVielle — DEEP VIGILLANCE Windows security agent"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "psutil>=5.9.8",
     "PyYAML>=6.0.1",
+    "customtkinter>=5.2.2",
+    "Pillow>=10.0.0",
+    "pystray>=0.19.5",
 ]
 
 [project.optional-dependencies]
 windows = ["win10toast>=0.9", "pywin32>=306"]
 
 [project.scripts]
-fortoro-agent = "agent.main:main"
+dvielle = "dvielle.__main__:main"
+dvielle-headless = "agent.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["agent*"]
+include = ["agent*", "dvielle*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

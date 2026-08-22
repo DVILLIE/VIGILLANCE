@@ -83,15 +83,15 @@ def run_once(
         conn_alerts = ConnectionMonitor(store, config, whitelists).run(monitor_only=monitor_only)
         for alert in conn_alerts:
             if enable_toasts:
-                show_toast("Fortoro Agent", f"Suspicious: {alert.process_name} -> {alert.remote_addr}")
+                show_toast("DVielle", f"Suspicious: {alert.process_name} -> {alert.remote_addr}")
 
     if modules.get("attacks", True):
         attack_alerts = AttackMonitor(store, config, scripts_dir).run(enable_auto_block=enable_auto_block)
         for alert in attack_alerts:
             if alert.should_block and enable_toasts:
-                show_toast("Fortoro Agent", f"Blocked attacker IP: {alert.source_ip}")
+                show_toast("DVielle", f"Blocked attacker IP: {alert.source_ip}")
             elif alert.attempt_count >= 3 and enable_toasts:
-                show_toast("Fortoro Agent", f"Failed logons from {alert.source_ip} ({alert.attempt_count})")
+                show_toast("DVielle", f"Failed logons from {alert.source_ip} ({alert.attempt_count})")
 
     if modules.get("ram", True):
         ram = RamMonitor(store, config, scripts_dir).run(
@@ -104,7 +104,7 @@ def run_once(
         for advice in ResourceAdvisor(store, config).run():
             if enable_toasts:
                 show_toast(
-                    f"Fortoro — {advice.resource} Alert",
+                    f"DVielle — {advice.resource}",
                     f"{advice.headline}\n{advice.suggestion}",
                     duration=12,
                 )
@@ -118,7 +118,7 @@ def run_once(
             health["disk_percent_used"] = primary.percent_used
             health["disk_free_gb"] = primary.free_gb
             if primary.low_space and enable_toasts:
-                show_toast("Fortoro Agent", f"Low disk: {primary.free_gb:.1f} GB free on {primary.mount}")
+                show_toast("DVielle", f"Low disk: {primary.free_gb:.1f} GB free on {primary.mount}")
 
     if modules.get("security", True):
         sec = SecurityMonitor(store, config).run()
@@ -127,7 +127,7 @@ def run_once(
         health["details"] = {"issues": sec.issues}
         for issue in sec.issues:
             if enable_toasts:
-                show_toast("Fortoro Agent", issue)
+                show_toast("DVielle", issue)
 
     if modules.get("privacy_guard", True):
         PrivacyGuard(store, config, telemetry_file).run()
@@ -139,14 +139,14 @@ def run_once(
         ).run(monitor_only=monitor_only)
         for alert in ms_alerts:
             if enable_toasts and alert.kind in ("connection", "process"):
-                show_toast("Fortoro — Privacy", alert.message[:200])
+                show_toast("DVielle — Privacy", alert.message[:200])
 
     if health:
         store.log_health_snapshot(health)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Fortoro Windows Monitoring Agent")
+    parser = argparse.ArgumentParser(description="DVielle — Deep Vigilance Agent")
     parser.add_argument("--once", action="store_true", help="Run one cycle and exit")
     parser.add_argument("--config-dir", type=Path, default=None, help="Override config directory")
     args = parser.parse_args(argv)
@@ -185,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
     if _in_baseline(config, install_time):
         logger.info("Baseline learning active — monitor-only until %s", install_time + timedelta(days=int(config.get("agent", {}).get("baseline_days", 7))))
 
-    logger.info("Fortoro Agent starting (interval=%ss, monitor_only=%s)", interval, modes.get("monitor_only", True))
+    logger.info("DVielle starting (interval=%ss, monitor_only=%s)", interval, modes.get("monitor_only", True))
 
     signal.signal(signal.SIGINT, _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
@@ -199,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
             break
         time.sleep(interval)
 
-    logger.info("Fortoro Agent stopped")
+    logger.info("DVielle stopped")
     return 0
 
 

@@ -2,7 +2,8 @@
 # Copy to %ProgramData%\FortoroAgent\config.yaml after install
 
 agent:
-  name: FortoroAgent
+  name: DVielle
+  display_name: DVielle — DEEP VIGILLANCE
   interval_seconds: 60          # poll interval (30–300 recommended)
   process_priority: below_normal # idle | below_normal | normal
   baseline_days: 7              # learning period before auto-actions allowed
