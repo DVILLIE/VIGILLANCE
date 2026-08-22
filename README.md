@@ -1,107 +1,106 @@
 # DVielle — DEEP VIGILLANCE
 
-Futuristic Jarvis-style Windows security agent.
+**Laptop-only Windows agent.** Everything runs on your PC under `C:\DVILLIE`.  
+No cloud server is required to use DVielle after install.
 
-## Demo UX (try this first)
-
-Interactive browser preview with **simulated data** — no install required:
-
-```bash
-cd demo
-npm install
-npm run dev
-```
-
-Open **http://localhost:43123** — hologram ring, vitals, intelligence feed, quick-close buttons.
-
-See [demo/README.md](demo/README.md) for details.
+> Cloud Agent chats only *write* the code in git. They do **not** install files onto your C: drive.  
+> You must pull the repo and run the installer **on the laptop**.
 
 ---
 
-## Full agent install (Windows)
+## Install on your laptop (creates `C:\DVILLIE`)
 
-- **Rotating hologram ring** — Jarvis-style animated core in the header
-- **Voice greetings** — speaks on startup (Windows TTS via pyttsx3)
-- **Quick Close panel** — one-click buttons to close background resource hogs
-- **Replay greeting** button in the protection panel
-- **Install to C:\DVILLIE** — everything in one folder
+### 0. Prerequisites on the laptop
 
-## Install on your laptop (Administrator UAC)
+- Windows 10/11
+- [Python 3.12+](https://www.python.org/downloads/) — tick **Add python.exe to PATH**
+- [Git](https://git-scm.com/download/win) (or download the ZIP from Cursor / GitHub)
+- Optional for chat AI: [Ollama](https://ollama.com) → then `ollama pull llama3.2`
+- Optional for web demo only: [Node.js LTS](https://nodejs.org)
 
-1. Install **Python 3.12+** from [python.org](https://python.org) — check **Add to PATH**
-2. Copy this repo to your laptop (or clone)
-3. Double-click:
+### 1. Put the project on the laptop
+
+**In Cursor Desktop (recommended):**
+
+1. Open this repository on your machine (not a Cloud Agent chat)
+2. Checkout branch: `cursor/dvielle-demo-ux-1fb4`
+3. Note the folder path shown in Explorer (e.g. `C:\Users\You\...\tmp-fc09ac10e8480d90`)
+
+**Or clone with Git (CMD / PowerShell — not the Node.js window):**
+
+```bat
+cd %USERPROFILE%\Documents
+git clone <your-repo-url> dvielle
+cd dvielle
+git checkout cursor/dvielle-demo-ux-1fb4
+```
+
+### 2. Install → creates `C:\DVILLIE`
+
+In File Explorer open the project folder → `installer` → right‑click:
 
 ```
-installer\Install-DVielle.bat
+Install-DVielle.bat
 ```
 
-Click **Yes** on the UAC prompt. The installer will:
-- Create **`C:\DVILLIE`** and copy all files
-- Install Python packages (CustomTkinter, psutil, pyttsx3, etc.)
-- Run **smoke test** automatically
-- Create Desktop + Start Menu shortcuts
-- Start DVielle at Windows login
-- Launch the GUI
+→ **Run as administrator** → Yes on UAC.
 
-## Folder layout after install
+That copies everything to:
 
 ```
 C:\DVILLIE\
-  agent\          # monitoring engine
-  dvielle\        # GUI (Jarvis interface)
-  config\         # settings
-  data\           # logs + SQLite database
-  scripts\        # hardening + smoke test
-  installer\      # install/uninstall
 ```
 
-## Uninstall
+Desktop shortcut **DVielle** will appear. Launch from there.
 
-Double-click `installer\Uninstall-DVielle.bat` → UAC → removes shortcuts, startup task, and optionally deletes `C:\DVILLIE`.
+### 3. Daily use (all local)
 
-## GUI features
+| Action | Where |
+|--------|--------|
+| Open GUI | Desktop shortcut or `python -m dvielle` from `C:\DVILLIE` |
+| Chat Jarvis / KT | Footer **💬 Chat** — voices via Windows TTS |
+| Free AI brain | Local Ollama (`llama3.2`) — offline capable for stats |
+| Web lookup | Mic questions only — uses DuckDuckGo from **your** PC |
+| Uninstall | `C:\DVILLIE\installer\Uninstall-DVielle.bat` |
+
+---
+
+## Web demo (also local — optional)
+
+Only if you want the browser UI without the full agent:
+
+```bat
+cd <project>\demo
+Start-Demo.bat
+```
+
+Then open **http://127.0.0.1:43123** on **that same laptop**.  
+Do **not** open that URL hoping a cloud machine is serving it — it will refuse.
+
+---
+
+## What will never appear until you install
+
+| Path | When it appears |
+|------|-----------------|
+| `C:\DVILLIE` | After `Install-DVielle.bat` on the laptop |
+| Desktop shortcut | Same install |
+| Agent database / logs | Under `C:\DVILLIE\data` after first run |
+
+---
+
+## Features (once installed)
 
 | Feature | Description |
 |---------|-------------|
-| Hologram ring | Rotating cyan arc animation in header |
-| Voice | Jarvis-style spoken greeting on launch |
-| **Chat** | **Jarvis (US male) & KT (British female)** — reads live stats, plain-English help |
-| System vitals | Live CPU / RAM / disk gauges |
-| Quick Close | Buttons to close background hogs instantly |
-| Intelligence feed | Real-time security event stream |
-| System tray | Minimize to tray; restore from taskbar icon |
+| Stats on launch | Network, CPU, RAM, disk live immediately |
+| START AGENT | Begins background vigilance |
+| Quiet tray | Popups only on CRITICAL when minimized |
+| Work log | View / Clear chronological OPEN→CLOSE report |
+| Chat | Jarvis (US male) · KT (British female) |
+| Voices | Windows SAPI — no cloud TTS |
 
-## Manual commands
-
-```powershell
-cd C:\DVILLIE
-pip install -r requirements.txt
-python scripts\smoke_test.py     # verify install
-python -m dvielle                 # launch GUI
-python -m dvielle --headless      # background only
-```
-
-## Chat — Jarvis & KT (free)
-
-| Feature | Detail |
-|---------|--------|
-| **Jarvis** | US English, male voice — security co-pilot |
-| **KT** | British English, female voice — patient plain-English explanations |
-| **Screen stats** | Ask "how is my RAM?" / "am I on VPN?" — reads live gauges |
-| **Web lookup** | **Microphone only** — DuckDuckGo search for general questions |
-| **Free AI** | [Ollama](https://ollama.com) locally (`ollama pull llama3.2`) — no API key |
-| **Cloud fallback** | Optional `GROQ_API_KEY` env (free tier at groq.com) |
-
-Open **💬 Chat (Jarvis / KT)** in the footer. Type for stats; use **🎤** for voice + web.
-
-```powershell
-ollama pull llama3.2   # optional — smarter answers, still free
-```
-
-Without Ollama, built-in plain-English stat explanations work offline.
-
-## Privacy hardening (once, as Admin)
+## Privacy hardening (optional, Admin)
 
 ```powershell
 cd C:\DVILLIE
