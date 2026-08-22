@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  --bg-dark: #050810;
+  --bg-panel: #0a1220;
+  --bg-panel-alt: #0d1a2d;
+  --border: #1a3a5c;
+  --accent: #00e5ff;
+  --accent-glow: #00fff7;
+  --accent-dim: #0099b3;
+  --text: #e0f7ff;
+  --text-dim: #6b8fa3;
+  --success: #00ff9d;
+  --warning: #ffb020;
+  --danger: #ff3366;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.font-display {
+  font-family: "Orbitron", sans-serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* Scanline overlay */
+.scanlines::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 229, 255, 0.02) 2px,
+    rgba(0, 229, 255, 0.02) 4px
+  );
+  z-index: 100;
+}
+
+/* Hologram ring */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px var(--accent-glow)); }
+  50% { opacity: 0.7; filter: drop-shadow(0 0 16px var(--accent)); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.hologram-spin {
+  animation: spin-slow 8s linear infinite;
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.feed-line {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+/* Custom scrollbar */
+.feed-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.feed-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

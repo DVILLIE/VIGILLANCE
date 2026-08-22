@@ -1,10 +1,24 @@
 # DVielle — DEEP VIGILLANCE
 
-Futuristic Jarvis-style Windows security agent. Holographic GUI, voice greetings, one-click app closer, Microsoft telemetry blocker, and deep system vigilance.
+Futuristic Jarvis-style Windows security agent.
 
-**Install location:** `C:\DVILLIE`
+## Demo UX (try this first)
 
-## New in v1.2
+Interactive browser preview with **simulated data** — no install required:
+
+```bash
+cd demo
+npm install
+npm run dev
+```
+
+Open **http://localhost:43123** — hologram ring, vitals, intelligence feed, quick-close buttons.
+
+See [demo/README.md](demo/README.md) for details.
+
+---
+
+## Full agent install (Windows)
 
 - **Rotating hologram ring** — Jarvis-style animated core in the header
 - **Voice greetings** — speaks on startup (Windows TTS via pyttsx3)
