@@ -14,7 +14,7 @@ import psutil
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS, show_toast
 
-logger = logging.getLogger("fortoro.microsoft_guard")
+logger = logging.getLogger("dvielle.microsoft_guard")
 
 # Processes commonly associated with telemetry / background Microsoft uploads
 TELEMETRY_PROCESSES = {
@@ -42,6 +42,11 @@ UPDATE_SAFE_SUBSTRINGS = (
     "update.microsoft.com",
     "download.microsoft.com",
     "ctldl.windowsupdate.com",
+    "delivery.mp.microsoft.com",
+    "mp.microsoft.com",
+    "wns.windows.com",
+    "login.live.com",
+    "login.microsoftonline.com",
 )
 
 

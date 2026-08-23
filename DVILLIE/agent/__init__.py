@@ -1,1 +1,0 @@
-# Fortoro Windows Agent

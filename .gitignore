@@ -7,6 +7,9 @@ build/
 .pytest_cache/
 data/
 DVILLIE/
+_quarantine/
+agent_home/
+demo/_review_frames/
 *.db
 *.db-wal
 *.db-shm

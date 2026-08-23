@@ -41,7 +41,7 @@ class WorkLogWindow(ctk.CTkToplevel):
     def __init__(self, master, store: AgentStore) -> None:
         super().__init__(master)
         self.title(f"{APP_NAME} — Work Log Report")
-        self.geometry("720x520")
+        self.geometry("820x580")
         self.configure(fg_color=T.BG_DARK)
 
         ctk.CTkLabel(
@@ -49,7 +49,7 @@ class WorkLogWindow(ctk.CTkToplevel):
         ).pack(pady=(12, 4))
         ctk.CTkLabel(
             self, text="Chronological list of all actions (open → close)",
-            font=T.FONT_TAGLINE, text_color=T.TEXT_DIM,
+            font=T.FONT_BODY, text_color=T.TEXT_DIM,
         ).pack(pady=(0, 8))
 
         self.text = ctk.CTkTextbox(

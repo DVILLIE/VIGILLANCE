@@ -1,4 +1,4 @@
-"""Fortoro Windows Monitoring & Hardening Agent — main scheduler loop."""
+"""DVielle Windows Monitoring & Hardening Agent — main scheduler loop."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agent.modules.attacks import AttackMonitor
+from agent.modules.browser_guard import BrowserGuard
 from agent.modules.connections import ConnectionMonitor
 from agent.modules.disk import DiskMonitor
 from agent.modules.microsoft_guard import MicrosoftGuard
@@ -101,6 +102,15 @@ def run_once(
                     "DVielle",
                     f"Failed logons from {alert.source_ip} ({alert.attempt_count})",
                     severity="WARNING",
+                )
+
+    if modules.get("browser_guard", True):
+        for threat in BrowserGuard(store, config).run():
+            if enable_toasts and threat.severity in ("WARNING", "CRITICAL"):
+                show_toast(
+                    "DVielle — Browser watch",
+                    threat.message[:200],
+                    severity=threat.severity,
                 )
 
     if modules.get("ram", True):

@@ -10,7 +10,7 @@ from typing import Any
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
-logger = logging.getLogger("fortoro.security")
+logger = logging.getLogger("dvielle.security")
 
 
 @dataclass

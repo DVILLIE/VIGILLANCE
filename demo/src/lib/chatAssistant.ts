@@ -1,6 +1,4 @@
-/** Browser chat — mirrors Python assistant (stats + optional Ollama + voice web). */
-
-export type PersonaId = 'jarvis' | 'kt'
+/** Open chat — VILL (UK English). Free talk + screen stats + voice web. */
 
 export interface ChatStats {
   agentStarted: boolean
@@ -22,17 +20,18 @@ export interface ChatStats {
 
 export interface ChatReply {
   text: string
-  persona: PersonaId
   usedWeb: boolean
   usedLlm: boolean
   usedLocal: boolean
 }
 
-const WEB_HINT =
-  /\b(what is|who is|when is|where is|how to|latest|news|weather|today|define|meaning of)\b/i
+const AGENT = 'VILL'
 
-const STATS_HINT =
-  /\b(cpu|ram|memory|disk|vpn|ip|dns|gateway|stats|screen|computer|agent|vigilance|status|summary)\b/i
+const WEB_HINT =
+  /\b(what is|who is|when is|where is|how to|latest|news|weather|today|define|meaning of|tell me about|look up|search)\b/i
+
+const STATS_ONLY =
+  /^(how('?s| is)? (my )?(cpu|ram|memory|disk|vpn|ip|status)|what('?s| is) (my )?(cpu|ram|memory|disk|vpn|ip|status)|stats|summary)\b/i
 
 function formatStatsBlock(stats: ChatStats): string {
   const n = stats.network
@@ -41,7 +40,7 @@ function formatStatsBlock(stats: ChatStats): string {
     : `VPN OFF — public IP ${n?.publicIp ?? 'unknown'}`
   const agent = stats.agentStarted ? `running (${stats.agentCycles} cycles)` : 'standby (stats only)'
   return [
-    'LIVE STATS:',
+    'OPTIONAL LIVE SCREEN STATS (use when user asks about the PC/screen):',
     `- Vigilance agent: ${agent}`,
     `- CPU: ${stats.cpu.toFixed(0)}%`,
     `- RAM: ${stats.ram.toFixed(0)}%`,
@@ -55,54 +54,34 @@ function formatStatsBlock(stats: ChatStats): string {
   ].join('\n')
 }
 
-function localAnswer(q: string, stats: ChatStats, persona: PersonaId): string | null {
+function statsAnswer(q: string, stats: ChatStats): string | null {
+  if (!STATS_ONLY.test(q.trim()) && !/\b(cpu|ram|memory|disk|vpn)\b/i.test(q)) return null
   const s = q.toLowerCase()
-  const brit = persona === 'kt'
 
-  if (/\b(hello|hi|hey)\b/.test(s)) {
-    return brit
-      ? "Hello. I'm KT — ask about your screen stats, or tap the mic for a web question."
-      : 'Hello. Jarvis online — ask about your stats or use the mic for web questions.'
-  }
   if (/\b(ram|memory)\b/.test(s)) {
     const pct = stats.ram
-    if (brit) {
-      if (pct >= 85) return `Memory is quite full at ${pct.toFixed(0)}% — the PC may feel slow. Close apps you're not using.`
-      return `Memory is at ${pct.toFixed(0)}% — ${pct < 70 ? 'healthy' : 'a bit busy'} for everyday use.`
-    }
-    return pct >= 85
-      ? `RAM is high at ${pct.toFixed(0)}%. Close background apps.`
-      : `RAM is ${pct.toFixed(0)}% — looks fine.`
+    if (pct >= 85) return `Memory is quite full at ${pct.toFixed(0)}% — the PC may feel slow. Close apps you're not using.`
+    return `Memory is at ${pct.toFixed(0)}% — ${pct < 70 ? 'healthy' : 'a bit busy'} for everyday use.`
   }
   if (/\b(cpu|processor)\b/.test(s)) {
-    return brit
-      ? `Processor is ${stats.cpu.toFixed(0)}% busy — ${stats.cpu > 80 ? 'something may be working hard in the background' : 'normal for light use'}.`
-      : `CPU at ${stats.cpu.toFixed(0)}%.`
+    return `Processor is ${stats.cpu.toFixed(0)}% busy — ${stats.cpu > 80 ? 'something may be working hard in the background' : 'normal for light use'}.`
   }
   if (/\b(disk|storage|drive)\b/.test(s)) {
-    return brit
-      ? `Disk is ${stats.disk.toFixed(0)}% full — ${stats.disk > 85 ? 'getting tight, worth clearing files' : 'plenty of room'}.`
-      : `Disk ${stats.disk.toFixed(0)}% used.`
+    return `Disk is ${stats.disk.toFixed(0)}% full — ${stats.disk > 85 ? 'getting tight, worth clearing files' : 'plenty of room'}.`
   }
   if (/\b(vpn)\b/.test(s)) {
     const n = stats.network
-    if (n?.vpnActive) {
-      return brit
-        ? `Yes — VPN is on (${n.vpnName}), tunnel IP ${n.vpnIp}.`
-        : `VPN active: ${n.vpnName}, IP ${n.vpnIp}.`
-    }
-    return brit ? 'No VPN detected — direct connection.' : `No VPN. Public IP ${n?.publicIp ?? 'unknown'}.`
+    if (n?.vpnActive) return `Yes — VPN is on (${n.vpnName}), tunnel IP ${n.vpnIp}.`
+    return 'No VPN detected — direct connection.'
   }
-  if (/\b(status|stats|summary|screen|everything)\b/.test(s)) {
-    return brit
-      ? `Quick look: CPU ${stats.cpu.toFixed(0)}%, memory ${stats.ram.toFixed(0)}%, disk ${stats.disk.toFixed(0)}%. ${stats.network?.vpnActive ? 'VPN on.' : 'No VPN.'}`
-      : `Status: CPU ${stats.cpu.toFixed(0)}%, RAM ${stats.ram.toFixed(0)}%, disk ${stats.disk.toFixed(0)}%. ${stats.network?.vpnActive ? 'VPN on' : 'VPN off'}.`
+  if (/\b(status|stats|summary)\b/.test(s)) {
+    return `Quick look: CPU ${stats.cpu.toFixed(0)}%, memory ${stats.ram.toFixed(0)}%, disk ${stats.disk.toFixed(0)}%. ${stats.network?.vpnActive ? 'VPN on.' : 'No VPN.'}`
   }
   return null
 }
 
-function needsWeb(q: string): boolean {
-  return WEB_HINT.test(q) && !STATS_HINT.test(q)
+function greeting(): string {
+  return "Hello — I'm VILL. Chat about anything you like. I can also read what's on your screen, and if you speak, I can look things up on the web."
 }
 
 async function searchWeb(query: string): Promise<string> {
@@ -132,79 +111,215 @@ async function ollamaChat(messages: { role: string; content: string }[]): Promis
   }
 }
 
-const SYSTEM: Record<PersonaId, string> = {
-  jarvis:
-    'You are Jarvis, DVielle co-pilot. US English. Plain English for non-technical users. Use LIVE STATS only.',
-  kt: 'You are KT, DVielle assistant. British English. Warm, simple explanations. Use LIVE STATS only.',
+const SYSTEM = [
+  `You are ${AGENT}, the voice of DVielle (Deep Vigilance).`,
+  'Speak in natural British English (UK spelling and phrasing). Warm, clear, never robotic or stiff.',
+  'The user may talk about ANYTHING — life, ideas, jokes, tech help, the PC, or random questions.',
+  'Do NOT refuse ordinary conversation or force them back to system monitoring.',
+  'When they ask about the PC/screen, use LIVE STATS and explain in plain English.',
+  'Keep replies concise (2–5 sentences) unless they ask for detail.',
+  'Never mention Jarvis, KT, or other assistant names — you are only VILL.',
+].join(' ')
+
+function openFallback(q: string, webNote: string): string {
+  if (/\b(hello|hi|hey|good (morning|afternoon|evening))\b/i.test(q)) return greeting()
+  if (webNote) {
+    return `Here's what I found: ${webNote.slice(0, 420)}${webNote.length > 420 ? '…' : ''}`
+  }
+  return "I'm listening — ask me anything. I can chat, read your screen stats, and look things up when you speak."
 }
 
 export async function askChat(
   question: string,
-  persona: PersonaId,
   stats: ChatStats,
   fromVoice: boolean,
 ): Promise<ChatReply> {
   const q = question.trim()
   if (!q) {
-    return { text: "I didn't catch that.", persona, usedWeb: false, usedLlm: false, usedLocal: false }
+    return { text: "I didn't catch that — try again.", usedWeb: false, usedLlm: false, usedLocal: false }
+  }
+
+  if (/\b(hello|hi|hey)\b/i.test(q) && q.split(/\s+/).length <= 4) {
+    return { text: greeting(), usedWeb: false, usedLlm: false, usedLocal: true }
   }
 
   let webNote = ''
   let usedWeb = false
-  if (fromVoice && needsWeb(q)) {
+  if (fromVoice && (WEB_HINT.test(q) || q.endsWith('?'))) {
     webNote = await searchWeb(q)
     usedWeb = Boolean(webNote)
   }
 
-  const local = localAnswer(q, stats, persona)
-  if (local && !usedWeb) {
-    return { text: local, persona, usedWeb, usedLlm: false, usedLocal: true }
+  const statsHit = statsAnswer(q, stats)
+  if (statsHit && !usedWeb && STATS_ONLY.test(q)) {
+    return { text: statsHit, usedWeb, usedLlm: false, usedLocal: true }
   }
 
   const statsBlock = formatStatsBlock(stats)
-  const extra = webNote ? `\n\nWEB RESULTS:\n${webNote}` : ''
+  const extra = webNote ? `\n\nWEB RESULTS (from voice lookup):\n${webNote}` : ''
   const llm = await ollamaChat([
-    { role: 'system', content: `${SYSTEM[persona]}\n\n${statsBlock}${extra}` },
+    { role: 'system', content: `${SYSTEM}\n\n${statsBlock}${extra}` },
     { role: 'user', content: q },
   ])
   if (llm) {
-    return { text: llm, persona, usedWeb, usedLlm: true, usedLocal: false }
+    return { text: llm, usedWeb, usedLlm: true, usedLocal: false }
   }
 
-  const fallback =
-    local ||
-    (persona === 'kt'
-      ? "I'm not sure. Try asking about CPU, memory, VPN, or disk — or use the mic for web questions."
-      : 'Unclear on that. Ask about CPU, RAM, VPN, or disk — mic enables web lookup.')
+  if (statsHit) {
+    return { text: statsHit, usedWeb, usedLlm: false, usedLocal: true }
+  }
 
-  return { text: fallback, persona, usedWeb, usedLlm: false, usedLocal: Boolean(local) }
+  return {
+    text: openFallback(q, webNote),
+    usedWeb,
+    usedLlm: false,
+    usedLocal: false,
+  }
+}
+
+type Recog = {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  maxAlternatives: number
+  onresult: ((e: SpeechRecognitionEventLike) => void) | null
+  onerror: ((e: { error?: string }) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+  abort: () => void
+}
+
+type SpeechRecognitionEventLike = {
+  results: ArrayLike<ArrayLike<{ transcript: string; confidence: number }> & { isFinal?: boolean }>
+}
+
+function getSR(): (new () => Recog) | null {
+  const w = window as unknown as {
+    SpeechRecognition?: new () => Recog
+    webkitSpeechRecognition?: new () => Recog
+  }
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null
 }
 
 export function listenOnce(): Promise<string> {
   return new Promise((resolve, reject) => {
-    type SpeechRecognitionCtor = new () => {
-      lang: string
-      interimResults: boolean
-      maxAlternatives: number
-      onresult: ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null
-      onerror: (() => void) | null
-      start: () => void
-    }
-    const w = window as unknown as {
-      SpeechRecognition?: SpeechRecognitionCtor
-      webkitSpeechRecognition?: SpeechRecognitionCtor
-    }
-    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
+    const SR = getSR()
     if (!SR) {
       reject(new Error('Speech recognition not supported in this browser'))
       return
     }
     const rec = new SR()
-    rec.lang = 'en-US'
+    rec.lang = 'en-GB'
+    rec.continuous = false
     rec.interimResults = false
     rec.maxAlternatives = 1
     rec.onresult = (e) => resolve(e.results[0][0].transcript)
     rec.onerror = () => reject(new Error('Could not hear you'))
+    rec.onend = null
     rec.start()
   })
 }
+
+/** Continuous listen — UK English. Mic always on. */
+export function startContinuousListen(
+  onUtterance: (text: string) => void,
+  onState?: (state: 'listening' | 'idle' | 'error', detail?: string) => void,
+): { stop: () => void } {
+  const SR = getSR()
+  let stopped = false
+  let rec: Recog | null = null
+
+  const start = () => {
+    if (stopped) return
+    const Ctor = getSR()
+    if (!Ctor) {
+      onState?.('error', 'Speech recognition not supported')
+      return
+    }
+    rec = new Ctor()
+    rec.lang = 'en-GB'
+    rec.continuous = true
+    rec.interimResults = true
+    rec.maxAlternatives = 1
+    let handled = 0
+    rec.onresult = (e) => {
+      for (let i = handled; i < e.results.length; i++) {
+        const row = e.results[i] as ArrayLike<{ transcript: string }> & { isFinal?: boolean }
+        if (!row.isFinal) continue
+        const t = row[0]?.transcript?.trim()
+        if (t) onUtterance(t)
+        handled = i + 1
+      }
+    }
+    rec.onerror = (ev) => {
+      if (stopped) return
+      const err = ev.error || 'error'
+      if (err === 'aborted' || err === 'no-speech' || err === 'network' || err === 'audio-capture') {
+        setTimeout(() => {
+          if (!stopped) {
+            try {
+              start()
+            } catch {
+              /* retry via onend */
+            }
+          }
+        }, 250)
+        return
+      }
+      onState?.('error', err)
+      setTimeout(() => {
+        if (!stopped) start()
+      }, 800)
+    }
+    rec.onend = () => {
+      if (stopped) {
+        onState?.('idle')
+        return
+      }
+      setTimeout(() => {
+        if (stopped) return
+        try {
+          start()
+        } catch {
+          setTimeout(start, 400)
+        }
+      }, 120)
+    }
+    try {
+      rec.start()
+      onState?.('listening')
+    } catch {
+      setTimeout(start, 500)
+    }
+  }
+
+  if (!SR) {
+    onState?.('error', 'Speech recognition not supported')
+    return { stop: () => undefined }
+  }
+
+  start()
+
+  return {
+    stop: () => {
+      stopped = true
+      try {
+        rec?.abort()
+      } catch {
+        try {
+          rec?.stop()
+        } catch {
+          /* ignore */
+        }
+      }
+      onState?.('idle')
+    },
+  }
+}
+
+export function speechSupported(): boolean {
+  return Boolean(getSR())
+}
+
+export { AGENT }

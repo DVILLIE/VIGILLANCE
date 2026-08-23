@@ -32,11 +32,28 @@ domains:
   - azure.com
   - github.com
   - githubusercontent.com
+  - cloudflare.com
+  - cloudflare.net
+  - akamaitechnologies.com
+  - akamai.net
+  - amazonaws.com
+  - cloudfront.net
+  - google.com
+  - googleusercontent.com
+  - gstatic.com
+  - 1e100.net
 
-# Windows Update / critical Microsoft endpoints — never block
+
+# Windows Update / delivery / CRL — never block (substring match in guard)
 never_block_domains:
   - download.windowsupdate.com
   - update.microsoft.com
   - windowsupdate.com
   - ctldl.windowsupdate.com
   - fe2cr.update.microsoft.com
+  - delivery.mp.microsoft.com
+  - fe3cr.delivery.mp.microsoft.com
+  - dl.delivery.mp.microsoft.com
+  - wns.windows.com
+  - login.live.com
+  - login.microsoftonline.com

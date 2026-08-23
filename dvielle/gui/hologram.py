@@ -26,10 +26,10 @@ class HologramRing(ctk.CTkFrame):
             bd=0,
         )
         self.canvas.pack()
-        self._draw()
+        self._redraw_ring()
         self._animate()
 
-    def _draw(self) -> None:
+    def _redraw_ring(self) -> None:
         self.canvas.delete("all")
         cx = cy = self.size // 2
         r_outer = self.size // 2 - 4
@@ -63,5 +63,5 @@ class HologramRing(ctk.CTkFrame):
 
     def _animate(self) -> None:
         self._angle = (self._angle + 4) % 360
-        self._draw()
+        self._redraw_ring()
         self.after(50, self._animate)

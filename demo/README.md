@@ -1,43 +1,28 @@
-# DVielle Demo UX
+# DVielle Demo UX — VILL
 
-Interactive **Jarvis-style** preview of the DVielle interface. Uses **simulated data** — no Windows agent or Python required.
+Interactive **VILL** preview of the DVielle interface. Uses **simulated data** — no Windows agent or Python required.
 
 > **Important:** `http://127.0.0.1:43123` only works on the machine where you start the demo.
-> Opening that URL on your laptop while the agent runs in the cloud will show **ERR_CONNECTION_REFUSED**.
 
-## Run on your Windows laptop
-
-1. Pull / copy this repo onto the laptop
-2. Double-click:
+## Run
 
 ```
 demo\Start-Demo.bat
 ```
 
-Or in PowerShell / CMD:
-
-```bat
-cd demo
-npm install
-npm run dev
-```
-
-3. Then open **http://127.0.0.1:43123** in Chrome (same PC)
-
-Requires [Node.js 20+](https://nodejs.org) (LTS).
+Then open **http://127.0.0.1:43123** (same PC). Requires [Node.js 20+](https://nodejs.org).
 
 ## What's in the demo
 
 - Stats live on launch · **START AGENT** for vigilance only
-- Network / VPN panel · vitals · intelligence feed · quick close
-- **Chat (Jarvis US / KT British)** · work log report · tray quiet mode
-- Replay greeting with browser voice
+- Always-open chat with hologram ring (blue = listening, yellow = speaking)
+- **VILL** — single UK-accent voice (Jarvis/KT removed)
+- Mic always on · talk about anything
+- Voice queries can use free DuckDuckGo lookup
 
-## Build for production
+## Build
 
 ```bash
 npm run build
 npm run preview
 ```
-
-This demo is the UX reference for the full `C:\DVILLIE` desktop agent.

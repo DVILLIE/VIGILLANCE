@@ -1,4 +1,4 @@
-"""SQLite persistence for Fortoro Agent."""
+"""SQLite persistence for DVielle Agent."""
 
 from __future__ import annotations
 
@@ -329,3 +329,71 @@ class AgentStore:
                     (limit,),
                 ).fetchall()
             )
+
+    def recent_events(
+        self,
+        modules: Iterable[str] | None = None,
+        limit: int = 100,
+    ) -> list[sqlite3.Row]:
+        with self._conn() as conn:
+            if modules:
+                placeholders = ",".join("?" for _ in modules)
+                return list(
+                    conn.execute(
+                        f"""
+                        SELECT id, ts, module, severity, message, details
+                        FROM events
+                        WHERE module IN ({placeholders})
+                        ORDER BY id DESC LIMIT ?
+                        """,
+                        (*list(modules), limit),
+                    ).fetchall()
+                )
+            return list(
+                conn.execute(
+                    """
+                    SELECT id, ts, module, severity, message, details
+                    FROM events
+                    ORDER BY id DESC LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+            )
+
+    def recent_failed_logons(self, limit: int = 50) -> list[sqlite3.Row]:
+        with self._conn() as conn:
+            return list(
+                conn.execute(
+                    """
+                    SELECT id, ts, event_id, source_ip, username, workstation, count
+                    FROM failed_logons
+                    ORDER BY id DESC LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+            )
+
+    def attack_summary(self) -> dict[str, Any]:
+        with self._conn() as conn:
+            fail = conn.execute("SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons").fetchone()
+            blocked = conn.execute(
+                "SELECT COUNT(*) AS n FROM blocked_ips WHERE active = 1"
+            ).fetchone()
+            browser_warn = conn.execute(
+                """
+                SELECT COUNT(*) AS n FROM events
+                WHERE module = 'browser_guard' AND severity IN ('WARNING', 'CRITICAL')
+                """
+            ).fetchone()
+            attack_warn = conn.execute(
+                """
+                SELECT COUNT(*) AS n FROM events
+                WHERE module = 'attacks' AND severity IN ('WARNING', 'CRITICAL')
+                """
+            ).fetchone()
+        return {
+            "failed_logon_attempts": int(fail["n"] if fail else 0),
+            "blocked_ips": int(blocked["n"] if blocked else 0),
+            "browser_threat_events": int(browser_warn["n"] if browser_warn else 0),
+            "attack_events": int(attack_warn["n"] if attack_warn else 0),
+        }

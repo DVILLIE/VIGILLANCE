@@ -12,7 +12,7 @@ from typing import Any
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
-logger = logging.getLogger("fortoro.attacks")
+logger = logging.getLogger("dvielle.attacks")
 
 # Track last processed record to avoid duplicates across polls
 _last_check: datetime | None = None
@@ -102,7 +102,7 @@ def _block_ip_powershell(ip: str, scripts_dir: Path) -> bool:
                 "-IpAddress",
                 ip,
                 "-Reason",
-                "FortoroAgent brute-force auto-block",
+                "DVielle brute-force auto-block",
             ],
             check=True,
             capture_output=True,

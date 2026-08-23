@@ -1,4 +1,4 @@
-"""Jarvis-inspired futuristic theme for DVielle."""
+"""Jarvis-inspired futuristic theme for DVielle — larger readable type."""
 
 # Core palette — holographic cyan on deep space black
 BG_DARK = "#050810"
@@ -13,11 +13,15 @@ TEXT_DIM = "#6b8fa3"
 SUCCESS = "#00ff9d"
 WARNING = "#ffb020"
 DANGER = "#ff3366"
-FONT_DISPLAY = ("Segoe UI", 28, "bold")
-FONT_TITLE = ("Segoe UI", 13, "bold")
-FONT_BODY = ("Segoe UI", 11)
-FONT_MONO = ("Consolas", 10)
-FONT_TAGLINE = ("Segoe UI", 9)
+
+# Font scale — tuned for readability (glasses-friendly)
+FONT_DISPLAY = ("Segoe UI", 34, "bold")
+FONT_TITLE = ("Segoe UI", 18, "bold")
+FONT_BODY = ("Segoe UI", 15)
+FONT_MONO = ("Consolas", 14)
+FONT_TAGLINE = ("Segoe UI", 13)
+FONT_ITALIC = ("Segoe UI", 13, "italic")
+FONT_STATUS_DOT = ("Segoe UI", 28)
 
 CTK_THEME = {
     "CTk": {"fg_color": BG_DARK},
@@ -29,6 +33,8 @@ CTK_THEME = {
         "text_color": TEXT,
         "border_color": ACCENT,
         "border_width": 1,
+        "font": FONT_BODY,
+        "height": 36,
     },
     "CTkProgressBar": {
         "progress_color": ACCENT,

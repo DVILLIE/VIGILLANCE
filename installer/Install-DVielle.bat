@@ -1,8 +1,8 @@
 @echo off
-title DVielle Installer — DEEP VIGILLANCE
+title DVielle Installer - DEEP VIGILLANCE
 echo.
 echo  ============================================
-echo    DVIELLE — DEEP VIGILLANCE
+echo    DVIELLE - DEEP VIGILLANCE
 echo    Installer requires Administrator approval
 echo  ============================================
 echo.

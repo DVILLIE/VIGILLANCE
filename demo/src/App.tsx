@@ -7,9 +7,8 @@ import { QuickClose } from './components/QuickClose'
 import { VitalBar } from './components/VitalBar'
 import { WorkLogModal } from './components/WorkLogModal'
 import { ChatPanel } from './components/ChatPanel'
-import { flushBootVoice } from './lib/jarvisVoice'
+import { flushBootVoice } from './lib/villVoice'
 import { useDemoSimulation } from './hooks/useDemoSimulation'
-import { useState } from 'react'
 import type { ChatStats } from './lib/chatAssistant'
 
 function Panel({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
@@ -25,7 +24,6 @@ function Panel({ title, children, className = '' }: { title: string; children: R
 
 export default function App() {
   const demo = useDemoSimulation()
-  const [chatOpen, setChatOpen] = useState(false)
 
   const chatStats: ChatStats = {
     agentStarted: demo.agentStarted,
@@ -68,7 +66,7 @@ export default function App() {
     >
       <div className="bg-[#00e5ff]/10 border-b border-[#00e5ff]/30 px-4 py-1.5 text-center">
         <span className="font-mono text-[10px] tracking-widest text-[#00e5ff] uppercase">
-          Demo UX — stats live on launch · START activates vigilance agent only
+          Demo · chat always open · mic on · VILL · UK English
         </span>
       </div>
 
@@ -100,7 +98,7 @@ export default function App() {
 
       <header className="flex items-center justify-between px-6 py-4 border-b border-[#1a3a5c] bg-[#0a1220]/95">
         <div className="flex items-center gap-4">
-          <HologramRing active={demo.vigilance && demo.agentStarted} />
+          <HologramRing active={demo.vigilance && demo.agentStarted} mode={demo.agentStarted && demo.vigilance ? 'listening' : 'idle'} />
           <div>
             <h1 className="font-display text-2xl font-black tracking-[0.15em] text-[#00fff7]">DVIELLE</h1>
             <p className="text-[10px] tracking-[0.35em] text-[#6b8fa3] uppercase">Deep Vigilance</p>
@@ -119,43 +117,42 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 p-4 min-h-0">
-        <Panel title="NETWORK & VPN">
-          <NetworkPanel network={demo.network} loading={demo.networkLoading} />
-        </Panel>
+      <div className="flex-1 flex min-h-0 gap-4 p-4">
+        <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 min-h-0 min-w-0">
+          <Panel title="NETWORK & VPN">
+            <NetworkPanel network={demo.network} loading={demo.networkLoading} />
+          </Panel>
 
-        <Panel title="SYSTEM VITALS">
-          <VitalBar label="CPU" value={demo.cpu} />
-          <VitalBar label="RAM" value={demo.ram} />
-          <VitalBar label="DISK" value={demo.disk} />
-          <p className="font-mono text-[10px] text-[#6b8fa3] mb-3">
-            Agent cycles: {demo.agentStarted ? demo.cycles : '—'}
-          </p>
-          <div className="border-t border-[#1a3a5c] pt-3">
-            <h3 className="font-display text-[10px] tracking-wider text-[#ffb020] mb-2">QUICK CLOSE</h3>
-            <QuickClose apps={demo.closeable} onClose={demo.closeApp} />
-          </div>
-        </Panel>
+          <Panel title="SYSTEM VITALS">
+            <VitalBar label="CPU" value={demo.cpu} />
+            <VitalBar label="RAM" value={demo.ram} />
+            <VitalBar label="DISK" value={demo.disk} />
+            <p className="font-mono text-[10px] text-[#6b8fa3] mb-3">
+              Agent cycles: {demo.agentStarted ? demo.cycles : '—'}
+            </p>
+            <div className="border-t border-[#1a3a5c] pt-3">
+              <h3 className="font-display text-[10px] tracking-wider text-[#ffb020] mb-2">QUICK CLOSE</h3>
+              <QuickClose apps={demo.closeable} onClose={demo.closeApp} />
+            </div>
+          </Panel>
 
-        <Panel title="INTELLIGENCE FEED" className="xl:col-span-1">
-          <IntelligenceFeed events={demo.feed} />
-        </Panel>
+          <Panel title="INTELLIGENCE FEED" className="xl:col-span-1">
+            <IntelligenceFeed events={demo.feed} />
+          </Panel>
 
-        <Panel title="PROTECTION MATRIX">
-          <ProtectionMatrix onReplayGreeting={demo.replayGreeting} speaking={demo.speaking} />
-        </Panel>
-      </main>
+          <Panel title="PROTECTION MATRIX" className="lg:col-span-2 xl:col-span-3">
+            <ProtectionMatrix onReplayGreeting={demo.replayGreeting} speaking={demo.speaking} />
+          </Panel>
+        </main>
+
+        <div className="w-full max-w-md shrink-0 min-h-0">
+          <ChatPanel stats={chatStats} />
+        </div>
+      </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-2 px-6 py-3 border-t border-[#1a3a5c] bg-[#0a1220]/95">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[10px] text-[#6b8fa3]">v1.3 DEMO · C:\DVILLIE</span>
-          <button
-            type="button"
-            onClick={() => setChatOpen(true)}
-            className="px-3 py-1.5 rounded border border-[#00e5ff]/50 bg-[#00e5ff]/15 text-[10px] text-[#00fff7] hover:bg-[#00e5ff]/25 tracking-wider"
-          >
-            💬 Chat (Jarvis / KT)
-          </button>
+          <span className="font-mono text-[10px] text-[#6b8fa3]">v1.4 DEMO · C:\DVILLIE · chat always open</span>
           <button
             type="button"
             onClick={demo.viewWorkLog}
@@ -181,7 +178,6 @@ export default function App() {
       </footer>
 
       {demo.showWorkLog && <WorkLogModal entries={demo.workLog} onClose={demo.closeWorkLog} />}
-      {chatOpen && <ChatPanel stats={chatStats} onClose={() => setChatOpen(false)} />}
     </div>
   )
 }

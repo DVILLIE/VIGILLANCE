@@ -2,7 +2,7 @@
 title DVielle Uninstaller
 echo.
 echo  ============================================
-echo    DVIELLE — Uninstall
+echo    DVIELLE - Uninstall
 echo    Administrator approval required
 echo  ============================================
 echo.

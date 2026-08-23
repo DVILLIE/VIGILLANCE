@@ -2,10 +2,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$IpAddress,
-    [string]$Reason = "Fortoro Agent block"
+    [string]$Reason = "DVielle auto-block"
 )
 
-$ruleName = "FortoroAgent-Block-$IpAddress"
+$ruleName = "DVielle-Block-$IpAddress"
 
 $existing = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
 if ($existing) {

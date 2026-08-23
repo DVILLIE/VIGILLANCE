@@ -23,7 +23,7 @@ class NetworkPanel(ctk.CTkFrame):
         for key, title in fields:
             row = ctk.CTkFrame(self, fg_color="transparent")
             row.pack(fill="x", padx=8, pady=2)
-            ctk.CTkLabel(row, text=title, font=T.FONT_TAGLINE, text_color=T.TEXT_DIM, width=90, anchor="w").pack(side="left")
+            ctk.CTkLabel(row, text=title, font=T.FONT_BODY, text_color=T.TEXT_DIM, width=110, anchor="w").pack(side="left")
             lbl = ctk.CTkLabel(row, text="—", font=T.FONT_MONO, text_color=T.TEXT, anchor="w")
             lbl.pack(side="left", fill="x", expand=True)
             self._labels[key] = lbl

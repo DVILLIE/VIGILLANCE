@@ -26,6 +26,7 @@ def _default_data_dir() -> Path:
             return Path(WINDOWS_DATA_DIR)
         base = Path(os.environ.get("PROGRAMDATA", "C:/ProgramData"))
         dvielle = base / DATA_DIR_NAME
+        # Legacy ProgramData path from pre-rebrand installs
         legacy = base / "FortoroAgent"
         if legacy.exists() and not dvielle.exists():
             return legacy

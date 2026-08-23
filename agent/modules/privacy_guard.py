@@ -15,7 +15,7 @@ if IS_WINDOWS:
 else:
     winreg = None  # type: ignore[assignment]
 
-logger = logging.getLogger("fortoro.privacy")
+logger = logging.getLogger("dvielle.privacy")
 
 
 @dataclass
@@ -46,6 +46,8 @@ def _privacy_checks() -> list[dict]:
             "hive": winreg.HKEY_LOCAL_MACHINE,
             "path": r"SOFTWARE\Policies\Microsoft\Windows\DataCollection",
             "value": "AllowTelemetry",
+            # Aspirational Security(0). Windows Home often floors at Required(1).
+            # See docs/TELEMETRY_AND_HOME.md — do not promise zero Microsoft traffic.
             "expected": 0,
         },
         {

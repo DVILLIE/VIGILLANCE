@@ -1,5 +1,5 @@
-# Fortoro Windows Agent — main configuration
-# Copy to %ProgramData%\FortoroAgent\config.yaml after install
+# DVielle — DEEP VIGILLANCE main configuration
+# Lives at C:\DVILLIE\config\config.yaml after install (data under C:\DVILLIE\data)
 
 agent:
   name: DVielle
@@ -7,15 +7,15 @@ agent:
   interval_seconds: 60          # poll interval (30–300 recommended)
   process_priority: below_normal # idle | below_normal | normal
   baseline_days: 7              # learning period before auto-actions allowed
-  data_dir: null                # null = auto (%ProgramData%\FortoroAgent)
+  data_dir: null                # null = auto (C:\DVILLIE\data)
 
 modes:
   monitor_only: true            # v1 default: log only, no destructive actions
   enable_toasts: true           # Windows toast on critical alerts (Win10+)
   enable_auto_block: false      # set true after baseline + testing
-  enable_ram_trim: false        # set true in v2 after testing
+  enable_ram_trim: false        # rare; standby flush hurts more than it helps
   enable_disk_cleanup: false    # set true in v2; runs only when disk < threshold
-  enable_microsoft_guard: true  # block Microsoft telemetry uploads (after baseline)
+  enable_microsoft_guard: true  # reduce telemetry; never block Windows Update
 
 thresholds:
   ram_critical_percent: 90      # sustained RAM % before trim (if enabled)
@@ -30,15 +30,18 @@ resource_advisor:
   toast_cooldown_seconds: 300   # min seconds between same-type popups (5 min)
 
 microsoft_guard:
-  strict_mode: true               # aggressively stop telemetry uploads
+  strict_mode: true               # reduce telemetry uploads (not "zero Microsoft")
   auto_remediate_registry: true   # re-apply privacy registry if Microsoft resets it
-  block_telemetry_firewall: true  # outbound firewall rules for telemetry domains
+  block_telemetry_firewall: true  # outbound firewall for telemetry programs/domains
   block_telemetry_connections: true  # terminate active telemetry uploads
-  disable_telemetry_services: true   # stop DiagTrack etc.
+  disable_telemetry_services: true   # stop DiagTrack etc. when safe
+  # Never block these (Windows Update / delivery / certificates)
+  preserve_windows_update: true
 
 modules:
   connections: true
   attacks: true
+  browser_guard: true          # watch for stealers/adware while browsing (no keylogging)
   ram: true
   disk: true
   security: true
@@ -46,15 +49,22 @@ modules:
   resource_advisor: true
   microsoft_guard: true
   network_info: true
-  usb_watch: false
-  dns_cache: false
+  # Stubs removed from v1 — flags reserved for future
+  # usb_watch: false
+  # dns_cache: false
 
-chat:
+browser_guard:
   enabled: true
-  ollama_model: llama3.2          # free local model — install Ollama + pull model
-  # Optional: set GROQ_API_KEY env for free cloud fallback (groq.com)
-  voice_web_only: true             # internet lookup only for microphone questions
+  check_ad_sidecars: false   # optional; reverse-DNS of peers is slow
+  # Defensive only: process/path heuristics. Never captures passwords or keystrokes.
 
+logging:
   level: INFO
   max_file_mb: 10
   backup_count: 3
+
+# Chat / VILL deferred until core guardian is solid
+chat:
+  enabled: false
+  ollama_model: llama3.2
+  voice_web_only: true

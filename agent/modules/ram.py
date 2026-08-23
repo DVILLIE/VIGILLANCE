@@ -13,7 +13,7 @@ import psutil
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
-logger = logging.getLogger("fortoro.ram")
+logger = logging.getLogger("dvielle.ram")
 
 _consecutive_high = 0
 

@@ -6,11 +6,21 @@ import threading
 from typing import Callable
 
 from dvielle import APP_NAME, TAGLINE
+from dvielle.brand import LOGO_64_PNG, LOGO_PNG, brand_png
 
 _tray_icon = None
 
 
 def _create_icon_image():
+    try:
+        from PIL import Image
+
+        for path in (LOGO_64_PNG, brand_png(64), LOGO_PNG):
+            if path.exists():
+                img = Image.open(path).convert("RGBA")
+                return img.resize((64, 64), Image.Resampling.NEAREST)
+    except Exception:
+        pass
     try:
         from PIL import Image, ImageDraw
 

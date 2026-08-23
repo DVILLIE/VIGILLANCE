@@ -1,112 +1,69 @@
 # DVielle — DEEP VIGILLANCE
 
-**Laptop-only Windows agent.** Everything runs on your PC under `C:\DVILLIE`.  
-No cloud server is required to use DVielle after install.
-
-> Cloud Agent chats only *write* the code in git. They do **not** install files onto your C: drive.  
-> You must pull the repo and run the installer **on the laptop**.
+**Laptop-only Windows guardian.** Everything runs under `C:\DVILLIE`.  
+Monitor-first: connections, failed logons, RAM/CPU/disk, Defender/firewall health, Microsoft telemetry drift. Not a cloud bot; chat/VILL is deferred.
 
 ---
 
-## Install on your laptop (creates `C:\DVILLIE`)
-
-### 0. Prerequisites on the laptop
+## Prerequisites
 
 - Windows 10/11
-- [Python 3.12+](https://www.python.org/downloads/) — tick **Add python.exe to PATH**
-- [Git](https://git-scm.com/download/win) (or download the ZIP from Cursor / GitHub)
-- Optional for chat AI: [Ollama](https://ollama.com) → then `ollama pull llama3.2`
-- Optional for web demo only: [Node.js LTS](https://nodejs.org)
+- **Python 3.12** ([python.org](https://www.python.org/downloads/) — tick Add to PATH)
+- Admin once for install / optional harden
 
-### 1. Put the project on the laptop
+## Install
 
-**In Cursor Desktop (recommended):**
+1. Open this repo on the laptop (Cursor Desktop or clone).
+2. File Explorer → `installer` → right-click **`Install-DVielle.bat`** → Run as administrator.
 
-1. Open this repository on your machine (not a Cloud Agent chat)
-2. Checkout branch: `cursor/dvielle-demo-ux-1fb4`
-3. Note the folder path shown in Explorer (e.g. `C:\Users\You\...\tmp-fc09ac10e8480d90`)
-
-**Or clone with Git (CMD / PowerShell — not the Node.js window):**
-
-```bat
-cd %USERPROFILE%\Documents
-git clone https://github.com/DVILLIE/VIGILLANCE.git
-cd VIGILLANCE
-git checkout cursor/dvielle-demo-ux-1fb4
-```
-
-### 2. Install → creates `C:\DVILLIE`
-
-In File Explorer open the project folder → `installer` → right‑click:
-
-```
-Install-DVielle.bat
-```
-
-→ **Run as administrator** → Yes on UAC.
-
-That copies everything to:
+Creates:
 
 ```
 C:\DVILLIE\
+  agent\     config\     data\     scripts\     installer\
 ```
 
-Desktop shortcut **DVielle** will appear. Launch from there.
+Registers scheduled tasks:
 
-### 3. Daily use (all local)
+| Task | Role |
+|------|------|
+| **DVielle** | Headless `pythonw -m agent.main` at logon (core guardian) |
+| **DVielleGUI** | Optional GUI (`python -m dvielle`) |
 
-| Action | Where |
-|--------|--------|
-| Open GUI | Desktop shortcut or `python -m dvielle` from `C:\DVILLIE` |
-| Chat Jarvis / KT | Footer **💬 Chat** — voices via Windows TTS |
-| Free AI brain | Local Ollama (`llama3.2`) — offline capable for stats |
-| Web lookup | Mic questions only — uses DuckDuckGo from **your** PC |
-| Uninstall | `C:\DVILLIE\installer\Uninstall-DVielle.bat` |
+Also enables **logon-failure audit** so Event 4625 feeds the attacks module.
 
----
+## Daily use
 
-## Web demo (also local — optional)
+| Action | How |
+|--------|-----|
+| Headless agent | Auto at logon, or `py -3.12 -m agent.main` from `C:\DVILLIE` |
+| One cycle | `py -3.12 -m agent.main --once` |
+| Optional GUI | Desktop shortcut or `py -3.12 -m dvielle` |
+| Harden once | Admin: `scripts\harden-once.ps1` (restore point first) |
+| Uninstall | `installer\Uninstall-DVielle.bat` |
 
-Only if you want the browser UI without the full agent:
+## Honest limits
+
+- We **reduce and detect** Microsoft data use — we do **not** claim 100% anti-spy.
+- On **Windows Home**, diagnostic data cannot truly reach “Security (0)”; lowest real floor is **Required**.
+- Windows Update / delivery / certificates are **never** blocked by default.
+- No auto-block / auto-trim on day one (7-day baseline + config flags).
+
+See [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) and [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md).
+
+## Dev checks
 
 ```bat
-cd <project>\demo
-Start-Demo.bat
+py -3.12 -m pip install -r requirements.txt
+py -3.12 scripts\smoke_test.py
+py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py -q
 ```
 
-Then open **http://127.0.0.1:43123** on **that same laptop**.  
-Do **not** open that URL hoping a cloud machine is serving it — it will refuse.
+## Docs
 
----
-
-## What will never appear until you install
-
-| Path | When it appears |
-|------|-----------------|
-| `C:\DVILLIE` | After `Install-DVielle.bat` on the laptop |
-| Desktop shortcut | Same install |
-| Agent database / logs | Under `C:\DVILLIE\data` after first run |
-
----
-
-## Features (once installed)
-
-| Feature | Description |
-|---------|-------------|
-| Stats on launch | Network, CPU, RAM, disk live immediately |
-| START AGENT | Begins background vigilance |
-| Quiet tray | Popups only on CRITICAL when minimized |
-| Work log | View / Clear chronological OPEN→CLOSE report |
-| Chat | Jarvis (US male) · KT (British female) |
-| Voices | Windows SAPI — no cloud TTS |
-
-## Privacy hardening (optional, Admin)
-
-```powershell
-cd C:\DVILLIE
-powershell -ExecutionPolicy Bypass -File scripts\harden-once.ps1
-```
-
-## License
-
-MIT
+| Doc | Purpose |
+|-----|---------|
+| [docs/DECISIONS.md](docs/DECISIONS.md) | v1 product defaults |
+| [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
+| [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |
+| [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md) | Why chat/demo waits |

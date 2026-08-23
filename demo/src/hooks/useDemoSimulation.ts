@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { primeJarvisVoice, queueBootVoice, randomJarvisGreeting, speakJarvis, flushBootVoice } from '../lib/jarvisVoice'
+import { primeVillVoice, queueBootVoice, randomVillGreeting, speakVill, flushBootVoice } from '../lib/villVoice'
 
 export interface NetworkInfo {
   localIp: string
@@ -140,11 +140,11 @@ export function useDemoSimulation() {
   const speakTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const playVoice = useCallback(async (text: string, ms = 3500): Promise<boolean> => {
-    primeJarvisVoice()
+    primeVillVoice()
     await flushBootVoice()
     setSpeaking(true)
     if (speakTimer.current) clearTimeout(speakTimer.current)
-    const ok = await speakJarvis(text)
+    const ok = await speakVill(text)
     speakTimer.current = setTimeout(() => setSpeaking(false), ok ? ms : 1200)
     return ok
   }, [])
@@ -185,11 +185,11 @@ export function useDemoSimulation() {
     return info
   }, [])
 
-  // Stats always live on launch + Jarvis speaks on open
+  // Stats always live on launch + VILL speaks on open
   useEffect(() => {
     if (bootLogged.current) return
     bootLogged.current = true
-    primeJarvisVoice()
+    primeVillVoice()
     const openLine = 'Good to see you. DVielle online. Stats monitoring active.'
     appendWorkLog('OPEN', 'DVielle interface launched — stats monitoring active')
     setGreeting(openLine)
@@ -284,7 +284,7 @@ export function useDemoSimulation() {
   )
 
   const replayGreeting = useCallback(() => {
-    const text = randomJarvisGreeting()
+    const text = randomVillGreeting()
     setGreeting(text)
     void playVoice(text, 4000)
   }, [playVoice])

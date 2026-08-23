@@ -4,6 +4,8 @@ param([switch]$KeepData)
 $InstallDir = "C:\DVILLIE"
 $DataDir = "$InstallDir\data"
 $TaskName = "DVielle"
+$TaskNameGui = "DVielleGUI"
+$ShortcutName = "DVielle - Deep Vigilance"
 
 function Test-IsAdmin {
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -19,12 +21,16 @@ if (-not (Test-IsAdmin)) {
 Write-Host "Uninstalling DVielle from $InstallDir ..." -ForegroundColor Yellow
 
 Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName $TaskNameGui -Confirm:$false -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "FortoroAgent" -Confirm:$false -ErrorAction SilentlyContinue
 
 $startMenu = [Environment]::GetFolderPath("Programs")
 $desktop = [Environment]::GetFolderPath("Desktop")
-Remove-Item "$startMenu\DVielle — Deep Vigilance.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item "$startMenu\$ShortcutName.lnk" -Force -ErrorAction SilentlyContinue
 Remove-Item "$startMenu\Uninstall DVielle.lnk" -Force -ErrorAction SilentlyContinue
-Remove-Item "$desktop\DVielle — Deep Vigilance.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item "$desktop\$ShortcutName.lnk" -Force -ErrorAction SilentlyContinue
+# Legacy fancy-dash shortcut name
+Remove-Item "$startMenu\DVielle - Deep Vigilance.lnk" -Force -ErrorAction SilentlyContinue
 
 Remove-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DVielle" -Recurse -Force -ErrorAction SilentlyContinue
 
