@@ -98,8 +98,8 @@ Push-Location $InstallDir
 & $pythonExe -m pip install -r requirements.txt -q
 Pop-Location
 
-Write-Host "[4/9] Defender exclusions ..."
-try { Add-MpPreference -ExclusionPath $InstallDir -ErrorAction SilentlyContinue } catch {}
+Write-Host "[4/9] Defender note (no exclusions) ..."
+# Do NOT exclude C:\DVILLIE from Defender. A guardian must not weaken the OS security boundary.
 
 Write-Host "[5/9] Enabling logon-failure audit (Event 4625) ..."
 try {
