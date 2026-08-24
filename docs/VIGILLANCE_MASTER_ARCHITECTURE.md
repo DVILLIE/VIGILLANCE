@@ -84,14 +84,37 @@ SQLite today (`events`, `connections`, `failed_logons`, …) is the seed store; 
 
 Plus cross-cutting: **Policy/Response Engine**, **Evidence / Explainability**.
 
-### Adaptive observability scheduler (replace fixed 60s-everything)
+### Adaptive Nerve (scheduler) — pointer only
 
-| Mode | Behavior |
-|------|----------|
-| Normal | Light frequent health; adaptive network/process; event-driven security where possible |
-| Heavy user / AI workload | Shrink self-footprint; protect foreground; defer maintenance |
-| Idle | Deeper scans, inventory, storage analysis, attack-surface pass |
-| Critical security | Temporarily raise intensity |
+**Cadence authority:** [`VIGILLANCE_FUTURE_ARCHITECTURE.md` § Adaptive Nerve Plane](VIGILLANCE_FUTURE_ARCHITECTURE.md)  
+(event-driven · fast heartbeat · pulse · idle-deep · emergency; **per-collector**, not global).
+
+Do **not** redefine cadence tables here. Implementation and code review must conform to that section.
+
+---
+
+## 3a. Architecture Review Rules
+
+Binding for audits, PRs, and engineering passes:
+
+1. **Establish exact ref under review** (commit SHA, branch, or `main@date`).
+2. **Inspect current implementation first** before historical commits.
+3. **Compare implementation against binding architecture** (this doc + Future Architecture).
+4. **Validate configuration and installer behavior**, not only Python modules.
+5. **Check tests against intended behavior**, not only against current accidental behavior.
+6. **Use historical commits only for regression analysis** (*“Was X still present after Y?”*).
+7. **Label every historical conclusion explicitly:**
+   - `CURRENT` — verified against the named current ref / `main`
+   - `REGRESSION` — present in commit X; absent/present after commit Y
+   - `HISTORICAL` — older ref; **not** asserted against current `main`
+8. **Never recommend a rename merely for terminology cleanup.**
+9. **Prefer semantic migration over file churn** (change contracts first; rename when the replacement abstraction exists).
+10. **Treat Future Architecture § Adaptive Nerve as the cadence authority** — no global collector cadence; no literal “full collection every N seconds.”
+11. **Self-budget is a hard constraint** — designs that compete with the protected workload are rejected.
+12. **Docs may lead code**; undocumented contradiction is not allowed — either fix code or mark `STATUS: planned / gap`.
+13. **Every action ≥ Level 2** requires evidence, confidence, and rollback semantics.
+
+**Module naming example:** keep `agent/modules/microsoft_guard.py` until a Privacy Control Plane exists; treat it as a provider adapter under the new *contract*, then migrate behind `privacy_control` (or equivalent) when real.
 
 ---
 
@@ -115,7 +138,7 @@ Plus cross-cutting: **Policy/Response Engine**, **Evidence / Explainability**.
 | `connection_intel.py` | E Network | **MERGE** | Overlaps `connections.classify_remote`; fold into one Network Intelligence path. |
 | `network_info.py` | E + I | **KEEP** | VPN/public IP/DNS snapshot — topology context. |
 | `privacy_guard.py` | F Privacy | **REDESIGN** | Registry drift checks. Expand to category taxonomy (telemetry vs required service data vs ads) + verify/rollback. |
-| `microsoft_guard.py` | F + E | **REDESIGN** | Too “block/terminate” oriented. Reframe as Privacy Control Plane; preserve Update/Defender/CRL (already partly there). |
+| `microsoft_guard.py` | F + E | **REDESIGN** (keep filename) | Contract → Privacy Control Plane provider adapter. Soften block/terminate; preserve Update/Defender/CRL. Rename only after `privacy_control` exists. |
 | `attacks.py` | G Security | **KEEP + EXTEND** | 4625/4776 is authentication slice only. |
 | `security.py` | G Security | **KEEP + EXTEND** | Defender/firewall health — orchestrate, don’t replace. |
 | `browser_guard.py` | C + G (browser) | **KEEP + EXTEND** | Heuristic stealer/adware; no keylogging (correct). Needs extension/inventory later. |
@@ -208,9 +231,10 @@ Idle footprint target: very low CPU, bounded RAM, batched DB writes, sparse I/O.
 
 ### Phase 0 — Correct the thesis in-repo *(this document)*
 
-- Adopt this spec as review standard.  
-- Remove Defender install exclusion.  
-- Update `docs/DECISIONS.md` product framing.
+- Adopt this spec + Architecture Review Rules as review standard.  
+- Defender install exclusion: **resolved / verified on current main** (do not reintroduce).  
+- Update `docs/DECISIONS.md` product framing.  
+- Cadence: Future Architecture § Adaptive Nerve is sole authority.
 
 ### Phase 1 — Evidence + Memory Pressure + Adaptive tick
 
@@ -242,14 +266,17 @@ Idle footprint target: very low CPU, bounded RAM, batched DB writes, sparse I/O.
 
 ## 7. What code review must judge against
 
-When reviewing GitHub code, ask:
+Use **§3a Architecture Review Rules** first (ref label, CURRENT vs REGRESSION vs HISTORICAL).
+
+When reviewing code, also ask:
 
 1. Does this improve **observe/explain/score/confidence** — or only add another toast rule?  
 2. Does it respect **workload intent** (especially AI)?  
 3. Does it risk **false “Microsoft = evil”** or break Update/Defender/CRL?  
-4. Does it stay inside **self-budget**?  
+4. Does it stay inside **self-budget** and Future Architecture **Adaptive Nerve** cadence?  
 5. Is there an **evidence chain** for any action ≥ Level 2?  
-6. Is rollback / monitor-first preserved?
+6. Is rollback / monitor-first preserved?  
+7. Is any rename justified by a real abstraction migration — not terminology alone?
 
 ---
 

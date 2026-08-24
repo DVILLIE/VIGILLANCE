@@ -95,17 +95,63 @@ A continuously refreshed model:
 - Active **workload hypothesis** (AI/gaming/office/idle)
 - Self-budget (VIGILLANCE’s own CPU/RAM/wakeups)
 
-### 2. Adaptive Nerve Plane
-Replaces “every 60s run everything”:
+### 2. Adaptive Nerve Plane (cadence authority)
 
-| Rhythm | Cadence | Jobs |
-|--------|---------|------|
-| Heartbeat | 2–5s | Foreground, quick pressure, twin tick |
-| Pulse | 30–90s | Connections sample, advisor, privacy skim |
-| Deep | Idle only | Persistence graph, inventory, storage impact |
-| Spike | Event-driven | 4625 burst, Defender off, ransomware-like I/O |
+> **This section is the single source of truth for observation cadence.**  
+> Master Architecture and reviews must conform to it — do not duplicate cadence tables elsewhere.
 
-Self-throttles when twin says user is in **AI MAXIMUM** or **Gaming** profile.
+Replaces “every 60s run everything.”
+
+**Hard rule:** cadence applies to **each collector independently**, not to the entire agent as one global timer. A “heartbeat” is **not** permission to enumerate processes, connections, DNS, security, and SQLite on every tick.
+
+```text
+ADAPTIVE NERVE CADENCE
+
+EVENT-DRIVEN
+• Process creation/exit where available
+• Foreground/window changes
+• Security events (e.g. 4625 bursts)
+• Defender/security state changes
+• Critical resource spikes
+
+FAST HEARTBEAT
+• Cheap local pressure counters only
+• Foreground / workload hypothesis tick
+• VIGILLANCE self-budget check
+• Twin light update from already-held state
+  (no full process/connection enumeration,
+   no DNS storms, no batched SQLite write storms)
+
+PULSE
+• Network sampling
+• Process/resource correlation
+• Privacy skim
+• Advisor / contention scoring (bounded)
+
+IDLE-DEEP
+• Persistence graph
+• Storage analysis
+• Software inventory
+• Vulnerability assessment
+• Heavy diagnostics
+
+EMERGENCY
+• Temporarily increase observation only when a
+  high-confidence security or resource anomaly exists
+• Must still respect self-budget ceilings; intensity is selective, not “run everything”
+```
+
+| Rhythm | Intent | Forbidden by default |
+|--------|--------|----------------------|
+| Event-driven | React when Windows/reality changes | Polling the same signal on a fixed timer |
+| Fast heartbeat | Cheap counters + twin tick | Full inventory / connection scan / deep queries |
+| Pulse | Bounded correlation samples | Idle-deep work while user is under AI/gaming load |
+| Idle-deep | Heavy truth when machine is quiet | Running during MAXIMUM workload profiles |
+| Emergency | Selective intensity for anomalies | Global “scan everything every N seconds” |
+
+Self-throttles when twin says user is in **AI MAXIMUM** or **Gaming** profile: prefer event-driven + fast heartbeat; defer pulse extras and idle-deep.
+
+**Language for reviews:** prefer *adaptive / event-driven observation* over *“2–5 second collection.”*
 
 ### 3. Policy Cortex
 Implements the action ladder (0–5) with:
@@ -158,8 +204,9 @@ Later (optional native accel, not required day one): tiny Rust/C++ helper for ET
 **Hard self-budget (targets):**
 
 - Idle: &lt;1% CPU average, &lt;150 MB RSS steady-state goal (stretch), batched DB writes  
-- Under AI/gaming profile: collectors drop to heartbeat-only  
+- Under AI/gaming profile: event-driven + fast heartbeat only; pulse extras and idle-deep deferred  
 - Never add Defender exclusions for install path  
+- A design that makes VIGILLANCE compete with the protected workload is rejected
 
 ---
 
@@ -183,7 +230,7 @@ Visual system: see `DESIGN.md` — void + phosphor, architectural type, radar gr
 
 | Phase | Ship | Feels like the future when… |
 |-------|------|-----------------------------|
-| **F0** | Thesis + DESIGN + remove Defender exclusion | Direction is unmistakable |
+| **F0** | Thesis + DESIGN + Review Rules + Defender exclusion removed (verified) | Direction is unmistakable |
 | **F1** | Twin v0 + CapabilityReport + adaptive Nerve | Agent gets quieter under load |
 | **F2** | Memory pressure vector + Cortex scores | Stops crying “RAM 85%” falsely |
 | **F3** | Network purpose + policy chips | User controls Update vs telemetry vs unknown |
