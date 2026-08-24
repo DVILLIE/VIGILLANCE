@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Generator, Iterable
 
@@ -212,36 +212,49 @@ class AgentStore:
         source_ip: str | None,
         username: str | None,
         workstation: str | None,
+        *,
+        window_minutes: int = 15,
     ) -> int:
+        """Insert one failed-logon observation; return count inside rolling window.
+
+        Lifetime cumulative counters were incorrect for brute-force thresholds
+        (Architecture P0). Each event is a row; ``count`` column stores 1.
+        """
         ip = source_ip or "unknown"
+        now = utc_now()
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT id, count FROM failed_logons WHERE source_ip = ? ORDER BY id DESC LIMIT 1",
-                (ip,),
-            ).fetchone()
-            if row:
-                new_count = row["count"] + 1
-                conn.execute(
-                    "UPDATE failed_logons SET count = ?, ts = ? WHERE id = ?",
-                    (new_count, utc_now(), row["id"]),
-                )
-                return new_count
             conn.execute(
                 """
                 INSERT INTO failed_logons (ts, event_id, source_ip, username, workstation, count)
                 VALUES (?, ?, ?, ?, ?, 1)
                 """,
-                (utc_now(), event_id, ip, username, workstation),
+                (now, event_id, ip, username, workstation),
             )
-            return 1
+            return self._failed_logon_count_locked(conn, ip, window_minutes)
 
-    def get_failed_logon_count(self, source_ip: str) -> int:
+    def _failed_logon_count_locked(
+        self, conn: sqlite3.Connection, source_ip: str, window_minutes: int
+    ) -> int:
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+        rows = conn.execute(
+            "SELECT ts FROM failed_logons WHERE source_ip = ?",
+            (source_ip,),
+        ).fetchall()
+        n = 0
+        for row in rows:
+            try:
+                ts = datetime.fromisoformat(str(row["ts"]))
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=timezone.utc)
+                if ts >= cutoff:
+                    n += 1
+            except ValueError:
+                continue
+        return n
+
+    def get_failed_logon_count(self, source_ip: str, window_minutes: int = 15) -> int:
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT count FROM failed_logons WHERE source_ip = ? ORDER BY id DESC LIMIT 1",
-                (source_ip,),
-            ).fetchone()
-            return int(row["count"]) if row else 0
+            return self._failed_logon_count_locked(conn, source_ip, window_minutes)
 
     def is_ip_blocked(self, ip: str) -> bool:
         with self._conn() as conn:

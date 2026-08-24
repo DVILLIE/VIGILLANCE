@@ -4,10 +4,17 @@
 agent:
   name: DVielle
   display_name: DVielle — DEEP VIGILLANCE
-  interval_seconds: 60          # poll interval (30–300 recommended)
+  interval_seconds: 60          # pulse default (network/process correlation)
   process_priority: below_normal # idle | below_normal | normal
   baseline_days: 7              # learning period before auto-actions allowed
   data_dir: null                # null = auto (C:\DVILLIE\data)
+
+# Adaptive Nerve — per-collector cadence (see docs/VIGILLANCE_FUTURE_ARCHITECTURE.md)
+# Heartbeat is cheap counters only — never a full scan.
+nerve:
+  heartbeat_seconds: 5
+  pulse_seconds: 60
+  idle_deep_seconds: 900
 
 modes:
   monitor_only: true            # v1 default: log only, no destructive actions
@@ -24,6 +31,7 @@ thresholds:
   cpu_alert_percent: 80         # popup when CPU above this
   disk_low_percent: 15          # free space % triggers cleanup alert
   failed_logon_block_after: 5   # attempts from same IP before auto-block
+  failed_logon_window_minutes: 15  # rolling window (not lifetime cumulative)
 
 resource_advisor:
   enabled: true

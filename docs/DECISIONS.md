@@ -2,9 +2,13 @@
 
 Canonical product thesis and engine map: **[VIGILLANCE_MASTER_ARCHITECTURE.md](VIGILLANCE_MASTER_ARCHITECTURE.md)**.
 
+Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTURE_ARCHITECTURE.md)** (Adaptive Nerve is cadence authority).
+
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Product identity | System intelligence + resource governance + privacy + defensive security — **not** AV-first | User workload (esp. AI) must stay responsive |
+| Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.5.0+) |
+| F1 runtime | CapabilityReport + Digital Twin v0 + Adaptive Nerve + evidence schema | Docs→code; per-collector cadence |
 | Intelligence shape | Collection → correlate → score → confidence → recommend → act | Module toasts alone are insufficient |
 | Windows edition | 10/11 Home & Pro | Same agent; Home registry/`auditpol`; Pro may use GPO |
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |

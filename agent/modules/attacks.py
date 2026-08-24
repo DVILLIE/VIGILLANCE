@@ -127,6 +127,7 @@ class AttackMonitor:
         self.config = config
         self.scripts_dir = scripts_dir
         self.block_after = int(config.get("thresholds", {}).get("failed_logon_block_after", 5))
+        self.window_minutes = int(config.get("thresholds", {}).get("failed_logon_window_minutes", 15))
 
     def run(self, enable_auto_block: bool = False) -> list[AttackAlert]:
         global _last_check
@@ -150,6 +151,7 @@ class AttackMonitor:
                 source_ip=str(source_ip),
                 username=event.get("username"),  # type: ignore[arg-type]
                 workstation=event.get("workstation"),  # type: ignore[arg-type]
+                window_minutes=self.window_minutes,
             )
 
             should_block = count >= self.block_after and not self.store.is_ip_blocked(str(source_ip))
