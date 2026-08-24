@@ -78,13 +78,18 @@ Borders: 1px `stroke` only when structure needs it
 
 ---
 
-## Motion (2–3 intentional)
+## Motion (alive presence — still intentional)
 
-1. **Phosphor pulse** on workload/heartbeat (subtle opacity, ≤0.6s loop when live)  
-2. **Pressure meter ease** when vector changes  
-3. **Why drawer** slide 200ms ease-out  
+The console must feel **continuously engaged**, not idle chrome. Prefer mission-ops motion over decorative storms.
 
-No parallax, no particle storms, no endless ring spin as decoration (radar mark may animate *slowly* if present).
+1. **Phosphor pulse** on LIVE / armed status (≤0.7s opacity/color flip)  
+2. **Living radar** — slow sweep + soft bloom (brand core; not frantic spin)  
+3. **Nerve rail chase** — collector LEDs cycle to show Adaptive Nerve cadence  
+4. **Activity ticker** — rotating truthful Nerve/Twin verbs (not fake threats)  
+5. **Pressure gauge ease** — meters lerp toward new values  
+6. **Scan line** on Intelligence feed (subtle, one moving hairline)  
+
+No parallax, no particle storms, no purple glow stacks. Radar may animate continuously; it must stay **slow and legible**.
 
 ---
 
