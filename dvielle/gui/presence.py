@@ -50,10 +50,11 @@ class LivingRadar(ctk.CTkFrame):
             bd=0,
         )
         self.canvas.pack()
-        self._draw()
+        self._redraw_radar()
         self._tick()
 
-    def _draw(self) -> None:
+    def _redraw_radar(self) -> None:
+        # Must not be named _draw — CTkFrame._draw(no_color_updates=...) owns that.
         self.canvas.delete("all")
         cx = cy = self.size // 2
         r = self.size // 2 - 6
@@ -99,7 +100,7 @@ class LivingRadar(ctk.CTkFrame):
         self._sweep = (self._sweep + 2.2) % 360
         self._angle = (self._angle - 1.1) % 360
         self._pulse += 0.12
-        self._draw()
+        self._redraw_radar()
         self.after(40, self._tick)
 
 
@@ -188,7 +189,7 @@ class PressureGauge(ctk.CTkFrame):
         self.val_lbl = ctk.CTkLabel(self, text="—", font=("Segoe UI", 22, "bold"), text_color=T.ACCENT_GLOW)
         self.val_lbl.pack()
         ctk.CTkLabel(self, text=title, font=T.FONT_TAGLINE, text_color=T.TEXT_DIM).pack(pady=(0, 8))
-        self._draw()
+        self._redraw_gauge()
         self._ease()
 
     def set_value(self, percent: float) -> None:
@@ -201,7 +202,7 @@ class PressureGauge(ctk.CTkFrame):
             return T.WARNING
         return T.ACCENT
 
-    def _draw(self) -> None:
+    def _redraw_gauge(self) -> None:
         self.canvas.delete("all")
         cx = self._size // 2
         cy = self._size // 2 + 4
@@ -224,7 +225,7 @@ class PressureGauge(ctk.CTkFrame):
         if abs(delta) > 0.15:
             self._display += delta * 0.18
             self.val_lbl.configure(text=f"{self._display:.0f}", text_color=self._color_for(self._display))
-            self._draw()
+            self._redraw_gauge()
         self.after(50, self._ease)
 
 
