@@ -9,6 +9,9 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Product identity | System intelligence + resource governance + privacy + defensive security — **not** AV-first | User workload (esp. AI) must stay responsive |
 | Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.5.0+) |
 | F1 runtime | CapabilityReport + Digital Twin v0 + Adaptive Nerve + evidence schema | Docs→code; per-collector cadence |
+| P0 safety contract | Collectors observe; Cortex decides; Action Executor mutates with Decision ID | Fail-closed; no module Level ≥2 bypass |
+| Automatic RAM trim | **DISABLED** (EmptyWorkingSet / EmptyStandbyList) | Microsoft: testing/tuning; use pressure analysis |
+| 4776 handling | Source Workstation = hostname only; never IP block | Microsoft Learn Event 4776 |
 | Intelligence shape | Collection → correlate → score → confidence → recommend → act | Module toasts alone are insufficient |
 | Windows edition | 10/11 Home & Pro | Same agent; Home registry/`auditpol`; Pro may use GPO |
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |

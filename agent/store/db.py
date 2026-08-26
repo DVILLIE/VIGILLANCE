@@ -121,6 +121,18 @@ class AgentStore:
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_work_log_ts ON work_log(ts);
+
+                CREATE TABLE IF NOT EXISTS agent_cursors (
+                    key TEXT PRIMARY KEY,
+                    value INTEGER NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS action_audit (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts TEXT NOT NULL,
+                    payload TEXT NOT NULL
+                );
                 """
             )
 
@@ -170,6 +182,32 @@ class AgentStore:
         with self._conn() as conn:
             cur = conn.execute("DELETE FROM work_log")
             return cur.rowcount
+
+    def get_cursor(self, key: str, default: int = 0) -> int:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT value FROM agent_cursors WHERE key = ?",
+                (key,),
+            ).fetchone()
+            return int(row["value"]) if row else default
+
+    def set_cursor(self, key: str, value: int) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO agent_cursors (key, value, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """,
+                (key, int(value), utc_now()),
+            )
+
+    def log_action_audit(self, payload: dict[str, Any]) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                "INSERT INTO action_audit (ts, payload) VALUES (?, ?)",
+                (utc_now(), json.dumps(payload)),
+            )
 
     def log_connection(
         self,

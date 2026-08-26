@@ -39,7 +39,7 @@ class DigitalTwin:
     privacy: dict[str, Any] = field(default_factory=dict)
     security: dict[str, Any] = field(default_factory=dict)
     self_budget: dict[str, Any] = field(default_factory=dict)
-    vision: str = "partial"  # full | partial
+    vision: str = "UNKNOWN"  # AVAILABLE | LIMITED | UNKNOWN | UNAVAILABLE
     notes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,7 +62,7 @@ class TwinStore:
     def set_capability(self, report: CapabilityReport) -> None:
         with self._lock:
             self._twin.capability = report.to_dict()
-            self._twin.vision = "full" if report.is_admin and not report.gaps else "partial"
+            self._twin.vision = report.overall_vision
             self._twin.hardware = {
                 "ram_total_gb": report.ram_total_gb,
                 "cpu_count": report.cpu_count,

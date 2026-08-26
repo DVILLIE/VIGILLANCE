@@ -1,15 +1,7 @@
-"""CapabilityReport — detect what this Windows (or host) can actually see.
+"""CapabilityReport — honest visibility states (P0.5).
 
-Tiers (Future Architecture):
-  T0 Standard user — limited visibility, explain gaps
-  T1 Elevated — admin rights
-  T2 Pro/Enterprise extras when present (not required)
-  T3 Low-end / constrained (≤8 GB RAM or similar) — thinner Nerve
-
-Primary sources:
-- Win32_OperatingSystem (BuildNumber, Caption) — Microsoft Learn CIM
-- IsInRole(Administrator) — .NET / Win32 elevation check pattern
-- psutil for RAM / CPU when WMI unavailable
+States: AVAILABLE | LIMITED | UNKNOWN | UNAVAILABLE
+Never claim full vision when probes are None/unrun.
 """
 
 from __future__ import annotations
@@ -17,33 +9,65 @@ from __future__ import annotations
 import platform
 import subprocess
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 import psutil
 
 from agent.utils import IS_WINDOWS
 
+CapState = Literal["AVAILABLE", "LIMITED", "UNKNOWN", "UNAVAILABLE"]
+
 
 @dataclass
 class CapabilityReport:
-    tier: str  # T0 | T1 | T2 | T3 (T3 may combine with T0/T1)
+    tier: str
     windows: bool
     os_caption: str | None
     os_build: str | None
-    edition_hint: str | None  # Home / Pro / unknown
+    edition_hint: str | None
     is_admin: bool
     ram_total_gb: float
     cpu_count: int
-    wmi_available: bool
-    event_log_security_readable: bool | None  # None = not probed deeply
-    defender_queryable: bool | None
-    firewall_queryable: bool | None
-    gpu_counters: bool | None
-    battery_present: bool | None
-    process_visibility: str  # full | partial | unknown
-    network_visibility: str
+    wmi: CapState
+    event_log_security: CapState
+    defender: CapState
+    firewall: CapState
+    gpu_counters: CapState
+    battery: CapState
+    process_visibility: CapState
+    network_visibility: CapState
+    overall_vision: CapState
     gaps: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+
+    # Back-compat aliases used by older Twin code
+    @property
+    def wmi_available(self) -> bool:
+        return self.wmi == "AVAILABLE"
+
+    @property
+    def event_log_security_readable(self) -> bool | None:
+        if self.event_log_security == "UNKNOWN":
+            return None
+        return self.event_log_security == "AVAILABLE"
+
+    @property
+    def defender_queryable(self) -> bool | None:
+        if self.defender == "UNKNOWN":
+            return None
+        return self.defender == "AVAILABLE"
+
+    @property
+    def firewall_queryable(self) -> bool | None:
+        if self.firewall == "UNKNOWN":
+            return None
+        return self.firewall == "AVAILABLE"
+
+    @property
+    def battery_present(self) -> bool | None:
+        if self.battery == "UNKNOWN":
+            return None
+        return self.battery == "AVAILABLE"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -60,10 +84,9 @@ def _is_admin() -> bool:
         return False
 
 
-def _os_info() -> tuple[str | None, str | None, str | None, bool]:
-    """Return caption, build, edition_hint, wmi_ok."""
+def _os_info() -> tuple[str | None, str | None, str | None, CapState]:
     if not IS_WINDOWS:
-        return platform.platform(), None, None, False
+        return platform.platform(), None, None, "UNAVAILABLE"
     try:
         ps = (
             "Get-CimInstance Win32_OperatingSystem | "
@@ -88,60 +111,55 @@ def _os_info() -> tuple[str | None, str | None, str | None, bool]:
                 edition = "ProOrHigher"
             else:
                 edition = "Unknown"
-            return caption, build, edition, True
+            return caption, build, edition, "AVAILABLE"
     except Exception:
         pass
-    return platform.platform(), None, None, False
+    return platform.platform(), None, None, "UNAVAILABLE"
 
 
-def _battery_present() -> bool | None:
+def _battery_state() -> CapState:
     try:
         bat = psutil.sensors_battery()
         if bat is None:
-            return False
-        return True
+            return "UNAVAILABLE"
+        return "AVAILABLE"
     except Exception:
-        return None
+        return "UNKNOWN"
+
+
+def _worst(*states: CapState) -> CapState:
+    order = {"AVAILABLE": 0, "LIMITED": 1, "UNKNOWN": 2, "UNAVAILABLE": 3}
+    return max(states, key=lambda s: order[s])
 
 
 def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
-    """Build CapabilityReport. ``deep`` reserved for Event Log / Defender probes (pulse)."""
     gaps: list[str] = []
     notes: list[str] = []
-    caption, build, edition, wmi_ok = _os_info()
-    if not wmi_ok and IS_WINDOWS:
+    caption, build, edition, wmi = _os_info()
+    if wmi != "AVAILABLE" and IS_WINDOWS:
         gaps.append("wmi_cim_unavailable")
     admin = _is_admin()
+
+    process_vis: CapState = "AVAILABLE" if admin else ("LIMITED" if IS_WINDOWS else "UNKNOWN")
+    network_vis: CapState = "LIMITED" if IS_WINDOWS else "UNKNOWN"
     if IS_WINDOWS and not admin:
         gaps.append("not_elevated_partial_process_and_event_visibility")
-        notes.append("Partial vision: protected processes and Security log may be incomplete without Admin.")
+        notes.append("LIMITED vision: protected processes / Security log may be incomplete without Admin.")
 
     ram_gb = round(psutil.virtual_memory().total / (1024**3), 2)
     cpu_n = psutil.cpu_count(logical=True) or 1
 
-    tiers = ["T0"]
-    if admin:
-        tiers = ["T1"]
-    if edition == "ProOrHigher":
-        # Capability present; features still degrade if APIs missing
-        if "T1" in tiers or admin:
-            tiers.append("T2")
-        else:
-            notes.append("Pro/Enterprise edition detected but running as standard user (T0+T2_sku).")
-            tiers.append("T2_sku")
-    if ram_gb <= 8.0:
-        tiers.append("T3")
-        notes.append("Low-end RAM tier: prefer thinner Nerve (event + heartbeat; defer idle-deep).")
-
     primary = "T1" if admin else "T0"
-    if "T3" in tiers:
+    if edition == "ProOrHigher" and not admin:
+        notes.append("Pro/Enterprise SKU detected but running as standard user.")
+    if ram_gb <= 8.0:
         primary = f"{primary}+T3"
+        notes.append("Low-end RAM tier: prefer thinner Nerve.")
 
-    event_log: bool | None = None
-    defender: bool | None = None
-    firewall: bool | None = None
+    event_log: CapState = "UNKNOWN"
+    defender: CapState = "UNKNOWN"
+    firewall: CapState = "UNKNOWN"
     if deep and IS_WINDOWS:
-        # Lightweight existence checks only — not full collection
         try:
             r = subprocess.run(
                 [
@@ -156,12 +174,18 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
                 timeout=20,
                 creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
             )
-            event_log = "ok" in (r.stdout or "")
-            if not event_log:
+            event_log = "AVAILABLE" if "ok" in (r.stdout or "") else "UNAVAILABLE"
+            if event_log != "AVAILABLE":
                 gaps.append("security_event_log_unreadable")
         except Exception:
-            event_log = False
+            event_log = "UNKNOWN"
             gaps.append("security_event_log_probe_failed")
+    elif not IS_WINDOWS:
+        event_log = defender = firewall = "UNAVAILABLE"
+
+    overall = _worst(process_vis, network_vis, wmi, event_log if deep else "UNKNOWN")
+    if gaps and overall == "AVAILABLE":
+        overall = "LIMITED"
 
     return CapabilityReport(
         tier=primary,
@@ -172,14 +196,15 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
         is_admin=admin,
         ram_total_gb=ram_gb,
         cpu_count=int(cpu_n),
-        wmi_available=wmi_ok,
-        event_log_security_readable=event_log,
-        defender_queryable=defender,
-        firewall_queryable=firewall,
-        gpu_counters=None,
-        battery_present=_battery_present(),
-        process_visibility="full" if admin else ("partial" if IS_WINDOWS else "unknown"),
-        network_visibility="user" if IS_WINDOWS else "unknown",
+        wmi=wmi,
+        event_log_security=event_log,
+        defender=defender,
+        firewall=firewall,
+        gpu_counters="UNKNOWN",
+        battery=_battery_state(),
+        process_visibility=process_vis,
+        network_visibility=network_vis,
+        overall_vision=overall,
         gaps=gaps,
         notes=notes,
     )

@@ -104,9 +104,11 @@ def run_once(
     if modules.get("attacks", True):
         attack_alerts = AttackMonitor(store, config, scripts_dir).run(enable_auto_block=enable_auto_block)
         for alert in attack_alerts:
+            if alert.collection_degraded and alert.event_id == 0:
+                continue
             if alert.should_block and enable_toasts:
                 show_toast("DVielle", f"Blocked attacker IP: {alert.source_ip}", severity="CRITICAL")
-            elif alert.attempt_count >= 3 and enable_toasts:
+            elif alert.attempt_count >= 3 and enable_toasts and alert.source_ip:
                 show_toast(
                     "DVielle",
                     f"Failed logons from {alert.source_ip} ({alert.attempt_count})",
@@ -231,14 +233,15 @@ def main(argv: list[str] | None = None) -> int:
     store.log_event(
         "capability",
         "INFO",
-        f"CapabilityReport tier={caps.tier} admin={caps.is_admin} vision={caps.process_visibility}",
+        f"CapabilityReport tier={caps.tier} admin={caps.is_admin} vision={caps.overall_vision}",
         caps.to_dict(),
     )
     logger.info(
-        "DVielle %s starting (Nerve) tier=%s admin=%s gaps=%s",
+        "DVielle %s starting (Nerve) tier=%s admin=%s vision=%s gaps=%s",
         version,
         caps.tier,
         caps.is_admin,
+        caps.overall_vision,
         caps.gaps,
     )
 

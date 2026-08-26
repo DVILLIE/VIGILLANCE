@@ -17,33 +17,33 @@ nerve:
   idle_deep_seconds: 900
 
 modes:
-  monitor_only: true            # v1 default: log only, no destructive actions
-  enable_toasts: true           # Windows toast on critical alerts (Win10+)
-  enable_auto_block: false      # set true after baseline + testing
-  enable_ram_trim: false        # rare; standby flush hurts more than it helps
-  enable_disk_cleanup: false    # set true in v2; runs only when disk < threshold
-  enable_microsoft_guard: true  # reduce telemetry; never block Windows Update
+  monitor_only: true            # observe/recommend; Level ≥2 requires Cortex Decision ID
+  enable_toasts: true
+  enable_auto_block: false      # even if true, AttackMonitor only RECOMMENDS (P0)
+  enable_ram_trim: false        # P0.1: automatic trim DISABLED regardless
+  enable_disk_cleanup: false
+  enable_microsoft_guard: true
 
 thresholds:
-  ram_critical_percent: 90      # sustained RAM % before trim (if enabled)
-  ram_sustained_checks: 3       # consecutive checks above threshold
-  ram_alert_percent: 85         # popup when RAM above this
-  cpu_alert_percent: 80         # popup when CPU above this
-  disk_low_percent: 15          # free space % triggers cleanup alert
-  failed_logon_block_after: 5   # attempts from same IP before auto-block
-  failed_logon_window_minutes: 15  # rolling window (not lifetime cumulative)
+  ram_critical_percent: 90
+  ram_sustained_checks: 3
+  ram_alert_percent: 85
+  cpu_alert_percent: 80
+  disk_low_percent: 15
+  failed_logon_block_after: 5
+  failed_logon_window_minutes: 15
 
 resource_advisor:
   enabled: true
-  toast_cooldown_seconds: 300   # min seconds between same-type popups (5 min)
+  toast_cooldown_seconds: 300
 
+# Privacy adapter — remediation flags are OBSERVE→RECOMMEND only until Cortex+Executor (P0)
 microsoft_guard:
-  strict_mode: true               # reduce telemetry uploads (not "zero Microsoft")
-  auto_remediate_registry: true   # re-apply privacy registry if Microsoft resets it
-  block_telemetry_firewall: true  # outbound firewall for telemetry programs/domains
-  block_telemetry_connections: true  # terminate active telemetry uploads
-  disable_telemetry_services: true   # stop DiagTrack etc. when safe
-  # Never block these (Windows Update / delivery / certificates)
+  strict_mode: true
+  auto_remediate_registry: false
+  block_telemetry_firewall: false
+  block_telemetry_connections: false
+  disable_telemetry_services: false
   preserve_windows_update: true
 
 modules:
