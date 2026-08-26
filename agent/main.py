@@ -24,6 +24,7 @@ from agent.modules.ram import RamMonitor
 from agent.modules.resource_advisor import ResourceAdvisor
 from agent.modules.security import SecurityMonitor
 from agent.nerve import Cadence, CollectorSpec, NervePlane, default_intervals
+from agent.policy import PolicyGate
 from agent.store.db import AgentStore
 from agent.twin import SelfBudget, TwinStore
 from agent.utils import (
@@ -80,6 +81,7 @@ def run_once(
     modes: dict,
     modules: dict,
     twin: TwinStore | None = None,
+    policy: PolicyGate | None = None,
 ) -> None:
     """PULSE collector: bounded module pass (not heartbeat)."""
     monitor_only = modes.get("monitor_only", True) or _in_baseline(
@@ -88,6 +90,7 @@ def run_once(
     enable_auto_block = modes.get("enable_auto_block", False) and not monitor_only
     enable_toasts = modes.get("enable_toasts", True)
     enable_ms_guard = modes.get("enable_microsoft_guard", True)
+    cortex = policy.cortex if policy is not None else None
 
     health: dict = {}
 
@@ -102,7 +105,9 @@ def run_once(
                 )
 
     if modules.get("attacks", True):
-        attack_alerts = AttackMonitor(store, config, scripts_dir).run(enable_auto_block=enable_auto_block)
+        attack_alerts = AttackMonitor(store, config, scripts_dir, cortex=cortex).run(
+            enable_auto_block=enable_auto_block
+        )
         for alert in attack_alerts:
             if alert.collection_degraded and alert.event_id == 0:
                 continue
@@ -179,7 +184,7 @@ def run_once(
     if modules.get("microsoft_guard", True) and enable_ms_guard:
         never_block = whitelists.get("never_block_domains", [])
         ms_alerts = MicrosoftGuard(
-            store, config, telemetry_file, scripts_dir, never_block
+            store, config, telemetry_file, scripts_dir, never_block, cortex=cortex
         ).run(monitor_only=monitor_only)
         for alert in ms_alerts:
             if enable_toasts and alert.kind in ("connection", "process"):
@@ -223,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
 
     store = AgentStore(data_dir / "agent.db")
     twin = TwinStore(data_dir / "twin.jsonl")
+    policy = PolicyGate.create(store)
     scripts_dir = INSTALL_ROOT / "scripts"
     modes = config.get("modes", {})
     modules = config.get("modules", {})
@@ -235,6 +241,12 @@ def main(argv: list[str] | None = None) -> int:
         "INFO",
         f"CapabilityReport tier={caps.tier} admin={caps.is_admin} vision={caps.overall_vision}",
         caps.to_dict(),
+    )
+    store.log_event(
+        "policy",
+        "INFO",
+        "PolicyGate ready — ActionExecutor registry empty (fail-closed); L2 recommend only",
+        {"registered_handlers": []},
     )
     logger.info(
         "DVielle %s starting (Nerve) tier=%s admin=%s vision=%s gaps=%s",
@@ -281,7 +293,17 @@ def main(argv: list[str] | None = None) -> int:
 
     def _pulse() -> None:
         t0 = time.perf_counter()
-        run_once(store, config, whitelists, telemetry_path, scripts_dir, modes, modules, twin=twin)
+        run_once(
+            store,
+            config,
+            whitelists,
+            telemetry_path,
+            scripts_dir,
+            modes,
+            modules,
+            twin=twin,
+            policy=policy,
+        )
         try:
             cpu = proc.cpu_percent(interval=None)
             rss = proc.memory_info().rss

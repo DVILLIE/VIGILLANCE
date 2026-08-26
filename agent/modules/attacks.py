@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import Any
 
 from agent.net_identity import looks_like_ipv4_or_ipv6
+from agent.policy import ActionKind, Authorization, PolicyCortex
+from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
@@ -149,10 +151,12 @@ class AttackMonitor:
         store: AgentStore,
         config: dict[str, Any],
         scripts_dir: Path,
+        cortex: PolicyCortex | None = None,
     ) -> None:
         self.store = store
         self.config = config
         self.scripts_dir = scripts_dir
+        self.cortex = cortex
         self.block_after = int(config.get("thresholds", {}).get("failed_logon_block_after", 5))
         self.window_minutes = int(config.get("thresholds", {}).get("failed_logon_window_minutes", 15))
 
@@ -219,14 +223,44 @@ class AttackMonitor:
                 and count >= self.block_after
                 and not self.store.is_ip_blocked(str(source_ip))
             )
-            # P0: modules do not mutate; recommend only. Executor path later.
+            # P0: modules do not mutate; Level-2 RECOMMEND only. BLOCK_IP needs L4+USER_APPROVED.
             should_block = False
             if can_block and enable_auto_block:
+                decision_id = None
+                if self.cortex is not None:
+                    conf = min(0.50 + (count - self.block_after) * 0.05, 0.85)
+                    decision = self.cortex.issue(
+                        action=ActionKind.RECOMMEND,
+                        action_level=LEVEL_RECOMMEND,
+                        confidence=conf,
+                        evidence_summary=[
+                            f"Event 4625 failed logons count={count} from {source_ip}",
+                            "Suggested future action: BLOCK_IP at Level 4 with USER_APPROVED",
+                        ],
+                        authorization=Authorization.AUTOMATIC_POLICY,
+                        policy_ref="attacks_recommend_block",
+                        target=str(source_ip),
+                        initiator="attacks",
+                        reversible=False,
+                        details={
+                            "event_id": event_id,
+                            "count": count,
+                            "record_id": rid,
+                            "suggested_action": ActionKind.BLOCK_IP.value,
+                        },
+                    )
+                    if decision is not None:
+                        decision_id = decision.decision_id
                 self.store.log_event(
                     "attacks",
                     "WARNING",
-                    f"RECOMMEND block IP {source_ip} (count={count}) — requires Policy Cortex Decision ID",
-                    {"event_id": event_id, "count": count, "record_id": rid},
+                    f"RECOMMEND block IP {source_ip} (count={count}) — L2 only; no mutation",
+                    {
+                        "event_id": event_id,
+                        "count": count,
+                        "record_id": rid,
+                        "decision_id": decision_id,
+                    },
                 )
 
             alert = AttackAlert(

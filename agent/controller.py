@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from agent.main import run_once
+from agent.policy import PolicyGate
 from agent.store.db import AgentStore
 from agent.utils import (
     DEFAULT_DATA_DIR,
@@ -100,11 +101,14 @@ class AgentController:
         interval = int(config.get("agent", {}).get("interval_seconds", 60))
         set_process_priority(config.get("agent", {}).get("process_priority", "below_normal"))
         self._store = AgentStore(data_dir / "agent.db")
+        policy = PolicyGate.create(self._store)
         scripts_dir = INSTALL_ROOT / "scripts"
         modes = config.get("modes", {})
         modules = config.get("modules", {})
 
-        logging.getLogger("dvielle").info("DVielle vigilance loop started")
+        logging.getLogger("dvielle").info(
+            "DVielle vigilance loop started (PolicyGate fail-closed)"
+        )
 
         while not self._stop.is_set():
             try:
@@ -116,6 +120,7 @@ class AgentController:
                     scripts_dir,
                     modes,
                     modules,
+                    policy=policy,
                 )
                 self.status.cycle_count += 1
                 self.status.last_cycle = datetime.now(timezone.utc)

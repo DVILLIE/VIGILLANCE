@@ -18,6 +18,8 @@ from typing import Any
 import psutil
 
 from agent.net_identity import host_matches_any, host_matches_domain, normalize_hostname
+from agent.policy import ActionKind, Authorization, PolicyCortex
+from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
@@ -88,7 +90,7 @@ def _host_matches_telemetry(host: str, domains: set[str]) -> bool:
 
 
 class MicrosoftGuard:
-    """Privacy adapter: observe → recommend. No direct Level ≥2 mutations."""
+    """Privacy adapter: observe → recommend. No direct mutations (Level ≥3 requires Cortex+Executor)."""
 
     def __init__(
         self,
@@ -97,12 +99,14 @@ class MicrosoftGuard:
         telemetry_file: Path,
         scripts_dir: Path,
         never_block_domains: list[str],
+        cortex: PolicyCortex | None = None,
     ) -> None:
         self.store = store
         self.telemetry_file = telemetry_file
         self.scripts_dir = scripts_dir
         self.domains = _load_domains(telemetry_file)
         self.never_block = {d.lower() for d in never_block_domains}
+        self.cortex = cortex
         cfg = config.get("microsoft_guard", {})
         self.strict_mode = cfg.get("strict_mode", True)
         self._legacy_wants_act = any(
@@ -120,23 +124,43 @@ class MicrosoftGuard:
 
         alerts: list[TelemetryAlert] = []
         if self._legacy_wants_act and not monitor_only:
+            decision_id = None
+            if self.cortex is not None:
+                decision = self.cortex.issue(
+                    action=ActionKind.RECOMMEND,
+                    action_level=LEVEL_RECOMMEND,
+                    confidence=0.55,
+                    evidence_summary=[
+                        "Config requested privacy remediation flags",
+                        "P0.0: mutations require Level≥3 + Authorization + typed handler",
+                    ],
+                    authorization=Authorization.AUTOMATIC_POLICY,
+                    policy_ref="microsoft_guard_legacy_flags",
+                    target="privacy_remediation",
+                    initiator="microsoft_guard",
+                    reversible=False,
+                    details={"suggested_next": "USER_APPROVED + typed action"},
+                )
+                if decision is not None:
+                    decision_id = decision.decision_id
             alerts.append(
                 TelemetryAlert(
                     kind="policy",
                     message=(
                         "RECOMMEND: privacy remediation requested in config but blocked by P0 — "
-                        "requires Policy Cortex Decision ID + Action Executor"
+                        "requires Level≥3 Authorization + typed ActionExecutor"
+                        + (f" (decision={decision_id})" if decision_id else "")
                     ),
                     detail="cortex_required",
                     blocked=False,
-                    recommended_action="ISSUE_DECISION",
+                    recommended_action="RECOMMEND",
                 )
             )
             self.store.log_event(
                 "microsoft_guard",
                 "INFO",
-                "Legacy mutate flags ignored — observe/recommend only (P0)",
-                {"monitor_only": monitor_only},
+                "Legacy mutate flags ignored — observe/recommend only (P0.0)",
+                {"monitor_only": monitor_only, "decision_id": decision_id},
             )
 
         alerts.extend(self._scan_telemetry_connections())

@@ -112,7 +112,9 @@ Binding for audits, PRs, and engineering passes:
 10. **Treat Future Architecture § Adaptive Nerve as the cadence authority** — no global collector cadence; no literal “full collection every N seconds.”
 11. **Self-budget is a hard constraint** — designs that compete with the protected workload are rejected.
 12. **Docs may lead code**; undocumented contradiction is not allowed — either fix code or mark `STATUS: planned / gap`.
-13. **Every action ≥ Level 2** requires evidence, confidence, and rollback semantics.
+13. **Level ≥ 2 decisions** require evidence and confidence. **Mutations require Level ≥ 3**,
+    typed action + registered handler, Authorization (not a free-form policy string), and
+    rollback semantics when reversible. **Level 2 = recommend only — never mutates.**
 
 **Module naming example:** keep `agent/modules/microsoft_guard.py` until a Privacy Control Plane exists; treat it as a provider adapter under the new *contract*, then migrate behind `privacy_control` (or equivalent) when real.
 
@@ -274,8 +276,8 @@ When reviewing code, also ask:
 2. Does it respect **workload intent** (especially AI)?  
 3. Does it risk **false “Microsoft = evil”** or break Update/Defender/CRL?  
 4. Does it stay inside **self-budget** and Future Architecture **Adaptive Nerve** cadence?  
-5. Is there an **evidence chain** for any action ≥ Level 2?  
-6. Is rollback / monitor-first preserved?  
+5. Is there an **evidence chain** for Level ≥ 2 decisions, and Authorization + typed handler for Level ≥ 3 mutations?  
+6. Is rollback / monitor-first preserved (and is Level 2 kept recommend-only)?  
 7. Is any rename justified by a real abstraction migration — not terminology alone?
 
 ---

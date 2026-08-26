@@ -133,6 +133,14 @@ class AgentStore:
                     ts TEXT NOT NULL,
                     payload TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS action_decisions (
+                    decision_id TEXT PRIMARY KEY,
+                    claimed_at TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    payload TEXT,
+                    result TEXT
+                );
                 """
             )
 
@@ -207,6 +215,49 @@ class AgentStore:
             conn.execute(
                 "INSERT INTO action_audit (ts, payload) VALUES (?, ?)",
                 (utc_now(), json.dumps(payload)),
+            )
+
+    def claim_decision_id(
+        self,
+        decision_id: str,
+        payload: dict[str, Any] | None = None,
+    ) -> bool:
+        """Atomically claim a Decision ID. False if already claimed (replay protection)."""
+        if not decision_id:
+            return False
+        with self._conn() as conn:
+            try:
+                conn.execute(
+                    """
+                    INSERT INTO action_decisions (decision_id, claimed_at, status, payload)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        decision_id,
+                        utc_now(),
+                        "CLAIMED",
+                        json.dumps(payload) if payload else None,
+                    ),
+                )
+                return True
+            except sqlite3.IntegrityError:
+                return False
+
+    def finalize_decision(
+        self,
+        decision_id: str,
+        *,
+        status: str,
+        result: str | None = None,
+    ) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                """
+                UPDATE action_decisions
+                SET status = ?, result = ?
+                WHERE decision_id = ?
+                """,
+                (status, result, decision_id),
             )
 
     def log_connection(
