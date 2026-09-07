@@ -8,7 +8,7 @@ import customtkinter as ctk
 
 from agent.store.db import AgentStore
 from dvielle import APP_NAME
-from dvielle.brand import ICON_ICO
+from dvielle.brand import apply_tk_window_icon
 from dvielle.gui import theme as T
 
 _ATTACK_MODULES = ("attacks", "browser_guard", "connections", "security")
@@ -26,11 +26,7 @@ class AttacksWindow(ctk.CTkToplevel):
         self.configure(fg_color=T.BG_DARK)
         self._alive = True
         self.protocol("WM_DELETE_WINDOW", self._on_close)
-        try:
-            if ICON_ICO.exists():
-                self.iconbitmap(str(ICON_ICO))
-        except Exception:
-            pass
+        apply_tk_window_icon(self)
 
         header = ctk.CTkFrame(self, fg_color=T.BG_PANEL, height=90)
         header.pack(fill="x")

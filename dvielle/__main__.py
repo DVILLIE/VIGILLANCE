@@ -10,6 +10,12 @@ def main() -> int:
         from agent.main import main as agent_main
         return agent_main()
 
+    # Before any Tk window: claim a stable Windows AppUserModelID so the
+    # taskbar/tray use DVielle's icon, not python.exe's.
+    from dvielle.brand import configure_windows_app_identity
+
+    configure_windows_app_identity()
+
     config_dir = None
     for i, arg in enumerate(sys.argv):
         if arg == "--config-dir" and i + 1 < len(sys.argv):

@@ -8,6 +8,7 @@ from typing import Callable
 import customtkinter as ctk
 
 from agent.chat.assistant import ChatAssistant
+from dvielle.brand import apply_tk_window_icon
 from dvielle.gui import theme as T
 from dvielle.gui.voice import speak_async
 
@@ -34,6 +35,7 @@ class ChatWindow(ctk.CTkToplevel):
         self.geometry("520x640")
         self.configure(fg_color=T.BG_DARK)
         self.minsize(440, 520)
+        apply_tk_window_icon(self)
 
         top = ctk.CTkFrame(self, fg_color=T.BG_PANEL)
         top.pack(fill="x", padx=12, pady=(12, 6))

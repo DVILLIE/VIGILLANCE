@@ -21,7 +21,7 @@ from agent.policy.levels import LEVEL_REVERSIBLE
 from agent.store.db import AgentStore
 from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT
 from dvielle import APP_NAME, TAGLINE, VERSION
-from dvielle.brand import ICON_ICO, brand_png
+from dvielle.brand import apply_tk_window_icon, brand_png, configure_windows_app_identity
 from dvielle.gui import theme as T
 from dvielle.gui.attacks_window import AttacksWindow
 from dvielle.gui.network_panel import NetworkPanel
@@ -76,6 +76,9 @@ class DVielleApp:
         # CLOSE_PROCESS handler; the Cortex still requires USER_APPROVED, so it
         # only runs after an explicit human confirm.
         self._user_gate: PolicyGate | None = None
+
+        # Identity before first window (also set in __main__; safe to call twice).
+        configure_windows_app_identity()
 
         ctk.set_appearance_mode("dark")
         self.root = ctk.CTk()
@@ -290,12 +293,8 @@ class DVielleApp:
         ).pack(side="left", padx=4)
 
     def _apply_window_icon(self, window) -> None:
-        try:
-            if ICON_ICO.exists():
-                window.iconbitmap(default=str(ICON_ICO))
-                window.iconbitmap(str(ICON_ICO))
-        except Exception:
-            pass
+        """Standard DVielle .ico for title bar, taskbar, and child dialogs."""
+        apply_tk_window_icon(window)
 
     def _panel(self, parent, title: str, subtitle: str = "") -> ctk.CTkFrame:
         frame = ctk.CTkFrame(
