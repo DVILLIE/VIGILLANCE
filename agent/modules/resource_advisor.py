@@ -536,84 +536,114 @@ class ResourceAdvisor:
         logger.warning("%s", full)
 
 
-def _still_running(name: str) -> list[int]:
-    lower = name.lower()
-    alive: list[int] = []
-    for proc in psutil.process_iter(["pid", "name"]):
+def _alive(procs: list[psutil.Process]) -> list[psutil.Process]:
+    """Subset of procs still running (AccessDenied is treated as 'still there')."""
+    out: list[psutil.Process] = []
+    for p in procs:
         try:
-            if (proc.info.get("name") or "").lower() == lower:
-                alive.append(int(proc.info["pid"]))
-        except (psutil.NoSuchProcess, psutil.AccessDenied, TypeError, ValueError):
+            if p.is_running() and p.status() != psutil.STATUS_ZOMBIE:
+                out.append(p)
+        except psutil.NoSuchProcess:
             continue
-    return alive
+        except psutil.AccessDenied:
+            out.append(p)
+    return out
 
 
-def close_app_group(group: AppGroup) -> tuple[bool, str]:
-    """Close every process name that belongs to this smart app group."""
-    messages: list[str] = []
-    any_fail = False
-    # Unique names; close primary family members (not every WebView2 on the machine
-    # unless the group is specifically WebView2 / Search).
-    names = list(dict.fromkeys(group.process_names))
-    if group.primary_name not in names:
-        names.insert(0, group.primary_name)
+def _post_wm_close(pids: set[int]) -> bool:
+    """Best-effort graceful close: PostMessage WM_CLOSE to visible windows of pids.
 
-    # For Edge WebView2 helpers attached to Search — only kill WebView2 children
-    # of SearchHost when closing Search; when closing WebView2 alone, kill that name.
-    for name in names:
-        # Avoid nuking all WebView2 when closing Edge if Search also uses it —
-        # still close by name for v1 honesty; advice already warned.
-        ok, msg = close_process(group.primary_pid if name == group.primary_name else 0, name)
-        messages.append(msg)
-        if not ok:
-            any_fail = True
-    summary = "; ".join(messages)
-    if any_fail:
-        return False, summary
-    return True, f"Closed {group.display_name}: {summary}"
-
-
-def close_process(pid: int, name: str) -> tuple[bool, str]:
-    """Close an app by name (all matching processes + children).
-
-    Killing a single PID is not enough for Electron/Chromium apps (Cursor,
-    Chrome, Edge, etc.) — siblings keep the app alive. We terminate the whole
-    name group, verify they are gone, and only then report success.
+    Needs pywin32; returns True if at least one WM_CLOSE was posted. This lets an
+    app run its own 'save your work?' path instead of being terminated outright.
     """
-    lower = (name or "").lower().strip()
-    if not lower:
-        return False, "No process name"
-    if lower in SYSTEM_PROTECTED:
-        return False, f"Refused: {name} is protected (system / DVielle). Closing it is not allowed."
+    try:
+        import win32con  # type: ignore
+        import win32gui  # type: ignore
+        import win32process  # type: ignore
+    except Exception:
+        return False
 
-    # Gather every process with this exe name
+    posted = False
+
+    def _cb(hwnd: int, _ctx: object) -> bool:
+        nonlocal posted
+        try:
+            if not win32gui.IsWindowVisible(hwnd):
+                return True
+            _tid, wpid = win32process.GetWindowThreadProcessId(hwnd)
+            if wpid in pids:
+                win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+                posted = True
+        except Exception:
+            pass
+        return True
+
+    try:
+        win32gui.EnumWindows(_cb, None)
+    except Exception:
+        return posted
+    return posted
+
+
+def close_pids(
+    pids: list[int],
+    names: list[str] | None = None,
+    *,
+    force: bool = False,
+    grace_seconds: float = 3.0,
+) -> tuple[bool, str]:
+    """Close an explicit process family (the PID set recorded at advice time).
+
+    Safety contract (Master Architecture §1; audit C1):
+    - Targets an explicit PID list — never a machine-wide exe-name glob — so
+      closing one app cannot take down unrelated same-named processes.
+    - Refuses if any *target* PID resolves to a SYSTEM_PROTECTED name.
+    - Skips any child whose name is SYSTEM_PROTECTED (never kills a protected
+      descendant that merely happens to hang under a target).
+    - Graceful WM_CLOSE first; escalates to TerminateProcess ONLY when
+      ``force=True`` (the GUI's explicit second confirm). Never a silent kill.
+
+    Executed only via a registered CLOSE_PROCESS handler behind a USER_APPROVED
+    Cortex Decision — there is no autonomous path here.
+    """
+    try:
+        pid_list = [int(p) for p in (pids or [])]
+    except (TypeError, ValueError):
+        return False, "Malformed PID list"
+    if not pid_list:
+        return False, "No target PIDs"
+
+    # Resolve targets; refuse outright if a target itself is protected.
     targets: list[psutil.Process] = []
-    for proc in psutil.process_iter(["pid", "name"]):
+    for pid in pid_list:
         try:
-            if (proc.info.get("name") or "").lower() == lower:
-                targets.append(psutil.Process(int(proc.info["pid"])))
-        except (psutil.NoSuchProcess, psutil.AccessDenied, TypeError, ValueError):
+            proc = psutil.Process(pid)
+            pname = (proc.name() or "").lower()
+        except psutil.NoSuchProcess:
             continue
-
-    if not targets and pid:
-        try:
-            one = psutil.Process(pid)
-            if one.name().lower() == lower:
-                targets = [one]
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            return True, f"{name} already closed"
+        except psutil.AccessDenied:
+            return False, f"Refused: PID {pid} not accessible — run as Administrator"
+        if pname in SYSTEM_PROTECTED:
+            return False, f"Refused: PID {pid} ({pname}) is protected (system / DVielle)."
+        targets.append(proc)
 
     if not targets:
-        return True, f"{name} already closed"
+        return True, "Already closed"
 
-    access_denied = 0
-    attempted = 0
-
+    # Expand to children, skipping protected descendants.
     ordered: list[psutil.Process] = []
     seen: set[int] = set()
+    skipped: list[str] = []
     for proc in targets:
         try:
             for child in proc.children(recursive=True):
+                try:
+                    cname = (child.name() or "").lower()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    cname = ""
+                if cname in SYSTEM_PROTECTED:
+                    skipped.append(cname)
+                    continue
                 if child.pid not in seen:
                     ordered.append(child)
                     seen.add(child.pid)
@@ -623,32 +653,58 @@ def close_process(pid: int, name: str) -> tuple[bool, str]:
             ordered.append(proc)
             seen.add(proc.pid)
 
-    for proc in ordered:
-        attempted += 1
+    prot_note = f" (kept {len(skipped)} protected)" if skipped else ""
+
+    # 1) Graceful WM_CLOSE — give the app a chance to save.
+    posted = _post_wm_close(seen)
+    if posted:
+        try:
+            psutil.wait_procs(ordered, timeout=grace_seconds)
+        except Exception:
+            pass
+
+    remaining = _alive(ordered)
+    if not remaining:
+        return True, f"Closed gracefully — {len(seen)} process(es){prot_note}"
+
+    if not force:
+        why = (
+            "graceful close needs pywin32; "
+            if not posted
+            else f"{len(remaining)} process(es) did not exit; "
+        )
+        return False, f"Not closed — {why}Force close to terminate (may lose unsaved work).{prot_note}"
+
+    # 2) force=True — explicit second confirm: TerminateProcess.
+    denied = 0
+    for proc in remaining:
         try:
             proc.terminate()
         except psutil.NoSuchProcess:
             pass
         except psutil.AccessDenied:
-            access_denied += 1
+            denied += 1
         except Exception:
-            access_denied += 1
+            denied += 1
+    try:
+        psutil.wait_procs(remaining, timeout=4)
+    except Exception:
+        pass
 
-    _, alive_procs = psutil.wait_procs(ordered, timeout=4)
-    for proc in alive_procs:
-        try:
-            proc.kill()
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            access_denied += 1
+    still = _alive(remaining)
+    if not still:
+        return True, f"Force-closed {len(seen)} process(es){prot_note}"
+    hint = " — try Run as Administrator" if denied else ""
+    return False, f"Could not fully close: {len(still)} still running{hint}{prot_note}"
 
-    time.sleep(0.4)
-    remaining = _still_running(name)
-    if not remaining:
-        return True, f"Closed {name} ({attempted} process(es))"
 
-    hint = " — try Run as Administrator" if access_denied else ""
-    return (
-        False,
-        f"Could not fully close {name}: {len(remaining)} still running "
-        f"(PIDs {', '.join(map(str, remaining[:6]))}){hint}",
-    )
+def close_app_group(group: AppGroup, *, force: bool = False) -> tuple[bool, str]:
+    """Close a smart app group by its recorded PID set (not a name glob).
+
+    In the Mission Console this is reached only through PolicyGate + a
+    USER_APPROVED CLOSE_PROCESS Decision; it stays PID-scoped and protected-safe
+    for any direct caller. ``force=True`` escalates to TerminateProcess.
+    """
+    ok, msg = close_pids(group.pids, group.process_names, force=force)
+    prefix = "Closed" if ok else "Close incomplete"
+    return ok, f"{prefix} {group.display_name}: {msg}"

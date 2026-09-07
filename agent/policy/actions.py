@@ -30,6 +30,7 @@ class ActionKind(str, Enum):
     SET_PRIORITY = "SET_PRIORITY"
     SUSPEND_PROCESS = "SUSPEND_PROCESS"
     RESTORE_POLICY = "RESTORE_POLICY"
+    CLOSE_PROCESS = "CLOSE_PROCESS"
 
 
 # Non-mutating: may be decided/logged; ActionExecutor must never invoke handlers for these.
@@ -48,8 +49,16 @@ MUTATING_MIN_LEVEL: Mapping[ActionKind, int] = {
     ActionKind.SET_PRIORITY: LEVEL_REVERSIBLE,
     ActionKind.SUSPEND_PROCESS: LEVEL_REVERSIBLE,
     ActionKind.RESTORE_POLICY: LEVEL_REVERSIBLE,
+    ActionKind.CLOSE_PROCESS: LEVEL_REVERSIBLE,
     ActionKind.BLOCK_IP: LEVEL_ADMIN,
 }
+
+# Kinds that require an explicit human authorization regardless of level.
+# CLOSE_PROCESS ends a user's app (data loss possible, no rollback), so it may
+# only be issued/executed under Authorization.USER_APPROVED — never
+# AUTOMATIC_POLICY. This keeps the autonomous agent unable to close apps on its
+# own even if a handler is registered for a user-initiated surface (the GUI).
+USER_APPROVED_ONLY: frozenset[ActionKind] = frozenset({ActionKind.CLOSE_PROCESS})
 
 
 def parse_action_kind(value: str | ActionKind) -> ActionKind | None:
@@ -127,6 +136,7 @@ __all__ = [
     "ActionRegistry",
     "NON_MUTATING_ACTIONS",
     "MUTATING_MIN_LEVEL",
+    "USER_APPROVED_ONLY",
     "parse_action_kind",
     "action_min_level",
     "level_name",

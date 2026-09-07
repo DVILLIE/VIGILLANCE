@@ -24,6 +24,7 @@ from agent.policy.actions import (
     ActionRequest,
     MUTATING_MIN_LEVEL,
     NON_MUTATING_ACTIONS,
+    USER_APPROVED_ONLY,
     parse_action_kind,
 )
 from agent.policy.authorization import (
@@ -163,6 +164,13 @@ class PolicyCortex:
                 kind.value,
             )
             return None
+        if kind in USER_APPROVED_ONLY and auth is not Authorization.USER_APPROVED:
+            logger.warning(
+                "Cortex refused: %s requires USER_APPROVED (got %s) — no autonomous path",
+                kind.value,
+                auth.value,
+            )
+            return None
 
         min_for_kind = MUTATING_MIN_LEVEL.get(kind)
         if kind in NON_MUTATING_ACTIONS:
@@ -285,6 +293,10 @@ class ActionExecutor:
         if auth is None or not authorization_allows(decision.action_level, auth):
             self._audit_reject(decision, "authorization_denied")
             return False, "REJECTED: authorization does not permit this level"
+
+        if kind in USER_APPROVED_ONLY and auth is not Authorization.USER_APPROVED:
+            self._audit_reject(decision, "requires_user_approved")
+            return False, "REJECTED: action requires USER_APPROVED authorization"
 
         floor = confidence_floor(decision.action_level)
         if (

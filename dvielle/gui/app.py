@@ -14,9 +14,10 @@ from agent.controller import AgentController
 from agent.modules.network_info import collect_network_snapshot
 from agent.modules.resource_advisor import (
     AppGroup,
-    close_app_group,
     get_app_groups,
 )
+from agent.policy import ActionKind, Authorization, PolicyGate
+from agent.policy.levels import LEVEL_REVERSIBLE
 from agent.store.db import AgentStore
 from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT
 from dvielle import APP_NAME, TAGLINE, VERSION
@@ -71,6 +72,10 @@ class DVielleApp:
         self._chat_win: ChatWindow | None = None
         self._attacks_win: AttacksWindow | None = None
         self._mission_verbs = 0
+        # User-initiated action gate (Smart Close). Registers the single
+        # CLOSE_PROCESS handler; the Cortex still requires USER_APPROVED, so it
+        # only runs after an explicit human confirm.
+        self._user_gate: PolicyGate | None = None
 
         ctk.set_appearance_mode("dark")
         self.root = ctk.CTk()
@@ -620,18 +625,17 @@ class DVielleApp:
         def _confirm() -> None:
             dlg.destroy()
             speak_async(f"Closing {group.display_name} now.", persona="jarvis")
-            ok, msg = close_app_group(group)
-            tag = "OK" if ok else "FAILED"
+            # Graceful pass first (WM_CLOSE), gated through PolicyGate.
+            ok, msg = self._issue_and_close(group, force=False)
             self._store.log_work("CLOSE_APP", msg)
-            self._append_log(f"[ACTION/{tag}] {msg}")
             if ok:
+                self._append_log(f"[ACTION/OK] {msg}")
                 speak_async("Done. Application closed.", persona="jarvis")
+                self.root.after(400, self._rebuild_close_panel)
             else:
-                speak_async(
-                    "I could not fully close it. You may need administrator rights.",
-                    persona="jarvis",
-                )
-            self.root.after(400, self._rebuild_close_panel)
+                # Did not exit on its own — require a separate, explicit force confirm.
+                self._append_log(f"[ACTION/HOLD] {msg}")
+                self._prompt_force_close(group, msg)
 
         ctk.CTkButton(
             row, text="Keep open", width=140, command=_cancel, fg_color=T.BORDER, hover_color=T.ACCENT_DIM
@@ -643,6 +647,111 @@ class DVielleApp:
             command=_confirm,
             fg_color=T.DANGER,
             hover_color=T.WARNING,
+        ).pack(side="right", padx=4)
+
+    def _get_user_gate(self) -> PolicyGate:
+        """Lazily build the user-action gate (registers CLOSE_PROCESS handler)."""
+        if self._user_gate is None:
+            self._user_gate = PolicyGate.create(self._store, user_actions=True)
+        return self._user_gate
+
+    def _issue_and_close(self, group: AppGroup, *, force: bool) -> tuple[bool, str]:
+        """Route a human-confirmed Smart Close through PolicyGate.
+
+        Issues a USER_APPROVED CLOSE_PROCESS Decision (persisted to the evidence
+        ledger by the executor) targeting the group's recorded PID set, then runs
+        the registered handler. reversible=False: closing an app cannot be undone.
+        """
+        gate = self._get_user_gate()
+        pids = list(group.pids)
+        evidence = [
+            f"User confirmed Smart Close in Mission Console (force={force})",
+            f"{group.display_name}: {len(pids)} process(es), ~{group.memory_mb:.0f} MB",
+            "Irreversible: unsaved work may be lost (no rollback)",
+        ]
+        if group.risk == "danger_active":
+            evidence.append("WARNING: this app is currently in the foreground")
+        decision = gate.cortex.issue(
+            action=ActionKind.CLOSE_PROCESS,
+            action_level=LEVEL_REVERSIBLE,
+            confidence=1.0,
+            evidence_summary=evidence,
+            authorization=Authorization.USER_APPROVED,
+            target=f"{group.display_name} pids={pids}",
+            initiator="mission_console_user",
+            reversible=False,
+            rollback_plan=None,
+            policy_ref="gui_smart_close",
+            details={
+                "pids": pids,
+                "names": list(group.process_names),
+                "force": force,
+            },
+        )
+        if decision is None:
+            return False, "Refused by policy — Decision not issued"
+        return gate.executor.execute(decision, before_state=f"running:{len(pids)}")
+
+    def _prompt_force_close(self, group: AppGroup, reason: str) -> None:
+        """Second, explicit confirm before terminating (no silent kill escalation)."""
+        speak_async(
+            "It did not close on its own. Force close will end it and may lose unsaved work.",
+            persona="jarvis",
+        )
+        dlg = ctk.CTkToplevel(self.root)
+        dlg.title("Force close?")
+        dlg.geometry("560x300")
+        dlg.configure(fg_color=T.BG_DARK)
+        dlg.transient(self.root)
+        dlg.grab_set()
+        try:
+            self._apply_window_icon(dlg)
+        except Exception:
+            pass
+
+        ctk.CTkLabel(
+            dlg, text=group.display_name, font=T.FONT_TITLE, text_color=T.ACCENT_GLOW
+        ).pack(pady=(16, 4), padx=16, anchor="w")
+        ctk.CTkLabel(
+            dlg, text=reason, font=T.FONT_BODY, text_color=T.TEXT,
+            wraplength=520, justify="left",
+        ).pack(padx=16, pady=8, anchor="w")
+        ctk.CTkLabel(
+            dlg,
+            text="Force close terminates the process(es) immediately. Unsaved work may be lost.",
+            font=T.FONT_TAGLINE, text_color=T.WARNING, wraplength=520, justify="left",
+        ).pack(padx=16, pady=(4, 8), anchor="w")
+
+        row = ctk.CTkFrame(dlg, fg_color="transparent")
+        row.pack(fill="x", padx=16, pady=16)
+
+        def _cancel() -> None:
+            dlg.destroy()
+            speak_async("Okay. Leaving it running.", persona="jarvis")
+            self._append_log(f"[SMART CLOSE] Force declined — left {group.display_name} running")
+            self.root.after(400, self._rebuild_close_panel)
+
+        def _force() -> None:
+            dlg.destroy()
+            speak_async(f"Force closing {group.display_name}.", persona="jarvis")
+            ok, msg = self._issue_and_close(group, force=True)
+            self._store.log_work("CLOSE_APP", msg)
+            self._append_log(f"[ACTION/{'OK' if ok else 'FAILED'}] {msg}")
+            speak_async(
+                "Done. Application closed."
+                if ok
+                else "I could not fully close it even with force. You may need administrator rights.",
+                persona="jarvis",
+            )
+            self.root.after(400, self._rebuild_close_panel)
+
+        ctk.CTkButton(
+            row, text="Keep open", width=140, command=_cancel,
+            fg_color=T.BORDER, hover_color=T.ACCENT_DIM,
+        ).pack(side="left", padx=4)
+        ctk.CTkButton(
+            row, text="Force close", width=140, command=_force,
+            fg_color=T.DANGER, hover_color=T.WARNING,
         ).pack(side="right", padx=4)
 
     def _tick_logs(self) -> None:
