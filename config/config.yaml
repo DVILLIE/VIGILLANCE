@@ -76,3 +76,7 @@ chat:
   enabled: false
   ollama_model: llama3.2
   voice_web_only: true
+  # Privacy (audit C2): chat is on-device (local Ollama) by default.
+  allow_cloud_llm: false          # true + GROQ_API_KEY set → may use Groq cloud when local Ollama is unavailable
+  allow_cloud_raw_context: false  # true → send UNREDACTED machine/network identity to the cloud (not recommended)
+  ollama_timeout_seconds: 5       # fail fast to the local explainer instead of hanging

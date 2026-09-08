@@ -19,7 +19,7 @@ from agent.modules.resource_advisor import (
 from agent.policy import ActionKind, Authorization, PolicyGate
 from agent.policy.levels import LEVEL_REVERSIBLE
 from agent.store.db import AgentStore
-from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT
+from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT, load_yaml
 from dvielle import APP_NAME, TAGLINE, VERSION
 from dvielle.brand import apply_tk_window_icon, brand_png, configure_windows_app_identity
 from dvielle.gui import theme as T
@@ -410,7 +410,12 @@ class DVielleApp:
 
     def _open_chat(self) -> None:
         if self._chat is None:
-            self._chat = ChatAssistant()
+            try:
+                cfg = load_yaml(self.config_dir / "config.yaml")
+            except Exception:
+                cfg = {}
+            # Cloud LLM stays off unless config opts in (audit C2).
+            self._chat = ChatAssistant.from_config(cfg)
         if self._chat_win is not None and self._chat_win.winfo_exists():
             self._chat_win.lift()
             return
@@ -429,7 +434,14 @@ class DVielleApp:
             agent_started=lambda: self._agent_started,
             cycle_count=lambda: self.controller.status.cycle_count if self._agent_started else 0,
             stats_provider=stats,
+            on_cloud_use=self._on_chat_cloud_use,
         )
+
+    def _on_chat_cloud_use(self) -> None:
+        """Record to the work log whenever a chat answer left the machine."""
+        raw = getattr(self._chat, "allow_cloud_raw", False)
+        detail = "RAW context sent" if raw else "network identity redacted"
+        self._store.log_work("CHAT_CLOUD", f"Chat answered via Groq cloud LLM ({detail})")
 
     def _view_work_log(self) -> None:
         WorkLogWindow(self.root, self._store)

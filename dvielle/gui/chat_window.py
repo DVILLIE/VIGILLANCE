@@ -22,12 +22,14 @@ class ChatWindow(ctk.CTkToplevel):
         agent_started: Callable[[], bool],
         cycle_count: Callable[[], int],
         stats_provider: Callable[[], dict] | None = None,
+        on_cloud_use: Callable[[], None] | None = None,
     ) -> None:
         super().__init__(master)
         self.assistant = assistant
         self._agent_started = agent_started
         self._cycle_count = cycle_count
         self._stats_provider = stats_provider
+        self._on_cloud_use = on_cloud_use
         self._persona = ctk.StringVar(value="jarvis")
         self._busy = False
 
@@ -154,13 +156,32 @@ class ChatWindow(ctk.CTkToplevel):
                 cycle_count=self._cycle_count(),
                 stats_override=stats,
             )
-            self.after(0, lambda: self._show_reply(resp.text, resp.persona, resp.used_web))
+            if resp.used_cloud and self._on_cloud_use:
+                try:
+                    self._on_cloud_use()
+                except Exception:
+                    pass
+            self.after(
+                0, lambda: self._show_reply(resp.text, resp.persona, resp.used_web, resp.used_cloud)
+            )
 
         threading.Thread(target=work, daemon=True).start()
 
-    def _show_reply(self, text: str, persona: str, used_web: bool) -> None:
+    def _show_reply(self, text: str, persona: str, used_web: bool, used_cloud: bool = False) -> None:
         self._append(persona, text)
+        if used_cloud:
+            redaction = (
+                "RAW machine/network details were sent"
+                if getattr(self.assistant, "allow_cloud_raw", False)
+                else "Network identity was redacted"
+            )
+            self._append("system", f"⚠ This answer came from the CLOUD (Groq). {redaction}.")
         speak_async(text, persona=persona)  # type: ignore[arg-type]
-        note = " (web lookup used)" if used_web else ""
+        notes = []
+        if used_web:
+            notes.append("web lookup")
+        if used_cloud:
+            notes.append("⚠ cloud (Groq)")
+        note = f" ({', '.join(notes)})" if notes else ""
         self.status.configure(text=f"Reply spoken by {persona.upper()}{note}")
         self._busy = False

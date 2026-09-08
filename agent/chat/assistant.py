@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from agent.chat.context import format_stats_block, gather_stats_context
+from agent.chat.context import format_stats_block, gather_stats_context, sensitive_values
 from agent.chat.local_explainer import local_answer
 from agent.chat.llm import chat_completion
 from agent.chat.personas import Persona, get_persona
@@ -29,6 +29,7 @@ class ChatResponse:
     used_web: bool = False
     used_llm: bool = False
     used_local: bool = False
+    used_cloud: bool = False  # answer came from the Groq cloud backend (off-box)
 
 
 @dataclass
@@ -36,6 +37,21 @@ class ChatAssistant:
     ollama_model: str = "llama3.2"
     history: list[ChatMessage] = field(default_factory=list)
     max_history: int = 12
+    # Privacy (audit C2): cloud off by default; network identity redacted on any
+    # off-box send unless raw context is explicitly enabled; fail-fast to local.
+    allow_cloud: bool = False
+    allow_cloud_raw: bool = False
+    ollama_timeout: float = 5.0
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any] | None) -> "ChatAssistant":
+        chat = (config or {}).get("chat", {}) or {}
+        return cls(
+            ollama_model=chat.get("ollama_model", "llama3.2"),
+            allow_cloud=bool(chat.get("allow_cloud_llm", False)),
+            allow_cloud_raw=bool(chat.get("allow_cloud_raw_context", False)),
+            ollama_timeout=float(chat.get("ollama_timeout_seconds", 5)),
+        )
 
     def ask(
         self,
@@ -69,14 +85,21 @@ class ChatAssistant:
             self._remember(q, local, persona.id)
             return ChatResponse(text=local, persona=persona.id, used_local=True)
 
-        llm_text = self._llm_reply(q, persona, stats_block, web_note)
+        llm_text, backend = self._llm_reply(q, persona, stats_block, web_note, stats)
         if llm_text:
+            used_cloud = backend == "groq"
+            if used_cloud:
+                logger.warning(
+                    "Chat answered via CLOUD (Groq)%s",
+                    " with RAW context" if self.allow_cloud_raw else " (network identity redacted)",
+                )
             self._remember(q, llm_text, persona.id)
             return ChatResponse(
                 text=llm_text,
                 persona=persona.id,
                 used_web=used_web,
                 used_llm=True,
+                used_cloud=used_cloud,
             )
 
         fallback = local or self._generic_fallback(stats, persona, used_web)
@@ -94,7 +117,8 @@ class ChatAssistant:
         persona: Persona,
         stats_block: str,
         web_note: str,
-    ) -> str | None:
+        stats: dict[str, Any],
+    ) -> tuple[str | None, str | None]:
         extra = ""
         if web_note:
             extra = f"\n\nWEB SEARCH RESULTS (voice query only):\n{web_note[:2000]}"
@@ -105,10 +129,19 @@ class ChatAssistant:
             messages.append({"role": role, "content": msg.content})
         messages.append({"role": "user", "content": question})
 
-        reply = chat_completion(messages, model=self.ollama_model)
+        # Redact network identity before any cloud send unless raw context is
+        # explicitly enabled. Local Ollama (127.0.0.1) always gets full context.
+        cloud_secrets = None if self.allow_cloud_raw else sensitive_values(stats)
+        reply, backend = chat_completion(
+            messages,
+            model=self.ollama_model,
+            allow_cloud=self.allow_cloud,
+            cloud_secrets=cloud_secrets,
+            ollama_timeout=self.ollama_timeout,
+        )
         if reply:
-            return reply.strip()
-        return None
+            return reply.strip(), backend
+        return None, None
 
     def _remember(self, question: str, answer: str, persona_id: str) -> None:
         self.history.append(ChatMessage("user", question, persona_id))

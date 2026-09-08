@@ -39,6 +39,31 @@ def gather_stats_context(agent_started: bool = False, cycle_count: int = 0) -> d
     }
 
 
+def sensitive_values(stats: dict[str, Any]) -> list[str]:
+    """Concrete network-identity strings to scrub before any off-box (cloud) send.
+
+    These are the fields that fingerprint the machine/network — hostname, all
+    local IPs, public IP, VPN adapter + tunnel IP, DNS servers, gateway. Returned
+    longest-first so replacement never partially clobbers a shorter substring.
+    """
+    values: list[str] = []
+
+    def _add(v: Any) -> None:
+        if isinstance(v, str) and v.strip() and v.strip().lower() not in ("unknown", "none"):
+            values.append(v.strip())
+
+    _add(stats.get("hostname"))
+    _add(stats.get("public_ip"))
+    _add(stats.get("vpn_ip"))
+    _add(stats.get("vpn_name"))
+    _add(stats.get("gateway"))
+    for ip in stats.get("local_ips") or []:
+        _add(ip)
+    for dns in stats.get("dns_servers") or []:
+        _add(dns)
+    return sorted(set(values), key=len, reverse=True)
+
+
 def format_stats_block(stats: dict[str, Any]) -> str:
     vpn_line = (
         f"VPN ON ({stats.get('vpn_name')}) tunnel IP {stats.get('vpn_ip')}"
