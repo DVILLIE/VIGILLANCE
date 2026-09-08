@@ -5,14 +5,13 @@ from __future__ import annotations
 import logging
 import re
 import socket
-import subprocess
 import urllib.request
 from dataclasses import dataclass, field
 
 import psutil
 
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 logger = logging.getLogger("dvielle.network")
 
@@ -78,13 +77,11 @@ def _collect_local_ips() -> tuple[list[str], str | None, str | None, str | None]
         gws = psutil.net_if_stats()
         # default route via net_connections not ideal; parse route on Windows
         if IS_WINDOWS:
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).NextHop"],
-                capture_output=True, text=True, timeout=10,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
+            stdout, _ = run_powershell(
+                "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).NextHop",
+                timeout=10,
             )
-            gw = result.stdout.strip()
+            gw = (stdout or "").strip()
             if gw and re.match(r"[\d.]+", gw):
                 gateway = gw
     except Exception:
@@ -125,12 +122,8 @@ Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
   Select-Object -Unique
 """
     try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
-            capture_output=True, text=True, timeout=15,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        servers = [s.strip() for s in result.stdout.splitlines() if s.strip()]
+        stdout, _ = run_powershell(ps, timeout=15)
+        servers = [s.strip() for s in (stdout or "").splitlines() if s.strip()]
         return list(dict.fromkeys(servers))
     except Exception:
         return []

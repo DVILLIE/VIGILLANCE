@@ -13,7 +13,7 @@ import psutil
 
 from agent import net_resolve
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS, ip_in_whitelist
+from agent.utils import IS_WINDOWS, ip_in_whitelist, run_powershell
 
 logger = logging.getLogger("dvielle.connections")
 
@@ -91,27 +91,14 @@ def _default_gateway() -> str | None:
     if _gw_cache["expiry"] > now:
         return _gw_cache["value"]
     gw: str | None = None
-    try:
-        import subprocess
-
-        result = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-Command",
-                "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | "
-                "Sort-Object RouteMetric | Select-Object -First 1).NextHop",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=8,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        candidate = result.stdout.strip()
-        if candidate and all(c.isdigit() or c == "." for c in candidate):
-            gw = candidate
-    except Exception:
-        gw = None
+    stdout, _ = run_powershell(
+        "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | "
+        "Sort-Object RouteMetric | Select-Object -First 1).NextHop",
+        timeout=8,
+    )
+    candidate = (stdout or "").strip()
+    if candidate and all(c.isdigit() or c == "." for c in candidate):
+        gw = candidate
     _gw_cache["value"] = gw
     _gw_cache["expiry"] = now + _GW_TTL
     return gw

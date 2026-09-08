@@ -10,7 +10,6 @@ No silent truncation — report COLLECTION_DEGRADED.
 from __future__ import annotations
 
 import logging
-import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -20,12 +19,16 @@ from agent.net_identity import looks_like_ipv4_or_ipv6
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 logger = logging.getLogger("dvielle.attacks")
 
 CURSOR_KEY = "security_event_record_id"
 QUERY_BATCH = 200
+# Safety valve on Get-WinEvent materialization/Sort (buffer + time). Equivalent to
+# today for any normal/moderate backlog; only caps the pathological flood case,
+# where burst detection still trips on the recent window.
+QUERY_MAXEVENTS = 2000
 
 
 @dataclass
@@ -62,7 +65,7 @@ try {{
     LogName = 'Security'
     Id = 4625, 4776
     StartTime = [datetime]'{since_str}'
-  }} -ErrorAction Stop | Sort-Object RecordId)
+  }} -MaxEvents {QUERY_MAXEVENTS} -ErrorAction Stop | Sort-Object RecordId)
 }} catch {{
   Write-Output 'QUERY_FAIL|'
   exit 0
@@ -84,21 +87,14 @@ foreach ($e in $events) {{
   }}
 }}
 """
-    try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
-            capture_output=True,
-            text=True,
-            timeout=45,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
-        logger.warning("Event log query failed: %s", exc)
-        return [], True, str(exc)
+    stdout, timed_out = run_powershell(ps_script, timeout=45)
+    if stdout is None:
+        logger.warning("Event log query failed or timed out (timed_out=%s)", timed_out)
+        return [], True, "query_failed_or_timeout"
 
     events: list[dict[str, Any]] = []
-    degraded = False
-    for line in result.stdout.splitlines():
+    degraded = timed_out  # a bounded/killed query may have returned partial output
+    for line in stdout.splitlines():
         line = line.strip()
         if not line:
             continue

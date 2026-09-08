@@ -7,13 +7,12 @@ Never claim full vision when probes are None/unrun.
 from __future__ import annotations
 
 import platform
-import subprocess
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 import psutil
 
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 CapState = Literal["AVAILABLE", "LIMITED", "UNKNOWN", "UNAVAILABLE"]
 
@@ -94,14 +93,8 @@ def _os_info() -> tuple[str | None, str | None, str | None, CapState]:
             "Get-CimInstance Win32_OperatingSystem | "
             "Select-Object -ExpandProperty BuildNumber"
         )
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        lines = [ln.strip() for ln in result.stdout.splitlines() if ln.strip()]
+        stdout, _ = run_powershell(ps, timeout=15)
+        lines = [ln.strip() for ln in (stdout or "").splitlines() if ln.strip()]
         if len(lines) >= 2:
             caption, build = lines[0], lines[1]
             low = caption.lower()
@@ -161,20 +154,11 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
     firewall: CapState = "UNKNOWN"
     if deep and IS_WINDOWS:
         try:
-            r = subprocess.run(
-                [
-                    "powershell",
-                    "-NoProfile",
-                    "-NonInteractive",
-                    "-Command",
-                    "try { Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop | Out-Null; 'ok' } catch { 'no' }",
-                ],
-                capture_output=True,
-                text=True,
+            stdout, _ = run_powershell(
+                "try { Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop | Out-Null; 'ok' } catch { 'no' }",
                 timeout=20,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
             )
-            event_log = "AVAILABLE" if "ok" in (r.stdout or "") else "UNAVAILABLE"
+            event_log = "AVAILABLE" if "ok" in (stdout or "") else "UNAVAILABLE"
             if event_log != "AVAILABLE":
                 gaps.append("security_event_log_unreadable")
         except Exception:

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import os
 import shutil
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,7 +12,7 @@ from typing import Any
 import psutil
 
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_hardened
 
 logger = logging.getLogger("dvielle.disk")
 
@@ -32,18 +31,11 @@ class DiskStatus:
 def _smart_status() -> str | None:
     if not IS_WINDOWS:
         return None
-    try:
-        result = subprocess.run(
-            ["wmic", "diskdrive", "get", "status"],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        lines = [l.strip() for l in result.stdout.splitlines() if l.strip() and l.strip().lower() != "status"]
-        return ", ".join(lines) if lines else None
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+    stdout, _ = run_hardened(["wmic", "diskdrive", "get", "status"], timeout=15)
+    if stdout is None:
         return None
+    lines = [l.strip() for l in stdout.splitlines() if l.strip() and l.strip().lower() != "status"]
+    return ", ".join(lines) if lines else None
 
 
 def _safe_cleanup_paths() -> list[Path]:

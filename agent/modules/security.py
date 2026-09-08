@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import logging
-import subprocess
 from dataclasses import dataclass
 from typing import Any
 
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 logger = logging.getLogger("dvielle.security")
 
@@ -32,23 +31,16 @@ if ($mp) {
     Write-Output "RT:$($mp.RealTimeProtectionEnabled)"
 }
 """
-    try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
-            capture_output=True,
-            text=True,
-            timeout=20,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        am, rt = None, None
-        for line in result.stdout.splitlines():
-            if line.startswith("AM:"):
-                am = line.split(":", 1)[1].strip().lower() == "true"
-            elif line.startswith("RT:"):
-                rt = line.split(":", 1)[1].strip().lower() == "true"
-        return am, rt
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+    stdout, _ = run_powershell(ps, timeout=20)
+    if stdout is None:
         return None, None
+    am, rt = None, None
+    for line in stdout.splitlines():
+        if line.startswith("AM:"):
+            am = line.split(":", 1)[1].strip().lower() == "true"
+        elif line.startswith("RT:"):
+            rt = line.split(":", 1)[1].strip().lower() == "true"
+    return am, rt
 
 
 def _query_firewall() -> tuple[bool | None, dict[str, bool]]:
@@ -60,23 +52,16 @@ foreach ($p in $profiles) {
     Write-Output "$($p.Name):$($p.Enabled)"
 }
 """
-    try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
-            capture_output=True,
-            text=True,
-            timeout=20,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        profiles: dict[str, bool] = {}
-        for line in result.stdout.splitlines():
-            if ":" in line:
-                name, enabled = line.split(":", 1)
-                profiles[name.strip()] = enabled.strip().lower() == "true"
-        all_on = all(profiles.values()) if profiles else None
-        return all_on, profiles
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+    stdout, _ = run_powershell(ps, timeout=20)
+    if stdout is None:
         return None, {}
+    profiles: dict[str, bool] = {}
+    for line in stdout.splitlines():
+        if ":" in line:
+            name, enabled = line.split(":", 1)
+            profiles[name.strip()] = enabled.strip().lower() == "true"
+    all_on = all(profiles.values()) if profiles else None
+    return all_on, profiles
 
 
 class SecurityMonitor:
