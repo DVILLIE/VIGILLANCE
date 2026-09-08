@@ -34,6 +34,7 @@ class DigitalTwin:
     capability: dict[str, Any] = field(default_factory=dict)
     hardware: dict[str, Any] = field(default_factory=dict)
     memory: dict[str, Any] = field(default_factory=dict)
+    system: dict[str, Any] = field(default_factory=dict)  # system cpu%/disk — live vitals for the console
     workload: dict[str, Any] = field(default_factory=dict)
     network: dict[str, Any] = field(default_factory=dict)
     privacy: dict[str, Any] = field(default_factory=dict)
@@ -58,6 +59,11 @@ class TwinStore:
     def twin(self) -> DigitalTwin:
         with self._lock:
             return self._twin
+
+    def as_dict(self) -> dict[str, Any]:
+        """Thread-safe deep copy for readers on other threads (e.g. the GUI)."""
+        with self._lock:
+            return self._twin.to_dict()
 
     def set_capability(self, report: CapabilityReport) -> None:
         with self._lock:

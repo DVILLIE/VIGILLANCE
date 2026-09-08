@@ -9,7 +9,6 @@ Design refs (verified patterns, adapted to our tokens):
 from __future__ import annotations
 
 import math
-import random
 import tkinter as tk
 from itertools import cycle
 
@@ -97,6 +96,12 @@ class LivingRadar(ctk.CTkFrame):
         )
 
     def _tick(self) -> None:
+        try:
+            if not self.winfo_viewable():  # hidden/minimized — don't repaint at 25fps
+                self.after(500, self._tick)
+                return
+        except Exception:
+            pass
         self._sweep = (self._sweep + 2.2) % 360
         self._angle = (self._angle - 1.1) % 360
         self._pulse += 0.12
@@ -220,6 +225,12 @@ class PressureGauge(ctk.CTkFrame):
         )
 
     def _ease(self) -> None:
+        try:
+            if not self.winfo_viewable():
+                self.after(500, self._ease)
+                return
+        except Exception:
+            pass
         # Ease toward target so meters feel alive
         delta = self._value - self._display
         if abs(delta) > 0.15:
@@ -257,6 +268,12 @@ class ScanFeed(ctk.CTkFrame):
         self.text.configure(state="disabled")
 
     def _animate_scan(self) -> None:
+        try:
+            if not self.winfo_viewable():
+                self.after(500, self._animate_scan)
+                return
+        except Exception:
+            pass
         self._y += 0.012 * self._dir
         if self._y > 0.92:
             self._dir = -1
@@ -268,34 +285,26 @@ class ScanFeed(ctk.CTkFrame):
 
 
 class MatrixRow(ctk.CTkFrame):
-    """Protection matrix row with cycling SCAN → LIVE states."""
+    """Protection-matrix row bound to a REAL signal via set_state().
 
-    _STATES = ("IDLE", "SCAN", "LIVE", "SYNC")
+    No fake cycling: the state is only ever what the caller sets from the twin /
+    capability report / collector status (audit C3 honesty). Defaults to an
+    honest 'unknown' until data arrives.
+    """
 
-    def __init__(self, master, name: str, delay_ms: int = 0, **kwargs) -> None:
+    def __init__(self, master, name: str, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, **kwargs)
         self.name = name
-        self._i = random.randint(0, len(self._STATES) - 1)
         ctk.CTkLabel(self, text=name, font=T.FONT_BODY, text_color=T.TEXT).pack(
             side="left", padx=10, pady=8
         )
         self.state_lbl = ctk.CTkLabel(
-            self, text=self._STATES[self._i], font=T.FONT_MONO, text_color=T.ACCENT_DIM,
+            self, text="—", font=T.FONT_MONO, text_color=T.TEXT_DIM,
         )
         self.state_lbl.pack(side="right", padx=10, pady=8)
-        self.after(delay_ms + 800, self._cycle)
 
-    def _cycle(self) -> None:
-        self._i = (self._i + 1) % len(self._STATES)
-        st = self._STATES[self._i]
-        color = {
-            "IDLE": T.TEXT_DIM,
-            "SCAN": T.WARNING,
-            "LIVE": T.SUCCESS,
-            "SYNC": T.ACCENT_GLOW,
-        }[st]
-        self.state_lbl.configure(text=st, text_color=color)
-        self.after(1600 + random.randint(0, 900), self._cycle)
+    def set_state(self, text: str, color: str) -> None:
+        self.state_lbl.configure(text=text, text_color=color)
 
 
 class ClockMono(ctk.CTkLabel):

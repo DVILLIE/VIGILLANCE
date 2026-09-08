@@ -10,13 +10,13 @@ Process list entries are candidates for purpose classification, not a kill list.
 from __future__ import annotations
 
 import logging
-import socket
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import psutil
 
+from agent import net_resolve
 from agent.net_identity import host_matches_any, host_matches_domain, normalize_hostname
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
@@ -76,11 +76,9 @@ def _is_update_domain(host: str) -> bool:
 
 
 def _resolve_ip_to_host(ip: str) -> str | None:
-    try:
-        host, _, _ = socket.gethostbyaddr(ip)
-        return normalize_hostname(host)
-    except (socket.herror, socket.gaierror, OSError):
-        return None
+    # Non-blocking cached reverse-DNS — never stall the nerve loop (audit C3).
+    host = net_resolve.lookup(ip)
+    return normalize_hostname(host) if host else None
 
 
 def _host_matches_telemetry(host: str, domains: set[str]) -> bool:

@@ -327,10 +327,22 @@ class DVielleApp:
         gauges.pack(fill="x")
         self.cpu_gauge = PressureGauge(gauges, "CPU")
         self.cpu_gauge.pack(side="left", expand=True, padx=2)
-        self.ram_gauge = PressureGauge(gauges, "RAM")
+        # MEM (not RAM%): the gauge shows commit pressure, not raw used% (law #2).
+        self.ram_gauge = PressureGauge(gauges, "MEM")
         self.ram_gauge.pack(side="left", expand=True, padx=2)
         self.disk_gauge = PressureGauge(gauges, "DISK")
         self.disk_gauge.pack(side="left", expand=True, padx=2)
+
+        # Honest pressure breakdown + VILL self-budget (are we the slowdown?).
+        self.mem_detail_lbl = ctk.CTkLabel(
+            inner, text="memory: —", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM,
+            wraplength=300, anchor="w", justify="left",
+        )
+        self.mem_detail_lbl.pack(anchor="w", pady=(6, 0), padx=4)
+        self.budget_lbl = ctk.CTkLabel(
+            inner, text="VILL footprint: —", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM,
+        )
+        self.budget_lbl.pack(anchor="w", padx=4)
 
         self.cycle_lbl = ctk.CTkLabel(
             inner, text="Agent cycles: 0", font=T.FONT_MONO, text_color=T.TEXT_DIM
@@ -362,15 +374,12 @@ class DVielleApp:
         panel.grid(row=0, column=3, sticky="nsew", padx=(6, 0))
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=12, pady=(0, 12))
-        modules = (
-            "Network Scan",
-            "Attack Shield",
-            "Privacy Guard",
-            "Workload Watch",
-            "Resource AI",
-        )
-        for i, name in enumerate(modules):
-            MatrixRow(inner, name, delay_ms=i * 280).pack(fill="x", pady=3)
+        # Rows bound to real signals (twin/capability/nerve), not animation.
+        self._matrix_rows: dict[str, MatrixRow] = {}
+        for name in ("Defender", "Firewall", "Nerve", "Vision", "Pulse"):
+            row = MatrixRow(inner, name)
+            row.pack(fill="x", pady=3)
+            self._matrix_rows[name] = row
         self.jarvis_line = ctk.CTkLabel(
             inner,
             text='"At your service."',
@@ -466,6 +475,10 @@ class DVielleApp:
         self._append_log(f"[DVIELLE] Work log cleared ({n} entries).")
 
     def _refresh_network_async(self) -> None:
+        if self._minimized:
+            self.root.after(60000, self._refresh_network_async)  # hidden: skip PowerShell/IP fetch
+            return
+
         def _work() -> None:
             try:
                 snap = collect_network_snapshot()
@@ -488,7 +501,7 @@ class DVielleApp:
                 self.root.after(0, lambda: self._append_log(f"[NETWORK] {exc}"))
 
         threading.Thread(target=_work, daemon=True).start()
-        self.root.after(15000, self._refresh_network_async)
+        self.root.after(60000, self._refresh_network_async)  # topology is slow-changing
 
     def _replay_greeting(self) -> None:
         text = greet_on_startup()
@@ -507,18 +520,118 @@ class DVielleApp:
         )
 
     def _tick_stats(self) -> None:
-        cpu = psutil.cpu_percent(interval=None)
-        mem = psutil.virtual_memory()
-        try:
-            disk = psutil.disk_usage("C:\\" if sys.platform == "win32" else "/")
-        except Exception:
-            disk = psutil.disk_usage("/")
-        self.cpu_gauge.set_value(cpu)
-        self.ram_gauge.set_value(mem.percent)
-        self.disk_gauge.set_value(disk.percent)
+        if self._minimized:
+            self.root.after(4000, self._tick_stats)  # hidden: don't sample/paint
+            return
+        v = self._read_vitals()
+        self.cpu_gauge.set_value(v["cpu"] if v["cpu"] is not None else 0.0)
+        self.ram_gauge.set_value(v["mem"] if v["mem"] is not None else 0.0)
+        self.disk_gauge.set_value(v["disk"] if v["disk"] is not None else 0.0)
+        self.mem_detail_lbl.configure(text=v["mem_detail"])
+        self.budget_lbl.configure(text=v["budget"])
         if self._agent_started:
             self.cycle_lbl.configure(text=f"Agent cycles: {self.controller.status.cycle_count}")
+        self._update_surface(v)
         self.root.after(1500, self._tick_stats)
+
+    def _read_vitals(self) -> dict:
+        """Read pressure vitals from the Twin when armed; else a cheap preview.
+
+        The MEM value is commit pressure (not raw used%). The pre-arm preview uses
+        the same win_memory sampler the Twin uses — not a separate raw-% poller.
+        """
+        tw = self.controller.twin if self._agent_started else None
+        data = tw.as_dict() if tw is not None else None
+
+        def _mem_fields(mem: dict):
+            commit = mem.get("commit_percent")
+            load = mem.get("memory_load_percent")
+            avail = mem.get("avail_phys_mb")
+            bits = []
+            if commit is not None:
+                bits.append(f"commit {commit:.0f}%")
+            if avail is not None:
+                bits.append(f"{avail:.0f} MB free")
+            if load is not None:
+                bits.append(f"load {load:.0f}%")
+            detail = "memory: " + " · ".join(bits) if bits else "memory: —"
+            return (commit if commit is not None else load), detail
+
+        if data:
+            sysd = data.get("system") or {}
+            sb = data.get("self_budget") or {}
+            mem_val, mem_detail = _mem_fields(data.get("memory") or {})
+            sb_cpu = sb.get("cpu_percent")
+            sb_rss = sb.get("rss_bytes")
+            budget = f"VILL footprint: {sb_cpu:.0f}% CPU" if sb_cpu is not None else "VILL footprint: —"
+            if sb_rss:
+                budget += f" · {sb_rss / (1024 * 1024):.0f} MB"
+            return {
+                "cpu": sysd.get("cpu_percent"),
+                "mem": mem_val,
+                "disk": sysd.get("disk_percent"),
+                "mem_detail": mem_detail,
+                "budget": budget,
+                "twin": data,
+            }
+
+        # Pre-arm preview (agent not running): cheap, same pressure source as the twin.
+        from agent.win_memory import sample_memory
+
+        mem_val, mem_detail = _mem_fields(sample_memory().to_dict())
+        try:
+            cpu = psutil.cpu_percent(interval=None)
+        except Exception:
+            cpu = None
+        try:
+            disk = psutil.disk_usage("C:\\" if sys.platform == "win32" else "/").percent
+        except Exception:
+            disk = None
+        return {
+            "cpu": cpu,
+            "mem": mem_val,
+            "disk": disk,
+            "mem_detail": mem_detail,
+            "budget": "VILL footprint: standby (arm the agent)",
+            "twin": None,
+        }
+
+    def _update_surface(self, v: dict) -> None:
+        """Bind SURFACE rows to real posture — never a random 'LIVE'."""
+        rows = getattr(self, "_matrix_rows", {})
+        if not rows:
+            return
+        data = v.get("twin")
+        sec = (data or {}).get("security") or {}
+
+        def _posture(name: str, val) -> None:
+            row = rows.get(name)
+            if row is None:
+                return
+            if val is True:
+                row.set_state("ON", T.SUCCESS)
+            elif val is False:
+                row.set_state("OFF", T.DANGER)
+            else:
+                row.set_state("UNKNOWN" if self._agent_started else "—", T.TEXT_DIM)
+
+        _posture("Defender", sec.get("defender_enabled") if data else None)
+        _posture("Firewall", sec.get("firewall_enabled") if data else None)
+
+        running = self._agent_started and self.controller.status.running
+        rows["Nerve"].set_state("LIVE" if running else "STANDBY", T.SUCCESS if running else T.TEXT_DIM)
+
+        vision = (data or {}).get("vision") if data else None
+        vcolor = {"AVAILABLE": T.SUCCESS, "LIMITED": T.WARNING, "UNAVAILABLE": T.DANGER}.get(
+            vision or "", T.TEXT_DIM
+        )
+        rows["Vision"].set_state(vision or "—", vcolor)
+
+        if self._agent_started:
+            n = self.controller.status.cycle_count
+            rows["Pulse"].set_state(f"{n} cyc" if n else "arming", T.ACCENT if n else T.WARNING)
+        else:
+            rows["Pulse"].set_state("—", T.TEXT_DIM)
 
     def _tick_mission_presence(self) -> None:
         """Rotate NOW sentence so the console feels continuously engaged."""
@@ -540,8 +653,11 @@ class DVielleApp:
         self.root.after(7000, self._tick_mission_presence)
 
     def _tick_close_panel(self) -> None:
+        if self._minimized:
+            self.root.after(30000, self._tick_close_panel)  # hidden: skip process enumeration
+            return
         self._rebuild_close_panel()
-        self.root.after(5000, self._tick_close_panel)
+        self.root.after(8000, self._tick_close_panel)
 
     def _rebuild_close_panel(self) -> None:
         for btn in self._close_buttons:

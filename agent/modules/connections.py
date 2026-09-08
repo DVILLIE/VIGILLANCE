@@ -5,11 +5,13 @@ from __future__ import annotations
 import ipaddress
 import logging
 import socket
+import time
 from dataclasses import dataclass
 from typing import Any
 
 import psutil
 
+from agent import net_resolve
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS, ip_in_whitelist
 
@@ -71,21 +73,24 @@ def _process_info(pid: int | None) -> tuple[str, str | None, str | None]:
         return f"Protected process (PID {pid})", None, "Need Administrator for full name"
 
 
-def _reverse_dns(ip: str, timeout: float = 0.8) -> str | None:
-    old = socket.getdefaulttimeout()
-    try:
-        socket.setdefaulttimeout(timeout)
-        host, _, _ = socket.gethostbyaddr(ip)
-        return host
-    except OSError:
-        return None
-    finally:
-        socket.setdefaulttimeout(old)
+def _reverse_dns(ip: str) -> str | None:
+    # Non-blocking: never stall the nerve loop on gethostbyaddr (audit C3).
+    return net_resolve.lookup(ip)
+
+
+# Gateway rarely changes; the PowerShell probe is expensive, so cache it (TTL)
+# instead of spawning a process on every pulse.
+_GW_TTL = 300.0
+_gw_cache: dict[str, Any] = {"value": None, "expiry": 0.0}
 
 
 def _default_gateway() -> str | None:
     if not IS_WINDOWS:
         return None
+    now = time.monotonic()
+    if _gw_cache["expiry"] > now:
+        return _gw_cache["value"]
+    gw: str | None = None
     try:
         import subprocess
 
@@ -102,12 +107,14 @@ def _default_gateway() -> str | None:
             timeout=8,
             creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
         )
-        gw = result.stdout.strip()
-        if gw and all(c.isdigit() or c == "." for c in gw):
-            return gw
+        candidate = result.stdout.strip()
+        if candidate and all(c.isdigit() or c == "." for c in candidate):
+            gw = candidate
     except Exception:
-        return None
-    return None
+        gw = None
+    _gw_cache["value"] = gw
+    _gw_cache["expiry"] = now + _GW_TTL
+    return gw
 
 
 def _local_ipv4s() -> list[str]:
