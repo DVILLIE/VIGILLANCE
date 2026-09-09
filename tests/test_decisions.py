@@ -97,8 +97,10 @@ def test_ram_recommends_on_pressure_transition(store, tmp_path, monkeypatch):
         total = 16 * 1024 ** 3
 
     class _Snap:
-        commit_percent = 92.0
+        commit_percent = 92.0  # >= 85 -> memory_under_pressure True
         source = "test"
+        total_phys_bytes = 16 * 1024 ** 3
+        avail_phys_bytes = 200 * 1024 * 1024
 
     monkeypatch.setattr(ram.psutil, "virtual_memory", lambda: _VM())
     monkeypatch.setattr(ram, "sample_memory", lambda: _Snap())
@@ -123,8 +125,10 @@ def test_ram_no_recommend_when_healthy(store, tmp_path, monkeypatch):
         total = 16 * 1024 ** 3
 
     class _Snap:
-        commit_percent = 30.0
+        commit_percent = 30.0  # healthy: low commit
         source = "test"
+        total_phys_bytes = 16 * 1024 ** 3
+        avail_phys_bytes = 8 * 1024 ** 3  # ample available -> not pressure
 
     monkeypatch.setattr(ram.psutil, "virtual_memory", lambda: _VM())
     monkeypatch.setattr(ram, "sample_memory", lambda: _Snap())

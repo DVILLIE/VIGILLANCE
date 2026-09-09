@@ -145,7 +145,7 @@ def run_once(
         health["ram_available_mb"] = ram.available_mb
 
     def _resource_advisor() -> None:
-        for advice in ResourceAdvisor(store, config).run():
+        for advice in ResourceAdvisor(store, config, cortex=cortex).run():
             if enable_toasts:
                 show_toast(
                     f"DVielle — {advice.resource}",

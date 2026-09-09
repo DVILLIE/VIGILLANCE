@@ -9,8 +9,11 @@ from typing import Any
 
 import psutil
 
+from agent.policy import ActionKind, Authorization, PolicyCortex
+from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS, get_foreground_process
+from agent.win_memory import MemorySnapshot, memory_under_pressure, sample_memory
 
 logger = logging.getLogger("dvielle.resource_advisor")
 
@@ -151,6 +154,25 @@ def _pids_with_visible_windows() -> set[int]:
 
 def _family_for(name: str) -> dict[str, Any] | None:
     return APP_FAMILIES.get(name.lower())
+
+
+def _is_protected_workload(name: str, *, is_fg_pid: bool, fg_name: str | None) -> bool:
+    """True for the foreground PID, same exe name, or APP_FAMILIES members of the fg app.
+
+    Locked #3a: intentional workload = foreground process + its family (v1 proxy).
+    PID-only protection would flag Cursor/Chrome helper processes as 'safe to reduce'.
+    """
+    if is_fg_pid:
+        return True
+    if not name or not fg_name:
+        return False
+    n, f = name.lower(), fg_name.lower()
+    if n == f:
+        return True
+    fam = _family_for(f)
+    if fam and n in {str(m).lower() for m in fam.get("members", ())}:
+        return True
+    return False
 
 
 def _running_names() -> set[str]:
@@ -359,6 +381,10 @@ class ResourceAdvice:
 
 _last_cpu_toast = 0.0
 _last_ram_toast = 0.0
+# CPU contention must be SUSTAINED (Microsoft: momentary spikes create false bottlenecks).
+_cpu_high_streak = 0
+# Episode dedup — one L2 "reduce contention" recommendation per pressure episode.
+_advisor_active = False
 
 
 def _memory_mb(proc: psutil.Process) -> float:
@@ -416,107 +442,160 @@ def _format_mb(mb: float) -> str:
     return f"{mb:.0f} MB"
 
 
-def _build_cpu_advice(usage: float, processes: list[ProcessFootprint]) -> ResourceAdvice | None:
-    top = sorted(processes, key=lambda p: p.cpu_percent, reverse=True)[:3]
-    if not top or top[0].cpu_percent < 5:
-        return None
-
-    main = top[0]
-    headline = f"CPU {usage:.0f}% — {main.name} using {main.cpu_percent:.0f}%"
-    if main.is_foreground:
-        others = [p for p in top[1:] if p.closability > 0]
-        if others:
-            names = ", ".join(f"{p.name} ({p.cpu_percent:.0f}%)" for p in others[:2])
-            suggestion = f"Background load: {names}. Close if not needed."
-        else:
-            suggestion = f"{main.name} is your active app. Close other heavy apps to help."
+def _build_cpu_advice(
+    cpu_usage: float, top_cpu: ProcessFootprint, offenders: list[ProcessFootprint]
+) -> ResourceAdvice:
+    """Contention narrative: a non-foreground process is driving sustained CPU."""
+    headline = (
+        f"Sustained CPU {cpu_usage:.0f}% — {top_cpu.name} ({top_cpu.cpu_percent:.0f}%) "
+        f"is the driver, not your active app"
+    )
+    if offenders:
+        names = ", ".join(f"{p.name} ({p.cpu_percent:.0f}%)" for p in offenders)
+        suggestion = f"Background load you could reduce: {names}"
     else:
-        closable = sorted(
-            [p for p in processes if p.closability > 0],
-            key=lambda p: p.closability,
-            reverse=True,
-        )[:2]
-        if closable:
-            names = ", ".join(f"{p.name} ({p.cpu_percent:.0f}%)" for p in closable)
-            suggestion = f"Not in use? Close: {names}"
-        else:
-            suggestion = f"High CPU from {main.name}. Check Task Manager."
-
-    return ResourceAdvice("CPU", usage, headline, suggestion, top)
+        suggestion = f"{top_cpu.name} is using the CPU in the background."
+    return ResourceAdvice("CPU", cpu_usage, headline, suggestion, offenders)
 
 
-def _build_ram_advice(usage: float, processes: list[ProcessFootprint]) -> ResourceAdvice | None:
-    top = sorted(processes, key=lambda p: p.memory_mb, reverse=True)[:3]
-    if not top or top[0].memory_mb < 200:
-        return None
-
-    main = top[0]
-    headline = f"RAM {usage:.0f}% — {main.name} using {_format_mb(main.memory_mb)}"
-
-    closable = sorted(
-        [p for p in processes if p.closability > 0 and not p.is_foreground],
-        key=lambda p: (p.closability, p.memory_mb),
-        reverse=True,
-    )[:3]
-
-    if closable:
-        names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in closable)
-        suggestion = f"Running in background — safe to close: {names}"
-    elif main.is_foreground:
-        others = [p for p in top[1:] if not p.is_foreground and p.memory_mb > 300]
-        if others:
-            names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in others)
-            suggestion = f"Also using RAM: {names}. Close tabs/apps you are not using."
-        else:
-            suggestion = "Close unused browser tabs or restart heavy apps."
+def _build_ram_advice(snap: MemorySnapshot, offenders: list[ProcessFootprint]) -> ResourceAdvice:
+    """Pressure narrative from available + commit (never raw used%)."""
+    avail_mb = snap.avail_phys_bytes / (1024 * 1024)
+    commit = snap.commit_percent
+    headline = f"Memory pressure — {avail_mb:.0f} MB available" + (
+        f", commit {commit:.0f}%" if commit is not None else ""
+    )
+    if offenders:
+        names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in offenders)
+        suggestion = f"Background apps you could close to relieve it: {names}"
     else:
-        suggestion = f"Close {main.name} if you are not using it."
-
-    return ResourceAdvice("RAM", usage, headline, suggestion, top)
+        suggestion = "No safe background apps to reduce — your foreground work is the main user."
+    return ResourceAdvice("RAM", commit if commit is not None else 0.0, headline, suggestion, offenders)
 
 
 class ResourceAdvisor:
     """Detect CPU/RAM pressure and suggest which background apps to close."""
 
-    def __init__(self, store: AgentStore, config: dict[str, Any]) -> None:
+    def __init__(
+        self, store: AgentStore, config: dict[str, Any], cortex: PolicyCortex | None = None
+    ) -> None:
         self.store = store
+        self.cortex = cortex
         cfg = config.get("resource_advisor", {})
         thresholds = config.get("thresholds", {})
+        # Memory now uses the shared pressure predicate (not a raw ram %); CPU keeps a
+        # utilization threshold but only as the start of a SUSTAINED streak.
         self.cpu_threshold = float(cfg.get("cpu_alert_percent", thresholds.get("cpu_alert_percent", 80)))
-        self.ram_threshold = float(cfg.get("ram_alert_percent", thresholds.get("ram_alert_percent", 85)))
         self.cooldown = int(cfg.get("toast_cooldown_seconds", 300))
         self.enabled = cfg.get("enabled", True)
 
     def run(self) -> list[ResourceAdvice]:
-        global _last_cpu_toast, _last_ram_toast
+        global _last_cpu_toast, _last_ram_toast, _cpu_high_streak, _advisor_active
         if not self.enabled:
             return []
 
+        # (c) Cheap pressure gate FIRST — no enumeration, no blocking CPU sample.
+        snap = sample_memory()
+        try:
+            cpu_now = psutil.cpu_percent(interval=0)  # non-blocking (no 0.5s block on the pulse)
+        except Exception:
+            cpu_now = 0.0
+        mem_pressure = memory_under_pressure(snap)
+        _cpu_high_streak = _cpu_high_streak + 1 if cpu_now >= self.cpu_threshold else 0
+        cpu_sustained = _cpu_high_streak >= 2  # Microsoft: sustained, not a momentary spike
+
+        if not (mem_pressure or cpu_sustained):
+            _advisor_active = False  # pressure cleared → re-arm episode dedup
+            return []
+
+        # Pressure exists → only NOW enumerate for offender scoring.
         fg_pid, fg_name = get_foreground_process()
         processes = _collect_processes(fg_pid)
-
-        cpu_usage = psutil.cpu_percent(interval=0.5)
-        mem = psutil.virtual_memory()
-        ram_usage = mem.percent
+        top_cpu = max(processes, key=lambda p: p.cpu_percent, default=None)
+        # Protect intentional workload: fg PID + same-name + APP_FAMILIES members.
+        top_protected = top_cpu is not None and _is_protected_workload(
+            top_cpu.name, is_fg_pid=top_cpu.is_foreground, fg_name=fg_name
+        )
+        cpu_contention = cpu_sustained and top_cpu is not None and not top_protected
+        offenders = sorted(
+            [
+                p
+                for p in processes
+                if p.closability > 0
+                and not _is_protected_workload(p.name, is_fg_pid=p.is_foreground, fg_name=fg_name)
+            ],
+            key=lambda p: (p.closability, p.memory_mb),
+            reverse=True,
+        )[:3]
 
         advice_list: list[ResourceAdvice] = []
         now = time.time()
+        if mem_pressure and (now - _last_ram_toast) >= self.cooldown:
+            advice = _build_ram_advice(snap, offenders)
+            advice_list.append(advice)
+            _last_ram_toast = now
+            self._log_advice(advice)
+        if cpu_contention and (now - _last_cpu_toast) >= self.cooldown:
+            advice = _build_cpu_advice(cpu_now, top_cpu, offenders)  # type: ignore[arg-type]
+            advice_list.append(advice)
+            _last_cpu_toast = now
+            self._log_advice(advice)
 
-        if cpu_usage >= self.cpu_threshold and (now - _last_cpu_toast) >= self.cooldown:
-            advice = _build_cpu_advice(cpu_usage, processes)
-            if advice:
-                advice_list.append(advice)
-                _last_cpu_toast = now
-                self._log_advice(advice)
-
-        if ram_usage >= self.ram_threshold and (now - _last_ram_toast) >= self.cooldown:
-            advice = _build_ram_advice(ram_usage, processes)
-            if advice:
-                advice_list.append(advice)
-                _last_ram_toast = now
-                self._log_advice(advice)
-
+        self._maybe_recommend(mem_pressure, cpu_contention, snap, cpu_now, top_cpu, offenders)
         return advice_list
+
+    def _maybe_recommend(
+        self,
+        mem_pressure: bool,
+        cpu_contention: bool,
+        snap: MemorySnapshot,
+        cpu_now: float,
+        top_cpu: ProcessFootprint | None,
+        offenders: list[ProcessFootprint],
+    ) -> None:
+        """One L2 'reduce background contention' recommendation per episode → WHY ledger.
+
+        Complementary to ram.py's 'memory_pressure' signal: ram says pressure EXISTS,
+        this says WHICH non-foreground apps are safe to reduce. Recommend only.
+        """
+        global _advisor_active
+        if self.cortex is None or not offenders or _advisor_active:
+            return
+        if not (mem_pressure or cpu_contention):
+            return
+        _advisor_active = True
+        reasons: list[str] = []
+        if mem_pressure:
+            avail_mb = snap.avail_phys_bytes / (1024 * 1024)
+            reasons.append(
+                f"Memory pressure: {avail_mb:.0f} MB available"
+                + (f", commit {snap.commit_percent:.0f}%" if snap.commit_percent is not None else "")
+            )
+        if cpu_contention and top_cpu is not None:
+            reasons.append(
+                f"Sustained CPU {cpu_now:.0f}% — {top_cpu.name} is the driver, not your active app"
+            )
+        names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in offenders)
+        self.cortex.issue(
+            action=ActionKind.RECOMMEND,
+            action_level=LEVEL_RECOMMEND,
+            confidence=0.7,
+            evidence_summary=reasons
+            + [
+                f"Safe-to-reduce background apps: {names}",
+                "Level-2 recommendation — no automatic action; your foreground app is protected",
+            ],
+            authorization=Authorization.AUTOMATIC_POLICY,
+            target="reduce_background_contention",
+            initiator="resource_advisor",
+            reversible=False,
+            policy_ref="resource_contention",
+            details={
+                "mem_pressure": mem_pressure,
+                "cpu_contention": cpu_contention,
+                "offenders": [p.name for p in offenders],
+            },
+        )
 
     def _log_advice(self, advice: ResourceAdvice) -> None:
         full = f"{advice.headline}. {advice.suggestion}"

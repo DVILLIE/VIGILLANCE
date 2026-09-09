@@ -17,7 +17,7 @@ import psutil
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
-from agent.win_memory import sample_memory
+from agent.win_memory import memory_under_pressure, sample_memory
 
 logger = logging.getLogger("dvielle.ram")
 
@@ -76,12 +76,11 @@ class RamMonitor:
         available_mb = mem.available / (1024 * 1024)
         total_mb = mem.total / (1024 * 1024)
         commit_pct = snap.commit_percent
-        # Prefer commit + available over RAM% alone when available
-        critical = percent >= self.critical_percent
-        if commit_pct is not None and commit_pct >= 85:
-            critical = True
-        if available_mb < max(256.0, total_mb * 0.05):
-            critical = True
+        # Shared MS-endorsed predicate: low available OR high commit — never raw used%
+        # (memory_load counts the reclaimable standby list as "used"). Aligns ram.py and
+        # ResourceAdvisor on ONE definition so the WHY ledger can't say "pressure" while
+        # the advisor stays silent (audit #3a).
+        critical = memory_under_pressure(snap)
 
         if critical:
             _consecutive_high += 1

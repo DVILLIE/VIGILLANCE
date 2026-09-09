@@ -162,3 +162,28 @@ def sample_memory() -> MemorySnapshot:
         except Exception:
             return _snapshot_psutil()
     return _snapshot_psutil()
+
+
+AVAIL_FLOOR_MB = 256.0
+AVAIL_FLOOR_FRACTION = 0.05  # Microsoft: Available MBytes < 5% of RAM = insufficient
+COMMIT_PRESSURE_PERCENT = 85.0  # % Committed Bytes In Use (Committed / Commit Limit)
+
+
+def memory_under_pressure(snap: MemorySnapshot) -> bool:
+    """The single memory-pressure predicate, shared by RamMonitor and ResourceAdvisor.
+
+    Microsoft-endorsed signals ONLY (never raw used% / memory_load): physical
+    availability and commit ratio.
+      - Available < max(256 MB, 5% of RAM)  — Available MBytes < 5% = insufficient RAM.
+      - % Committed Bytes In Use >= 85       — commit approaching the commit limit.
+    ullAvailPhys already includes the (reclaimable) standby list, so a machine whose
+    "used %" is high purely from cache is NOT flagged. When commit_percent is
+    unavailable (psutil-only fallback), use availability alone — never invent commit.
+    """
+    total_mb = snap.total_phys_bytes / (1024 * 1024)
+    avail_mb = snap.avail_phys_bytes / (1024 * 1024)
+    if avail_mb < max(AVAIL_FLOOR_MB, total_mb * AVAIL_FLOOR_FRACTION):
+        return True
+    if snap.commit_percent is not None and snap.commit_percent >= COMMIT_PRESSURE_PERCENT:
+        return True
+    return False
