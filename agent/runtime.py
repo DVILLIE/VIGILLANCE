@@ -138,7 +138,7 @@ def run_once(
                 show_toast("DVielle — Browser watch", threat.message[:200], severity=threat.severity)
 
     def _ram() -> None:
-        ram = RamMonitor(store, config, scripts_dir).run(
+        ram = RamMonitor(store, config, scripts_dir, cortex=cortex).run(
             enable_trim=modes.get("enable_ram_trim", False) and not monitor_only
         )
         health["ram_percent"] = ram.percent
@@ -170,7 +170,7 @@ def run_once(
                 )
 
     def _security() -> None:
-        sec = SecurityMonitor(store, config).run()
+        sec = SecurityMonitor(store, config, cortex=cortex).run()
         health["defender_enabled"] = sec.defender_enabled
         health["firewall_enabled"] = sec.firewall_enabled
         health["details"] = {"issues": sec.issues}

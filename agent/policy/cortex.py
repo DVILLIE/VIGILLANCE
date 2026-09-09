@@ -99,7 +99,26 @@ class Decision:
 
 
 class PolicyCortex:
-    """Issues Decision IDs. Does not mutate Windows itself."""
+    """Issues Decision IDs. Does not mutate Windows itself.
+
+    When constructed with a store, every issued Level>=2 Decision is persisted to
+    the durable ``decisions`` table so the WHY surface can render the evidence
+    chain. Persistence never gates issuance (a store error must not lose the
+    decision object the caller relies on).
+    """
+
+    def __init__(self, store: AgentStore | None = None) -> None:
+        self.store = store
+
+    def _persist(self, decision: Decision | None) -> None:
+        if decision is None or self.store is None:
+            return
+        if decision.action_level < LEVEL_RECOMMEND:
+            return  # L0/L1 observe/explain are not recommendations
+        try:
+            self.store.log_decision(decision.to_dict())
+        except Exception:  # noqa: BLE001 — persistence must never break issuance
+            logger.exception("Failed to persist decision %s", decision.decision_id)
 
     def issue(
         self,
@@ -198,7 +217,7 @@ class PolicyCortex:
             logger.warning("Cortex refused Level≥3 without rollback_plan: %s", kind.value)
             return None
 
-        return self._mk(
+        decision = self._mk(
             kind=kind,
             action_level=action_level,
             confidence=confidence,
@@ -212,6 +231,8 @@ class PolicyCortex:
             rollback_plan=rollback_plan,
             details=details,
         )
+        self._persist(decision)
+        return decision
 
     def _mk(
         self,

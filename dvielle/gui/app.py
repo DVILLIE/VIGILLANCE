@@ -38,6 +38,7 @@ from dvielle.gui.presence import (
 from dvielle.gui.tray import notify_tray, setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
 from dvielle.gui.chat_window import ChatWindow
+from dvielle.gui.why_window import WhyWindow
 from dvielle.gui.work_log_window import WorkLogWindow
 
 try:
@@ -71,6 +72,7 @@ class DVielleApp:
         self._chat: ChatAssistant | None = None
         self._chat_win: ChatWindow | None = None
         self._attacks_win: AttacksWindow | None = None
+        self._why_win: WhyWindow | None = None
         self._mission_verbs = 0
         # User-initiated action gate (Smart Close). Registers the single
         # CLOSE_PROCESS handler; the Cortex still requires USER_APPROVED, so it
@@ -252,6 +254,7 @@ class DVielleApp:
         ).pack(side="left", padx=4)
         for text, cmd, fg in (
             ("Work Log", self._view_work_log, T.BG_PANEL_ALT),
+            ("Why", self._open_why, T.ACCENT_DIM),
             ("Attacks Console", self._open_attacks, T.DANGER),
             ("Clear Log", self._clear_work_log, T.BG_PANEL_ALT),
             ("Chat (deferred)", self._open_chat, T.ACCENT_DIM),
@@ -454,6 +457,21 @@ class DVielleApp:
 
     def _view_work_log(self) -> None:
         WorkLogWindow(self.root, self._store)
+
+    def _open_why(self) -> None:
+        if self._why_win is not None:
+            try:
+                if self._why_win.winfo_exists():
+                    self._why_win.lift()
+                    self._why_win.focus()
+                    self._why_win.refresh()
+                    return
+            except Exception:
+                pass
+        twin = self.controller.twin if self._agent_started else None
+        self._why_win = WhyWindow(self.root, self._store, twin)
+        self._apply_window_icon(self._why_win)
+        self._store.log_work("WHY", "Opened Why / evidence viewer")
 
     def _open_attacks(self) -> None:
         if self._attacks_win is not None:

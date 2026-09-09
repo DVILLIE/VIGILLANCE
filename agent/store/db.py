@@ -141,6 +141,23 @@ class AgentStore:
                     payload TEXT,
                     result TEXT
                 );
+
+                CREATE TABLE IF NOT EXISTS decisions (
+                    decision_id TEXT PRIMARY KEY,
+                    ts TEXT NOT NULL,
+                    initiator TEXT,
+                    action TEXT NOT NULL,
+                    action_level INTEGER NOT NULL,
+                    confidence REAL,
+                    target TEXT,
+                    reversible INTEGER,
+                    rollback_plan TEXT,
+                    policy_ref TEXT,
+                    evidence TEXT,
+                    details TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_decisions_ts ON decisions(ts);
                 """
             )
 
@@ -208,6 +225,50 @@ class AgentStore:
                 ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
                 """,
                 (key, int(value), utc_now()),
+            )
+
+    def log_decision(self, decision: dict[str, Any]) -> None:
+        """Persist an issued Decision (L2 recommendation or higher) as a durable,
+        first-class row the WHY surface can read — the observe→explain→recommend
+        evidence chain, not an ephemeral UUID inside a log blob. Idempotent by id.
+        """
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO decisions
+                (decision_id, ts, initiator, action, action_level, confidence, target,
+                 reversible, rollback_plan, policy_ref, evidence, details)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(decision_id) DO NOTHING
+                """,
+                (
+                    decision.get("decision_id"),
+                    decision.get("ts") or utc_now(),
+                    decision.get("initiator"),
+                    decision.get("action"),
+                    int(decision.get("action_level", 0)),
+                    decision.get("confidence"),
+                    decision.get("target"),
+                    1 if decision.get("reversible") else 0,
+                    decision.get("rollback_plan"),
+                    decision.get("policy_ref"),
+                    json.dumps(decision.get("evidence_summary") or []),
+                    json.dumps(decision.get("details") or {}),
+                ),
+            )
+
+    def recent_decisions(self, limit: int = 50) -> list[sqlite3.Row]:
+        with self._conn() as conn:
+            return list(
+                conn.execute(
+                    """
+                    SELECT decision_id, ts, initiator, action, action_level, confidence,
+                           target, reversible, rollback_plan, policy_ref, evidence, details
+                    FROM decisions
+                    ORDER BY ts DESC LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
             )
 
     def log_action_audit(self, payload: dict[str, Any]) -> None:

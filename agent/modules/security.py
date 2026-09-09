@@ -6,10 +6,16 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+from agent.policy import ActionKind, Authorization, PolicyCortex
+from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS, run_powershell
 
 logger = logging.getLogger("dvielle.security")
+
+# Transition dedup: only issue a fresh recommendation when the posture CHANGES,
+# not every pulse while Defender/firewall stays off.
+_last_security_sig: str | None = None
 
 
 @dataclass
@@ -65,10 +71,17 @@ foreach ($p in $profiles) {
 
 
 class SecurityMonitor:
-    def __init__(self, store: AgentStore, config: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        store: AgentStore,
+        config: dict[str, Any],
+        cortex: PolicyCortex | None = None,
+    ) -> None:
         self.store = store
+        self.cortex = cortex
 
     def run(self) -> SecurityStatus:
+        global _last_security_sig
         defender, realtime = _query_defender()
         firewall, profiles = _query_firewall()
         issues: list[str] = []
@@ -83,6 +96,24 @@ class SecurityMonitor:
         for issue in issues:
             self.store.log_event("security", "CRITICAL", issue, None)
             logger.critical(issue)
+
+        # L2 recommendation on the normal path — a durable evidence-chain entry for
+        # the WHY surface (recommend only; no automatic action). Issue on change.
+        sig = ";".join(sorted(issues))
+        if issues and self.cortex is not None and sig != _last_security_sig:
+            self.cortex.issue(
+                action=ActionKind.RECOMMEND,
+                action_level=LEVEL_RECOMMEND,
+                confidence=0.9,
+                evidence_summary=issues + ["Level-2 recommendation — DVielle takes no automatic action"],
+                authorization=Authorization.AUTOMATIC_POLICY,
+                target="windows_security_posture",
+                initiator="security",
+                reversible=False,
+                policy_ref="security_posture",
+                details={"issues": issues, "defender": defender, "firewall": firewall},
+            )
+        _last_security_sig = sig if issues else None
 
         return SecurityStatus(
             defender_enabled=defender,

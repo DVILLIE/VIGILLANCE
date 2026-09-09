@@ -38,6 +38,6 @@ class PolicyGate:
 
             registry.register(ActionKind.CLOSE_PROCESS, close_process_handler)
         return cls(
-            cortex=PolicyCortex(),
+            cortex=PolicyCortex(store=store),  # persists issued L2+ decisions to the ledger
             executor=ActionExecutor(store, registry),
         )

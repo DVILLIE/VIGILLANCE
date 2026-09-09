@@ -30,6 +30,19 @@ QUERY_BATCH = 200
 # where burst detection still trips on the recent window.
 QUERY_MAXEVENTS = 2000
 
+# Per-source cooldown so a sustained brute-force issues one recommendation per
+# window, not one per event/pulse (keeps the WHY ledger legible).
+_recommended_at: dict[str, datetime] = {}
+
+
+def _recommend_cooldown_ok(ip: str, window_minutes: int) -> bool:
+    now = datetime.now(timezone.utc)
+    last = _recommended_at.get(ip)
+    if last is not None and (now - last) < timedelta(minutes=window_minutes):
+        return False
+    _recommended_at[ip] = now
+    return True
+
 
 @dataclass
 class AttackAlert:
@@ -220,37 +233,38 @@ class AttackMonitor:
                 and not self.store.is_ip_blocked(str(source_ip))
             )
             # P0: modules do not mutate; Level-2 RECOMMEND only. BLOCK_IP needs L4+USER_APPROVED.
+            # Issue on the NORMAL path (independent of enable_auto_block) so the burst
+            # leaves a durable WHY evidence entry; per-source cooldown prevents spam.
             should_block = False
-            if can_block and enable_auto_block:
-                decision_id = None
-                if self.cortex is not None:
-                    conf = min(0.50 + (count - self.block_after) * 0.05, 0.85)
-                    decision = self.cortex.issue(
-                        action=ActionKind.RECOMMEND,
-                        action_level=LEVEL_RECOMMEND,
-                        confidence=conf,
-                        evidence_summary=[
-                            f"Event 4625 failed logons count={count} from {source_ip}",
-                            "Suggested future action: BLOCK_IP at Level 4 with USER_APPROVED",
-                        ],
-                        authorization=Authorization.AUTOMATIC_POLICY,
-                        policy_ref="attacks_recommend_block",
-                        target=str(source_ip),
-                        initiator="attacks",
-                        reversible=False,
-                        details={
-                            "event_id": event_id,
-                            "count": count,
-                            "record_id": rid,
-                            "suggested_action": ActionKind.BLOCK_IP.value,
-                        },
-                    )
-                    if decision is not None:
-                        decision_id = decision.decision_id
+            if can_block and self.cortex is not None and _recommend_cooldown_ok(
+                str(source_ip), self.window_minutes
+            ):
+                conf = min(0.50 + (count - self.block_after) * 0.05, 0.85)
+                decision = self.cortex.issue(
+                    action=ActionKind.RECOMMEND,
+                    action_level=LEVEL_RECOMMEND,
+                    confidence=conf,
+                    evidence_summary=[
+                        f"Event 4625 failed logons count={count} from {source_ip} in {self.window_minutes}m window",
+                        "Suggested future action: BLOCK_IP at Level 4 with USER_APPROVED",
+                    ],
+                    authorization=Authorization.AUTOMATIC_POLICY,
+                    policy_ref="attacks_recommend_block",
+                    target=str(source_ip),
+                    initiator="attacks",
+                    reversible=False,
+                    details={
+                        "event_id": event_id,
+                        "count": count,
+                        "record_id": rid,
+                        "suggested_action": ActionKind.BLOCK_IP.value,
+                    },
+                )
+                decision_id = decision.decision_id if decision is not None else None
                 self.store.log_event(
                     "attacks",
                     "WARNING",
-                    f"RECOMMEND block IP {source_ip} (count={count}) — L2 only; no mutation",
+                    f"RECOMMEND review IP {source_ip} (count={count}) — L2 only; no mutation",
                     {
                         "event_id": event_id,
                         "count": count,
