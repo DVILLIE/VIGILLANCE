@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ipaddress
 import logging
+import os
 import socket
 import time
 from dataclasses import dataclass
@@ -251,12 +252,82 @@ def _process_whitelisted(name: str | None, processes: list[str]) -> bool:
     return any(p.lower() == lower or p.lower() == base for p in processes)
 
 
+# ── Network honesty (audit #2): pending-DNS grace, signed-app downgrade, cross-pulse dedup ──
+GRACE_SECONDS = 120.0  # ~2 pulses — give async reverse-DNS time before flagging "no PTR"
+_ALERT_TTL = 600.0     # re-log a given (kind, ip, proc) at most this often across pulses
+_first_unresolved_at: dict[str, float] = {}   # remote_ip -> monotonic first-seen-unresolved
+_alerted_at: dict[str, float] = {}            # dedup key -> monotonic last log
+_sig_cache: dict[tuple[str, int, int], bool] = {}  # (exe_path, size, mtime) -> validly signed
+
+
+def _within_resolve_grace(remote_ip: str, *, resolved: bool) -> bool:
+    """True while a still-unresolved IP is inside the grace window (treat as pending,
+    not suspicious). Time-based so it's immune to per-connection vs per-pulse counting.
+    """
+    now = time.monotonic()
+    if resolved:
+        _first_unresolved_at.pop(remote_ip, None)
+        return False
+    first = _first_unresolved_at.get(remote_ip)
+    if first is None:
+        _first_unresolved_at[remote_ip] = now
+        return True
+    return (now - first) < GRACE_SECONDS
+
+
+def _refine_suspicion(
+    *, base_suspicious: bool, hostname: str | None, within_grace: bool, is_signed: bool
+) -> tuple[bool, str]:
+    """Pure post-classification: pending-DNS ≠ suspicious; validly-signed app → observe.
+
+    Returns (suspicious, note) where note ∈ {"", "pending_dns", "signed_downgrade", "review"}.
+    """
+    if not base_suspicious:
+        return False, ""
+    if hostname is None and within_grace:
+        return False, "pending_dns"      # no PTR yet — async DNS still filling
+    if is_signed:
+        return False, "signed_downgrade"  # validly Authenticode-signed → downgrade to observe
+    return True, "review"
+
+
+def _alert_cooldown_ok(key: str) -> bool:
+    """Cross-pulse dedup: True at most once per _ALERT_TTL for the same key."""
+    now = time.monotonic()
+    last = _alerted_at.get(key)
+    if last is not None and (now - last) < _ALERT_TTL:
+        return False
+    _alerted_at[key] = now
+    return True
+
+
+def _is_signed_valid(exe_path: str | None) -> bool:
+    """Whether exe is validly Authenticode-signed (Status == Valid), cached by
+    (path, size, mtime) so a replaced binary re-checks. Path is NOT trust; the
+    signature is (connections.py contract). Only called for would-be-flagged conns.
+    """
+    if not exe_path or not IS_WINDOWS:
+        return False
+    try:
+        st = os.stat(exe_path)
+        key = (exe_path, int(st.st_size), int(st.st_mtime))
+    except OSError:
+        return False
+    cached = _sig_cache.get(key)
+    if cached is not None:
+        return cached
+    safe = exe_path.replace("'", "''")
+    stdout, _ = run_powershell(f"(Get-AuthenticodeSignature -LiteralPath '{safe}').Status", timeout=8)
+    valid = stdout is not None and stdout.strip() == "Valid"
+    _sig_cache[key] = valid
+    return valid
+
+
 class ConnectionMonitor:
     def __init__(self, store: AgentStore, config: dict[str, Any], whitelists: dict[str, Any]) -> None:
         self.store = store
         self.config = config
         self.whitelists = whitelists
-        self._seen_remote: set[str] = set()
         self._gateway = _default_gateway()
         self._local_ips = _local_ipv4s()
 
@@ -319,12 +390,27 @@ class ConnectionMonitor:
                 trusted = True
 
             # Only flag when we truly don't know the internet peer OR process is opaque + public IP
-            suspicious = False
+            base_suspicious = False
             if not trusted and could_be_threat:
-                suspicious = True
+                base_suspicious = True
             elif not trusted and kind == "named_internet" and "Protected process" in proc_name:
-                suspicious = True
+                base_suspicious = True
                 explanation += " Process name hidden — run DVielle as Admin for the real app."
+
+            # Network honesty (audit #2): pending DNS ≠ suspicious; validly-signed app → observe.
+            within_grace = _within_resolve_grace(remote_ip, resolved=hostname is not None)
+            is_signed = _is_signed_valid(exe_path) if base_suspicious else False
+            suspicious, refine = _refine_suspicion(
+                base_suspicious=base_suspicious,
+                hostname=hostname,
+                within_grace=within_grace,
+                is_signed=is_signed,
+            )
+            if refine == "pending_dns":
+                kind = "pending_dns"
+                explanation = f"Resolving {remote_ip} — no PTR yet; not flagged while DNS fills."
+            elif refine == "signed_downgrade":
+                explanation = f"Signed app ({proc_name}) — downgraded to observe. {explanation}"
 
             reason = f"[{kind}] {explanation}"
             if proc_note:
@@ -344,10 +430,9 @@ class ConnectionMonitor:
                 reason=reason,
             )
 
-            # Also log informational LAN/CDN for Attacks Console "what is this?" — only once
-            intel_key = f"{kind}|{remote_ip}|{proc_name}"
-            if kind in ("router", "lan_device", "lan_private", "cdn_cloud") and intel_key not in self._seen_remote:
-                self._seen_remote.add(intel_key)
+            # Informational LAN/CDN intel — cross-pulse dedup so it isn't re-logged every pulse.
+            intel_key = f"intel|{kind}|{remote_ip}|{proc_name}"
+            if kind in ("router", "lan_device", "lan_private", "cdn_cloud") and _alert_cooldown_ok(intel_key):
                 self.store.log_event(
                     "connections",
                     "INFO",
@@ -361,8 +446,7 @@ class ConnectionMonitor:
                     },
                 )
 
-            if suspicious and remote not in self._seen_remote:
-                self._seen_remote.add(remote)
+            if suspicious and _alert_cooldown_ok(f"review|{remote_ip}|{proc_name}"):
                 alert = ConnectionAlert(
                     pid=pid,
                     process_name=proc_name,
