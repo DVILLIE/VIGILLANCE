@@ -14,6 +14,22 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def cutoff_iso(*, days: float = 0.0, hours: float = 0.0) -> str:
+    """UTC ISO timestamp for retention / report windows (lexicographic-safe)."""
+    return (datetime.now(timezone.utc) - timedelta(days=days, hours=hours)).isoformat()
+
+
+# Defaults match config/config.yaml retention + attacks blocks (audit #2.2).
+DEFAULT_RETENTION: dict[str, int] = {
+    "connections_days": 7,
+    "events_days": 14,
+    "health_snapshots_days": 14,
+    "failed_logons_days": 30,
+}
+DEFAULT_REVIEW_WINDOW_HOURS = 24.0
+DEFAULT_SUMMARY_WINDOW_DAYS = 14.0
+
+
 class AgentStore:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
@@ -110,7 +126,10 @@ class AgentStore:
 
                 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
                 CREATE INDEX IF NOT EXISTS idx_connections_ts ON connections(ts);
+                CREATE INDEX IF NOT EXISTS idx_connections_suspicious_ts
+                    ON connections(suspicious, ts);
                 CREATE INDEX IF NOT EXISTS idx_failed_logons_ip ON failed_logons(source_ip);
+                CREATE INDEX IF NOT EXISTS idx_failed_logons_ts ON failed_logons(ts);
 
                 CREATE TABLE IF NOT EXISTS work_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -481,15 +500,40 @@ class AgentStore:
                 (utc_now(), check_name, expected, actual, 1 if passed else 0),
             )
 
-    def recent_suspicious_connections(self, limit: int = 50) -> list[sqlite3.Row]:
+    def recent_suspicious_connections(
+        self,
+        limit: int = 50,
+        *,
+        window_hours: float = DEFAULT_REVIEW_WINDOW_HOURS,
+    ) -> list[sqlite3.Row]:
+        """FLAGGED peers in the review window — one row per (process, ip), not per pulse.
+
+        Audit #2.2: a repeating connection must not fill the report with 60 copies of
+        itself. reason comes from the group's newest row (MAX(id)), not a bare GROUP BY.
+        """
+        cutoff = cutoff_iso(hours=float(window_hours))
         with self._conn() as conn:
             return list(
                 conn.execute(
                     """
-                    SELECT * FROM connections WHERE suspicious = 1
-                    ORDER BY id DESC LIMIT ?
+                    SELECT
+                        c.process_name AS process_name,
+                        c.remote_ip AS remote_ip,
+                        c.remote_addr AS remote_addr,
+                        c.reason AS reason,
+                        c.ts AS ts,
+                        g.hits AS hits
+                    FROM connections c
+                    INNER JOIN (
+                        SELECT process_name, remote_ip, MAX(id) AS max_id, COUNT(*) AS hits
+                        FROM connections
+                        WHERE suspicious = 1 AND ts >= ?
+                        GROUP BY process_name, remote_ip
+                    ) g ON c.id = g.max_id
+                    ORDER BY c.ts DESC
+                    LIMIT ?
                     """,
-                    (limit,),
+                    (cutoff, limit),
                 ).fetchall()
             )
 
@@ -536,9 +580,19 @@ class AgentStore:
                 ).fetchall()
             )
 
-    def attack_summary(self) -> dict[str, Any]:
+    def attack_summary(
+        self, *, window_days: float = DEFAULT_SUMMARY_WINDOW_DAYS
+    ) -> dict[str, Any]:
+        """Historical counts windowed + labeled; blocked_ips is live state (unwindowed)."""
+        cutoff = cutoff_iso(days=float(window_days))
         with self._conn() as conn:
-            fail = conn.execute("SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons").fetchone()
+            fail = conn.execute(
+                """
+                SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons
+                WHERE ts >= ?
+                """,
+                (cutoff,),
+            ).fetchone()
             blocked = conn.execute(
                 "SELECT COUNT(*) AS n FROM blocked_ips WHERE active = 1"
             ).fetchone()
@@ -546,17 +600,45 @@ class AgentStore:
                 """
                 SELECT COUNT(*) AS n FROM events
                 WHERE module = 'browser_guard' AND severity IN ('WARNING', 'CRITICAL')
-                """
+                  AND ts >= ?
+                """,
+                (cutoff,),
             ).fetchone()
             attack_warn = conn.execute(
                 """
                 SELECT COUNT(*) AS n FROM events
                 WHERE module = 'attacks' AND severity IN ('WARNING', 'CRITICAL')
-                """
+                  AND ts >= ?
+                """,
+                (cutoff,),
             ).fetchone()
         return {
             "failed_logon_attempts": int(fail["n"] if fail else 0),
             "blocked_ips": int(blocked["n"] if blocked else 0),
             "browser_threat_events": int(browser_warn["n"] if browser_warn else 0),
             "attack_events": int(attack_warn["n"] if attack_warn else 0),
+            "summary_window_days": float(window_days),
         }
+
+    def prune_old(self, retention: dict[str, Any] | None = None) -> dict[str, int]:
+        """Age out high-volume tables. Never touches decisions / audits / blocks / work_log.
+
+        Returns deleted-row counts per table. Safe to call from idle_deep.
+        """
+        cfg = {**DEFAULT_RETENTION, **(retention or {})}
+        deleted: dict[str, int] = {}
+        plans = (
+            ("connections", int(cfg["connections_days"])),
+            ("events", int(cfg["events_days"])),
+            ("health_snapshots", int(cfg["health_snapshots_days"])),
+            ("failed_logons", int(cfg["failed_logons_days"])),
+        )
+        with self._conn() as conn:
+            for table, days in plans:
+                if days <= 0:
+                    deleted[table] = 0
+                    continue
+                cutoff = cutoff_iso(days=float(days))
+                cur = conn.execute(f"DELETE FROM {table} WHERE ts < ?", (cutoff,))
+                deleted[table] = int(cur.rowcount or 0)
+        return deleted

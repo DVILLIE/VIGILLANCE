@@ -17,9 +17,18 @@ _ATTACK_MODULES = ("attacks", "browser_guard", "connections", "security")
 class AttacksWindow(ctk.CTkToplevel):
     """Separate window for attack / stealer / adware vigilance."""
 
-    def __init__(self, master, store: AgentStore) -> None:
+    def __init__(
+        self,
+        master,
+        store: AgentStore,
+        *,
+        review_window_hours: float = 24.0,
+        summary_window_days: float = 14.0,
+    ) -> None:
         super().__init__(master)
         self.store = store
+        self.review_window_hours = float(review_window_hours)
+        self.summary_window_days = float(summary_window_days)
         self.title(f"{APP_NAME} — Attacks Console")
         self.geometry("1040x720")
         self.minsize(880, 600)
@@ -101,13 +110,15 @@ class AttacksWindow(ctk.CTkToplevel):
         box.configure(state="disabled")
 
     def refresh(self) -> None:
-        summary = self.store.attack_summary()
+        summary = self.store.attack_summary(window_days=self.summary_window_days)
+        days = int(summary.get("summary_window_days") or self.summary_window_days)
         self.summary_lbl.configure(
             text=(
+                f"Last {days} days — "
                 f"Failed logon attempts: {summary['failed_logon_attempts']}  |  "
                 f"Attack alerts: {summary['attack_events']}  |  "
                 f"Browser/stealer alerts: {summary['browser_threat_events']}  |  "
-                f"Blocked IPs: {summary['blocked_ips']}  |  "
+                f"Blocked IPs (active now): {summary['blocked_ips']}  |  "
                 f"Updated {datetime.now().strftime('%H:%M:%S')}"
             )
         )
@@ -164,7 +175,9 @@ class AttacksWindow(ctk.CTkToplevel):
             browser_txt = "\n".join(lines)
         self._set_box(self.browser_box, browser_txt)
 
-        conns = self.store.recent_suspicious_connections(60)
+        conns = self.store.recent_suspicious_connections(
+            50, window_hours=self.review_window_hours
+        )
         # Also pull recent connection INFO/WARNING events for smarter narrative
         conn_events = self.store.recent_events(modules=("connections",), limit=40)
         lines: list[str] = []
@@ -173,16 +186,24 @@ class AttacksWindow(ctk.CTkToplevel):
         lines.append("- cdn_cloud            = Cloudflare/Google/Amazon website plumbing (usually fine)")
         lines.append("- unknown_internet     = public IP we could not name — review the app")
         lines.append("- Process '?' fixed: we now resolve System / Protected / Ended when possible")
+        lines.append(
+            f"- FLAGGED = distinct (process, ip) peers in the last {int(self.review_window_hours)}h "
+            "(not every pulse)"
+        )
         lines.append("")
         if not conns and not conn_events:
             lines.append("No connection intel yet. Keep the agent STARTED and browse / use the network.")
         else:
             if conns:
-                lines.append("=== FLAGGED FOR REVIEW ===")
+                lines.append(
+                    f"=== FLAGGED FOR REVIEW (last {int(self.review_window_hours)}h, peer-deduped) ==="
+                )
                 for r in conns:
                     ts = str(r["ts"])[:19].replace("T", " ")
                     proc = r["process_name"] or "Unknown process"
-                    lines.append(f"[{ts}] {proc}")
+                    hits = int(r["hits"] or 1)
+                    hit_bit = f"  ×{hits}" if hits > 1 else ""
+                    lines.append(f"[{ts}] {proc}{hit_bit}")
                     lines.append(f"         → {r['remote_addr']}")
                     lines.append(f"         {r['reason'] or 'suspicious'}")
                     lines.append("")

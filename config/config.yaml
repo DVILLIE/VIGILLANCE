@@ -33,6 +33,19 @@ thresholds:
   failed_logon_block_after: 5
   failed_logon_window_minutes: 15
 
+# Audit #2.2 — Attacks Console honesty + store self-budget
+attacks:
+  review_window_hours: 24       # FLAGGED peer-dedup horizon
+  summary_window_days: 14       # attack_summary historical counts (labeled)
+
+# Age out high-volume tables on idle_deep. Never prune decisions / action_audit /
+# action_decisions / blocked_ips / baseline_processes / agent_cursors / work_log.
+retention:
+  connections_days: 7
+  events_days: 14
+  health_snapshots_days: 14
+  failed_logons_days: 30
+
 resource_advisor:
   enabled: true
   toast_cooldown_seconds: 300

@@ -387,6 +387,19 @@ def build_runtime(
         deep = probe_capabilities(deep=True)
         twin.set_capability(deep)
         store.log_event("capability", "INFO", f"Deep CapabilityReport tier={deep.tier}", deep.to_dict())
+        # Audit #2.2: age out high-volume tables off the hot pulse (self-budget).
+        try:
+            deleted = store.prune_old(config.get("retention"))
+            if any(deleted.values()):
+                store.log_event(
+                    "store",
+                    "INFO",
+                    "Retention prune: "
+                    + ", ".join(f"{k}={v}" for k, v in deleted.items() if v),
+                    deleted,
+                )
+        except Exception:
+            logger.exception("retention prune failed")
 
     nerve.register(CollectorSpec("heartbeat", Cadence.HEARTBEAT, intervals["heartbeat"], run=_heartbeat))
     nerve.register(

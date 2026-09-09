@@ -483,7 +483,18 @@ class DVielleApp:
                     return
             except Exception:
                 pass
-        self._attacks_win = AttacksWindow(self.root, self._store)
+        cfg = {}
+        try:
+            cfg = load_yaml(self.config_dir / "config.yaml") if (self.config_dir / "config.yaml").exists() else {}
+        except Exception:
+            cfg = {}
+        attacks_cfg = cfg.get("attacks") or {}
+        self._attacks_win = AttacksWindow(
+            self.root,
+            self._store,
+            review_window_hours=float(attacks_cfg.get("review_window_hours", 24)),
+            summary_window_days=float(attacks_cfg.get("summary_window_days", 14)),
+        )
         self._apply_window_icon(self._attacks_win)
         self._store.log_work("ATTACKS", "Opened Attacks Console")
 
