@@ -33,6 +33,8 @@ QUERY_MAXEVENTS = 2000
 # Per-source cooldown so a sustained brute-force issues one recommendation per
 # window, not one per event/pulse (keeps the WHY ledger legible).
 _recommended_at: dict[str, datetime] = {}
+# ACCESS_DENIED is a capability gap, not a flaky query — report once per process.
+_access_denied_reported: bool = False
 
 
 def _recommend_cooldown_ok(ip: str, window_minutes: int) -> bool:
@@ -63,16 +65,34 @@ def _query_security_events(
 ) -> tuple[list[dict[str, Any]], bool, str | None]:
     """Return (events, degraded, error).
 
-    degraded=True if we hit the batch cap (possible truncation).
-    On query failure: empty list + error string (caller must NOT advance cursor).
+    degraded=True if we hit the batch cap (possible truncation) or a real query
+    failure. Healthy empty (no matching 4625/4776) is NOT an error — Get-WinEvent
+    throws NoMatchingEventsFound in that case; we must not cry COLLECTION_DEGRADED.
+
+    Access is probed first with -LogName Security (FilterHashtable alone can
+    misreport UnauthorizedAccess as NoMatchingEventsFound — PowerShell #18965).
     """
     if not IS_WINDOWS:
         return [], False, None
 
     since_str = since.strftime("%Y-%m-%dT%H:%M:%S")
     # Emit: EventID|RecordID|IpAddress|TargetUserName|WorkstationName|Workstation(4776)
+    # Sentinel lines: NO_EVENTS| ACCESS_DENIED| QUERY_FAIL| TRUNCATED|
     ps_script = f"""
 $ErrorActionPreference = 'Stop'
+# 1) Access probe — do NOT use FilterHashtable here (permission can look like empty).
+try {{
+  $null = Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop
+}} catch {{
+  $fq = [string]$_.FullyQualifiedErrorId
+  if ($_.Exception -is [System.UnauthorizedAccessException] -or $fq -like '*UnauthorizedAccess*') {{
+    Write-Output 'ACCESS_DENIED|'
+    exit 0
+  }}
+  Write-Output 'QUERY_FAIL|'
+  exit 0
+}}
+# 2) Filtered 4625/4776 — NoMatchingEventsFound = healthy empty, not degraded.
 try {{
   $events = @(Get-WinEvent -FilterHashtable @{{
     LogName = 'Security'
@@ -80,6 +100,15 @@ try {{
     StartTime = [datetime]'{since_str}'
   }} -MaxEvents {QUERY_MAXEVENTS} -ErrorAction Stop | Sort-Object RecordId)
 }} catch {{
+  $fq = [string]$_.FullyQualifiedErrorId
+  if ($fq -like 'NoMatchingEventsFound*') {{
+    Write-Output 'NO_EVENTS|'
+    exit 0
+  }}
+  if ($_.Exception -is [System.UnauthorizedAccessException] -or $fq -like '*UnauthorizedAccess*') {{
+    Write-Output 'ACCESS_DENIED|'
+    exit 0
+  }}
   Write-Output 'QUERY_FAIL|'
   exit 0
 }}
@@ -105,12 +134,26 @@ foreach ($e in $events) {{
         logger.warning("Event log query failed or timed out (timed_out=%s)", timed_out)
         return [], True, "query_failed_or_timeout"
 
+    return _parse_security_query_stdout(stdout, timed_out=timed_out)
+
+
+def _parse_security_query_stdout(
+    stdout: str,
+    *,
+    timed_out: bool = False,
+) -> tuple[list[dict[str, Any]], bool, str | None]:
+    """Parse PowerShell sentinel/event lines from `_query_security_events`."""
     events: list[dict[str, Any]] = []
     degraded = timed_out  # a bounded/killed query may have returned partial output
     for line in stdout.splitlines():
         line = line.strip()
         if not line:
             continue
+        if line.startswith("NO_EVENTS"):
+            # Healthy: readable Security log, zero matching failed-logon events.
+            return [], False, None
+        if line.startswith("ACCESS_DENIED"):
+            return [], True, "access_denied"
         if line.startswith("QUERY_FAIL"):
             return [], True, "Get-WinEvent failed"
         if line.startswith("TRUNCATED"):
@@ -179,12 +222,27 @@ class AttackMonitor:
         events, degraded, err = _query_security_events(after_record_id=last_rid, since=since)
 
         if err:
-            self.store.log_event(
-                "attacks",
-                "WARNING",
-                f"COLLECTION_DEGRADED: security log query failed — cursor not advanced ({err})",
-                {"cursor": last_rid},
-            )
+            global _access_denied_reported
+            if err == "access_denied":
+                # Honest capability gap — do not cry "query failed" every pulse.
+                if not _access_denied_reported:
+                    _access_denied_reported = True
+                    self.store.log_event(
+                        "attacks",
+                        "WARNING",
+                        "COLLECTION_LIMITED: Security log unreadable without elevation "
+                        "(Event Log Readers / admin) — brute-force detection unavailable",
+                        {"cursor": last_rid, "error": err},
+                    )
+                else:
+                    logger.debug("Security log still unreadable (access_denied); suppressed repeat")
+            else:
+                self.store.log_event(
+                    "attacks",
+                    "WARNING",
+                    f"COLLECTION_DEGRADED: security log query failed — cursor not advanced ({err})",
+                    {"cursor": last_rid},
+                )
             return [
                 AttackAlert(
                     source_ip=None,
