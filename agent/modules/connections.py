@@ -263,8 +263,15 @@ _sig_cache: dict[tuple[str, int, int], bool] = {}  # (exe_path, size, mtime) -> 
 def _within_resolve_grace(remote_ip: str, *, resolved: bool) -> bool:
     """True while a still-unresolved IP is inside the grace window (treat as pending,
     not suspicious). Time-based so it's immune to per-connection vs per-pulse counting.
+
+    Call only for would-be-flagged connections (bounds the dict), and prune entries
+    past the grace window — after GRACE_SECONDS the answer is always False anyway.
     """
     now = time.monotonic()
+    if len(_first_unresolved_at) > 128:
+        for ip, first in list(_first_unresolved_at.items()):
+            if now - first >= GRACE_SECONDS:
+                _first_unresolved_at.pop(ip, None)
     if resolved:
         _first_unresolved_at.pop(remote_ip, None)
         return False
@@ -292,8 +299,14 @@ def _refine_suspicion(
 
 
 def _alert_cooldown_ok(key: str) -> bool:
-    """Cross-pulse dedup: True at most once per _ALERT_TTL for the same key."""
+    """Cross-pulse dedup: True at most once per _ALERT_TTL for the same key.
+    Prunes expired keys so the dict can't grow unbounded over a long-running agent.
+    """
     now = time.monotonic()
+    if len(_alerted_at) > 512:
+        for k, when in list(_alerted_at.items()):
+            if now - when >= _ALERT_TTL:
+                _alerted_at.pop(k, None)
     last = _alerted_at.get(key)
     if last is not None and (now - last) < _ALERT_TTL:
         return False
@@ -398,14 +411,19 @@ class ConnectionMonitor:
                 explanation += " Process name hidden — run DVielle as Admin for the real app."
 
             # Network honesty (audit #2): pending DNS ≠ suspicious; validly-signed app → observe.
-            within_grace = _within_resolve_grace(remote_ip, resolved=hostname is not None)
-            is_signed = _is_signed_valid(exe_path) if base_suspicious else False
-            suspicious, refine = _refine_suspicion(
-                base_suspicious=base_suspicious,
-                hostname=hostname,
-                within_grace=within_grace,
-                is_signed=is_signed,
-            )
+            # Only evaluate (and track resolution grace) for would-be-flagged conns, so the
+            # grace dict stays bounded to the handful of IPs we'd actually review.
+            if base_suspicious:
+                within_grace = _within_resolve_grace(remote_ip, resolved=hostname is not None)
+                is_signed = _is_signed_valid(exe_path)
+                suspicious, refine = _refine_suspicion(
+                    base_suspicious=True,
+                    hostname=hostname,
+                    within_grace=within_grace,
+                    is_signed=is_signed,
+                )
+            else:
+                suspicious, refine = False, ""
             if refine == "pending_dns":
                 kind = "pending_dns"
                 explanation = f"Resolving {remote_ip} — no PTR yet; not flagged while DNS fills."
