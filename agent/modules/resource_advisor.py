@@ -60,11 +60,11 @@ class AppGroup:
     memory_mb: float
     cpu_percent: float
     is_active_work: bool
-    role: str  # main | helper | background
+    role: str  # main | helper | background | shell | protected
     related_to: str | None
     close_advice: str
     voice_line: str
-    risk: str  # safe | caution | danger_active
+    risk: str  # safe | caution | danger_active | protected
     primary_pid: int
     primary_name: str
 
@@ -175,6 +175,32 @@ def _is_protected_workload(name: str, *, is_fg_pid: bool, fg_name: str | None) -
     return False
 
 
+# Shells: closing your terminal kills session work — never a one-tap "safe" close.
+SHELLS = {"powershell.exe", "pwsh.exe", "cmd.exe", "windowsterminal.exe"}
+
+
+def never_close_from_config(config: dict[str, Any] | None) -> frozenset[str]:
+    """User-declared 'always protect' apps (lowercased) — explicit intent, not policy.
+
+    Shared by ResourceAdvisor (pulse offenders) and the GUI Smart Close panel so both
+    read the same protect list from config.
+    """
+    items = (config or {}).get("resource_advisor", {}).get("never_close", []) or []
+    return frozenset(str(x).lower() for x in items if x)
+
+
+def _is_protected(
+    name: str, *, is_fg_pid: bool, fg_name: str | None, never_close: frozenset[str]
+) -> bool:
+    """The single 'do not offer / do not reduce' predicate, used by BOTH the Smart
+    Close panel and the #3a offender filter, so they can never diverge (same
+    discipline as memory_under_pressure). Foreground+family OR user never_close list.
+    """
+    if _is_protected_workload(name, is_fg_pid=is_fg_pid, fg_name=fg_name):
+        return True
+    return (name or "").lower() in never_close
+
+
 def _running_names() -> set[str]:
     names: set[str] = set()
     for proc in psutil.process_iter(["name"]):
@@ -192,6 +218,7 @@ def _build_app_group(
     footprints: list[ProcessFootprint],
     fg_name: str | None,
     running: set[str],
+    never_close: frozenset[str] = frozenset(),
 ) -> AppGroup:
     lower = name.lower()
     fam = _family_for(lower) or {
@@ -200,6 +227,8 @@ def _build_app_group(
         "friendly": name,
     }
     members = {m.lower() for m in fam.get("members", {lower})}
+    is_never_close = lower in never_close or bool(members & never_close)
+    is_shell = lower in SHELLS or bool(members & SHELLS)
     # Include only members that are actually in our footprint set for this merge key
     group_fps = [p for p in footprints if p.name.lower() in members or p.name.lower() == lower]
     if not group_fps:
@@ -245,7 +274,15 @@ def _build_app_group(
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
-    if is_active:
+    if is_never_close:
+        risk = "protected"
+        role = "protected"
+        advice = (
+            f"{fam.get('friendly', name)} is on your protect list (never_close) — "
+            f"observed for awareness, not offered for closing."
+        )
+        voice = ""
+    elif is_active:
         risk = "danger_active"
         role = "main"
         advice = (
@@ -282,6 +319,14 @@ def _build_app_group(
             f"Caution. {fam.get('friendly', name)} still has open windows. "
             f"Closing it may lose unsaved work. Do you want to continue?"
         )
+    elif is_shell:
+        risk = "caution"
+        role = "shell"
+        advice = (
+            f"{fam.get('friendly', name)} is a terminal/shell — closing it can kill "
+            f"commands or a session you have running. Only close if you are sure."
+        )
+        voice = "Caution. This is a terminal. Closing it may stop work you have running."
     else:
         risk = "safe"
         role = "background"
@@ -314,10 +359,12 @@ def _build_app_group(
     )
 
 
-def get_app_groups(limit: int = 6, include_active: bool = True) -> list[AppGroup]:
+def get_app_groups(
+    limit: int = 6, include_active: bool = True, never_close: frozenset[str] = frozenset()
+) -> list[AppGroup]:
     """Smart Task-Manager-style groups for Quick Close."""
     fg_pid, fg_name = get_foreground_process()
-    processes = _collect_processes(fg_pid)
+    processes = _collect_processes(fg_pid, never_close)
     running = _running_names()
 
     # Collapse by family key
@@ -335,15 +382,15 @@ def get_app_groups(limit: int = 6, include_active: bool = True) -> list[AppGroup
         if sum(p.memory_mb for p in fps) < 30 and max(p.cpu_percent for p in fps) < 2:
             continue
         sample_name = max(fps, key=lambda x: x.memory_mb).name
-        g = _build_app_group(sample_name, fps, fg_name, running)
+        g = _build_app_group(sample_name, fps, fg_name, running, never_close)
         if g.is_active_work and not include_active:
             continue
         # Still show active so user can be warned; prefer non-tiny
         groups.append(g)
 
     def sort_key(g: AppGroup) -> tuple:
-        # Active first (so user sees warning), then heavy background
-        risk_rank = {"danger_active": 0, "caution": 1, "safe": 2}.get(g.risk, 3)
+        # Actionable first (danger→caution→safe); protected is informational, last.
+        risk_rank = {"danger_active": 0, "caution": 1, "safe": 2, "protected": 3}.get(g.risk, 4)
         return (risk_rank, -g.memory_mb)
 
     groups.sort(key=sort_key)
@@ -394,9 +441,12 @@ def _memory_mb(proc: psutil.Process) -> float:
         return 0.0
 
 
-def _score_closability(name: str, is_foreground: bool, cpu: float, mem_mb: float) -> float:
+def _score_closability(
+    name: str, is_foreground: bool, cpu: float, mem_mb: float,
+    never_close: frozenset[str] = frozenset(),
+) -> float:
     lower = name.lower()
-    if lower in SYSTEM_PROTECTED or is_foreground:
+    if lower in SYSTEM_PROTECTED or is_foreground or lower in never_close:
         return 0.0
     score = 0.0
     if lower in COMMON_BACKGROUND:
@@ -410,7 +460,9 @@ def _score_closability(name: str, is_foreground: bool, cpu: float, mem_mb: float
     return score
 
 
-def _collect_processes(foreground_pid: int | None) -> list[ProcessFootprint]:
+def _collect_processes(
+    foreground_pid: int | None, never_close: frozenset[str] = frozenset()
+) -> list[ProcessFootprint]:
     footprints: list[ProcessFootprint] = []
     for proc in psutil.process_iter(["pid", "name", "cpu_percent"]):
         try:
@@ -428,7 +480,7 @@ def _collect_processes(foreground_pid: int | None) -> list[ProcessFootprint]:
                     cpu_percent=cpu,
                     memory_mb=mem,
                     is_foreground=is_fg,
-                    closability=_score_closability(name, is_fg, cpu, mem),
+                    closability=_score_closability(name, is_fg, cpu, mem, never_close),
                 )
             )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -488,6 +540,9 @@ class ResourceAdvisor:
         self.cpu_threshold = float(cfg.get("cpu_alert_percent", thresholds.get("cpu_alert_percent", 80)))
         self.cooldown = int(cfg.get("toast_cooldown_seconds", 300))
         self.enabled = cfg.get("enabled", True)
+        # User-declared protect list (case-normalized). Gates both the Smart Close
+        # panel and the pulse offender scoring, so the same names are never advised-close.
+        self._never_close = never_close_from_config(config)
 
     def run(self) -> list[ResourceAdvice]:
         global _last_cpu_toast, _last_ram_toast, _cpu_high_streak, _advisor_active
@@ -510,11 +565,15 @@ class ResourceAdvisor:
 
         # Pressure exists → only NOW enumerate for offender scoring.
         fg_pid, fg_name = get_foreground_process()
-        processes = _collect_processes(fg_pid)
+        processes = _collect_processes(fg_pid, self._never_close)
         top_cpu = max(processes, key=lambda p: p.cpu_percent, default=None)
-        # Protect intentional workload: fg PID + same-name + APP_FAMILIES members.
-        top_protected = top_cpu is not None and _is_protected_workload(
-            top_cpu.name, is_fg_pid=top_cpu.is_foreground, fg_name=fg_name
+        # Protect intentional workload: fg PID + same-name + APP_FAMILIES members,
+        # plus the user's never_close list (same predicate the panel uses).
+        top_protected = top_cpu is not None and _is_protected(
+            top_cpu.name,
+            is_fg_pid=top_cpu.is_foreground,
+            fg_name=fg_name,
+            never_close=self._never_close,
         )
         cpu_contention = cpu_sustained and top_cpu is not None and not top_protected
         offenders = sorted(
@@ -522,7 +581,12 @@ class ResourceAdvisor:
                 p
                 for p in processes
                 if p.closability > 0
-                and not _is_protected_workload(p.name, is_fg_pid=p.is_foreground, fg_name=fg_name)
+                and not _is_protected(
+                    p.name,
+                    is_fg_pid=p.is_foreground,
+                    fg_name=fg_name,
+                    never_close=self._never_close,
+                )
             ],
             key=lambda p: (p.closability, p.memory_mb),
             reverse=True,

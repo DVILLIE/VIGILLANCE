@@ -110,7 +110,7 @@ def _wire(monkeypatch, *, snap, cpu, processes, fg=(1234, "cursor.exe")):
     monkeypatch.setattr(ra, "sample_memory", lambda: snap)
     monkeypatch.setattr(ra.psutil, "cpu_percent", lambda interval=0: cpu)
     monkeypatch.setattr(ra, "get_foreground_process", lambda: fg)
-    monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid: processes)
+    monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid, never_close=frozenset(): processes)
 
 
 def test_no_pressure_returns_nothing_and_does_not_enumerate(store, monkeypatch):
@@ -194,3 +194,79 @@ def test_is_protected_workload_family_and_same_name():
     assert ra._is_protected_workload("chrome.exe", is_fg_pid=False, fg_name="chrome.exe") is True
     assert ra._is_protected_workload("backup.exe", is_fg_pid=False, fg_name="chrome.exe") is False
     assert ra._is_protected_workload("anything.exe", is_fg_pid=True, fg_name="chrome.exe") is True
+
+
+# ---- #3b: never_close protect-list (panel + pulse share one predicate) -----
+
+def test_never_close_from_config_lowercases_and_drops_empty():
+    nc = ra.never_close_from_config(
+        {"resource_advisor": {"never_close": ["Claude.exe", "", None, "Cursor.exe"]}}
+    )
+    assert nc == frozenset({"claude.exe", "cursor.exe"})
+    assert ra.never_close_from_config({}) == frozenset()
+    assert ra.never_close_from_config(None) == frozenset()
+
+
+def test_is_protected_honours_never_close_case_insensitive():
+    nc = frozenset({"claude.exe"})
+    assert ra._is_protected("Claude.exe", is_fg_pid=False, fg_name="cursor.exe", never_close=nc) is True
+    assert ra._is_protected("discord.exe", is_fg_pid=False, fg_name="cursor.exe", never_close=nc) is False
+    # foreground family still wins with an empty never_close list
+    assert ra._is_protected("chrome.exe", is_fg_pid=False, fg_name="chrome.exe", never_close=frozenset()) is True
+
+
+def test_score_closability_never_close_zero():
+    assert (
+        _score_closability("steam.exe", is_foreground=False, cpu=5, mem_mb=800,
+                           never_close=frozenset({"steam.exe"}))
+        == 0.0
+    )
+
+
+def test_never_close_protects_named_background_offender(store, monkeypatch):
+    # steam.exe is a heavy background app that WOULD be an offender, but the user put
+    # it on never_close -> it must not be recommended for closing (and case-insensitive).
+    procs = [
+        ProcessFootprint(1234, "cursor.exe", 3, 2000, is_foreground=True),
+        ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
+        ProcessFootprint(3, "steam.exe", 0.5, 400, closability=55),
+    ]
+    _wire(monkeypatch, snap=_snap(avail_gb=0.3, commit=88.0), cpu=5.0, processes=procs)
+    cortex = _FakeCortex()
+    cfg = {"resource_advisor": {"toast_cooldown_seconds": 0, "never_close": ["Steam.exe"]}}
+    ResourceAdvisor(store, cfg, cortex=cortex).run()
+    offenders = cortex.issued[0]["details"]["offenders"]
+    assert "steam.exe" not in offenders
+    assert "discord.exe" in offenders
+
+
+def test_build_app_group_never_close_is_protected(monkeypatch):
+    monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())
+    fps = [ProcessFootprint(999999999, "steam.exe", 1, 800)]
+    g = ra._build_app_group("steam.exe", fps, "cursor.exe", set(), frozenset({"steam.exe"}))
+    assert g.risk == "protected"
+    assert g.role == "protected"
+    assert "protect list" in g.close_advice
+
+
+def test_build_app_group_shell_is_caution_never_safe(monkeypatch):
+    monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())
+    fps = [ProcessFootprint(999999999, "powershell.exe", 1, 60)]
+    g = ra._build_app_group("powershell.exe", fps, "cursor.exe", set(), frozenset())
+    assert g.risk == "caution"  # a shell is never a one-tap SAFE close
+
+
+def test_get_app_groups_ranks_protected_last(monkeypatch):
+    procs = [
+        ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
+        ProcessFootprint(3, "steam.exe", 0.5, 400),
+    ]
+    monkeypatch.setattr(ra, "get_foreground_process", lambda: (1234, "cursor.exe"))
+    monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid, never_close=frozenset(): procs)
+    monkeypatch.setattr(ra, "_running_names", lambda: {"discord.exe", "steam.exe"})
+    monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())
+    groups = ra.get_app_groups(never_close=frozenset({"steam.exe"}))
+    protected = [g for g in groups if g.risk == "protected"]
+    assert len(protected) == 1  # never_close item is shown, not skipped
+    assert "steam" in protected[0].display_name.lower()
+    assert groups[-1].risk == "protected"  # protected sorts last (informational, not actionable)

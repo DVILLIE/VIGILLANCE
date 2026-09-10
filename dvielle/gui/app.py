@@ -15,6 +15,7 @@ from agent.modules.network_info import collect_network_snapshot
 from agent.modules.resource_advisor import (
     AppGroup,
     get_app_groups,
+    never_close_from_config,
 )
 from agent.policy import ActionKind, Authorization, PolicyGate
 from agent.policy.levels import LEVEL_REVERSIBLE
@@ -695,20 +696,39 @@ class DVielleApp:
             except Exception:
                 pass
         self._close_buttons.clear()
-        groups = get_app_groups(5, include_active=True)
+        cfg = load_yaml(self.config_dir / "config.yaml") if (self.config_dir / "config.yaml").exists() else {}
+        never_close = never_close_from_config(cfg)
+        groups = get_app_groups(5, include_active=True, never_close=never_close)
         if not groups:
             self.close_hint.configure(text="No notable apps to manage.")
             return
 
         self.close_hint.configure(text="Smart groups — tap for advice + confirm:")
         for g in groups:
+            n = len(g.pids)
+            if g.risk == "protected":
+                # On the user's never_close list — shown for awareness, never closable.
+                label = f"[PROTECTED] {g.display_name} ×{n} ({g.memory_mb:.0f}MB)"
+                btn = ctk.CTkButton(
+                    self.close_panel,
+                    text=label,
+                    height=34,
+                    command=lambda grp=g: self._explain_protected(grp),
+                    fg_color=T.BG_DARK,
+                    hover_color=T.BG_DARK,
+                    text_color=T.TEXT_DIM,
+                    font=T.FONT_BODY,
+                    anchor="w",
+                )
+                btn.pack(fill="x", padx=6, pady=2)
+                self._close_buttons.append(btn)
+                continue
             if g.risk == "danger_active":
                 color, prefix = T.DANGER, "USING"
             elif g.risk == "caution":
                 color, prefix = T.WARNING, "LINKED"
             else:
                 color, prefix = T.SUCCESS, "SAFE"
-            n = len(g.pids)
             label = f"[{prefix}] {g.display_name} ×{n} ({g.memory_mb:.0f}MB)"
             btn = ctk.CTkButton(
                 self.close_panel,
@@ -722,6 +742,14 @@ class DVielleApp:
             )
             btn.pack(fill="x", padx=6, pady=2)
             self._close_buttons.append(btn)
+
+    def _explain_protected(self, group: AppGroup) -> None:
+        """Protected rows have no close affordance — tapping just explains why."""
+        speak_async(
+            f"{group.display_name} is on your protect list. I will not offer to close it.",
+            persona="jarvis",
+        )
+        self._append_log(f"[PROTECTED] {group.close_advice}")
 
     def _smart_close(self, group: AppGroup) -> None:
         speak_async(group.voice_line, persona="jarvis")
