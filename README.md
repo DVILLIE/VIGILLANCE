@@ -56,8 +56,16 @@ See [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) and [docs/CHAT_DEFE
 ```bat
 py -3.12 -m pip install -r requirements.txt
 py -3.12 scripts\smoke_test.py
-py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py -q
+py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py tests\test_keep_on_engine.py -q
 ```
+
+Options decisions (keep-on, then act only after a choice) are in [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md). A local drill that does not close real apps or delete system temp files:
+
+```bat
+py -3.12 -m agent.exercise
+```
+
+See [docs/DEV.md](docs/DEV.md).
 
 ## Docs
 

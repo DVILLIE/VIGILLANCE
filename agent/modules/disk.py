@@ -107,14 +107,14 @@ class DiskMonitor:
 
             cleaned_mb = 0.0
             if enable_cleanup and low_space:
-                cleaned_mb = _cleanup_temp()
-                if cleaned_mb > 0:
-                    self.store.log_event(
-                        "disk",
-                        "INFO",
-                        f"Cleaned {cleaned_mb:.1f} MB temp on {part.mountpoint}",
-                        None,
-                    )
+                # Spec §5.1: cleanup waits for an options choice or published Auto-protect.
+                # The monitor records the low-space fact and does not delete here.
+                self.store.log_event(
+                    "disk",
+                    "INFO",
+                    f"Low disk on {part.mountpoint} is waiting for an options choice. Nothing was deleted.",
+                    None,
+                )
 
             status = DiskStatus(
                 mount=part.mountpoint,

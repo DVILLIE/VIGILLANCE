@@ -12,11 +12,7 @@ import psutil
 from agent.chat.assistant import ChatAssistant
 from agent.controller import AgentController
 from agent.modules.network_info import collect_network_snapshot
-from agent.modules.resource_advisor import (
-    AppGroup,
-    close_app_group,
-    get_app_groups,
-)
+from agent.modules.resource_advisor import AppGroup, get_app_groups
 from agent.store.db import AgentStore
 from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT
 from dvielle import APP_NAME, TAGLINE, VERSION
@@ -424,7 +420,7 @@ class DVielleApp:
             self._close_buttons.append(btn)
 
     def _smart_close(self, group: AppGroup) -> None:
-        """Advise (voice + dialog), then close only if user confirms."""
+        """Show the options card. Close only if the user picks Yes, close it."""
         speak_async(group.voice_line, persona="jarvis")
         self._append_log(f"[SMART CLOSE] {group.close_advice}")
 
@@ -467,30 +463,33 @@ class DVielleApp:
         row = ctk.CTkFrame(dlg, fg_color="transparent")
         row.pack(fill="x", padx=16, pady=16)
 
-        def _cancel() -> None:
-            speak_async("Okay. Leaving it running.", persona="jarvis")
-            self._append_log(f"[SMART CLOSE] Cancelled — left {group.display_name} running")
+        def _choose(option_id: str) -> None:
             dlg.destroy()
+            from agent.engine.service import choose_for_app_group
 
-        def _confirm() -> None:
-            dlg.destroy()
-            speak_async(f"Closing {group.display_name} now.", persona="jarvis")
-            ok, msg = close_app_group(group)
-            tag = "OK" if ok else "FAILED"
-            self._store.log_work("CLOSE_APP", msg)
-            self._append_log(f"[ACTION/{tag}] {msg}")
-            if ok:
+            finding = choose_for_app_group(self._store, group, option_id)
+            message = finding.get("last_result") or option_id
+            self._append_log(f"[OPTIONS/{option_id}] {message}")
+            if option_id == "pause_close" and finding.get("resolution_status") == "resolved":
                 speak_async("Done. Application closed.", persona="jarvis")
+            elif option_id == "keep_on":
+                speak_async("Okay. I'll leave it and stay quiet next time it is really this app.", persona="jarvis")
+            elif option_id == "pause_close":
+                speak_async("I could not fully close it. Nothing was marked fixed.", persona="jarvis")
             else:
-                speak_async("I could not fully close it. You may need administrator rights.", persona="jarvis")
+                speak_async("Okay. Leaving it for now.", persona="jarvis")
             self.root.after(400, self._rebuild_close_panel)
 
         ctk.CTkButton(
-            row, text="Keep open", width=140, command=_cancel,
+            row, text="Keep on", width=120, command=lambda: _choose("keep_on"),
             fg_color=T.BORDER, hover_color=T.ACCENT_DIM,
         ).pack(side="left", padx=4)
         ctk.CTkButton(
-            row, text="Yes, close it", width=140, command=_confirm,
+            row, text="Not now", width=120, command=lambda: _choose("not_now"),
+            fg_color=T.BORDER, hover_color=T.ACCENT_DIM,
+        ).pack(side="left", padx=4)
+        ctk.CTkButton(
+            row, text="Yes, close it", width=140, command=lambda: _choose("pause_close"),
             fg_color=T.DANGER, hover_color=T.WARNING,
         ).pack(side="right", padx=4)
 
