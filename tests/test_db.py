@@ -28,6 +28,19 @@ def test_failed_logon_counting(store: AgentStore) -> None:
     assert store.get_failed_logon_count("203.0.113.1") == 2
 
 
+def test_failed_logon_rolling_window(store: AgentStore) -> None:
+    """Each event is a row; count is windowed, not lifetime cumulative update."""
+    store.record_failed_logon(4625, "198.51.100.9", "u", "W")
+    store.record_failed_logon(4625, "198.51.100.9", "u", "W")
+    assert store.get_failed_logon_count("198.51.100.9", window_minutes=15) == 2
+    with store._conn() as conn:
+        n = conn.execute(
+            "SELECT COUNT(*) AS n FROM failed_logons WHERE source_ip = ?",
+            ("198.51.100.9",),
+        ).fetchone()["n"]
+    assert n == 2
+
+
 def test_block_ip(store: AgentStore) -> None:
     store.block_ip("198.51.100.1", "test")
     assert store.is_ip_blocked("198.51.100.1")

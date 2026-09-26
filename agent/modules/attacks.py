@@ -1,4 +1,11 @@
-"""Attack detection via Windows Security event log (4625, 4776)."""
+"""Attack detection via Windows Security event log (4625, 4776) — P0.3 / P0.6.
+
+Microsoft Learn Event 4776: Source Workstation is a *computer name*, not an IP.
+Never feed 4776 workstation into block-ip.
+
+Cursor: EventRecordID primary; advance only after successful process.
+No silent truncation — report COLLECTION_DEGRADED.
+"""
 
 from __future__ import annotations
 
@@ -9,42 +16,70 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from agent.net_identity import looks_like_ipv4_or_ipv6
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
 logger = logging.getLogger("dvielle.attacks")
 
-# Track last processed record to avoid duplicates across polls
-_last_check: datetime | None = None
+CURSOR_KEY = "security_event_record_id"
+QUERY_BATCH = 200
 
 
 @dataclass
 class AttackAlert:
-    source_ip: str
+    source_ip: str | None
+    source_host: str | None
     username: str | None
     event_id: int
     attempt_count: int
     should_block: bool
+    record_id: int | None = None
+    collection_degraded: bool = False
 
 
-def _query_security_events(since: datetime) -> list[dict[str, str | int | None]]:
+def _query_security_events(
+    *,
+    after_record_id: int,
+    since: datetime,
+) -> tuple[list[dict[str, Any]], bool, str | None]:
+    """Return (events, degraded, error).
+
+    degraded=True if we hit the batch cap (possible truncation).
+    On query failure: empty list + error string (caller must NOT advance cursor).
+    """
     if not IS_WINDOWS:
-        return []
+        return [], False, None
 
     since_str = since.strftime("%Y-%m-%dT%H:%M:%S")
+    # Emit: EventID|RecordID|IpAddress|TargetUserName|WorkstationName|Workstation(4776)
     ps_script = f"""
-$events = Get-WinEvent -FilterHashtable @{{
+$ErrorActionPreference = 'Stop'
+try {{
+  $events = @(Get-WinEvent -FilterHashtable @{{
     LogName = 'Security'
     Id = 4625, 4776
     StartTime = [datetime]'{since_str}'
-}} -ErrorAction SilentlyContinue | Select-Object -First 50
+  }} -ErrorAction Stop | Sort-Object RecordId)
+}} catch {{
+  Write-Output 'QUERY_FAIL|'
+  exit 0
+}}
+$n = 0
 foreach ($e in $events) {{
-    $xml = [xml]$e.ToXml()
-    $ip = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'IpAddress' }}).'#text'
-    if (-not $ip) {{ $ip = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'Workstation' }}).'#text' }}
-    $user = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'TargetUserName' }}).'#text'
-    $ws = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'WorkstationName' }}).'#text'
-    Write-Output "$($e.Id)|$ip|$user|$ws"
+  if ($e.RecordId -le {int(after_record_id)}) {{ continue }}
+  $xml = [xml]$e.ToXml()
+  $ip = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'IpAddress' }}).'#text'
+  $user = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'TargetUserName' }}).'#text'
+  if (-not $user) {{ $user = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'TargetUserName' }}).'#text' }}
+  $wsName = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'WorkstationName' }}).'#text'
+  $ws = ($xml.Event.EventData.Data | Where-Object {{ $_.Name -eq 'Workstation' }}).'#text'
+  Write-Output "$($e.Id)|$($e.RecordId)|$ip|$user|$wsName|$ws"
+  $n++
+  if ($n -ge {QUERY_BATCH}) {{
+    Write-Output 'TRUNCATED|'
+    break
+  }}
 }}
 """
     try:
@@ -52,68 +87,60 @@ foreach ($e in $events) {{
             ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=45,
             creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
         )
     except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
         logger.warning("Event log query failed: %s", exc)
-        return []
+        return [], True, str(exc)
 
-    events: list[dict[str, str | int | None]] = []
+    events: list[dict[str, Any]] = []
+    degraded = False
     for line in result.stdout.splitlines():
         line = line.strip()
-        if not line or "|" not in line:
+        if not line:
             continue
-        parts = line.split("|", 3)
-        if len(parts) < 2:
+        if line.startswith("QUERY_FAIL"):
+            return [], True, "Get-WinEvent failed"
+        if line.startswith("TRUNCATED"):
+            degraded = True
+            continue
+        parts = line.split("|")
+        if len(parts) < 3:
             continue
         try:
             event_id = int(parts[0])
+            record_id = int(parts[1])
         except ValueError:
             continue
-        source_ip = parts[1] if parts[1] and parts[1] not in ("-", "") else None
-        username = parts[2] if len(parts) > 2 else None
-        workstation = parts[3] if len(parts) > 3 else None
+        ip_raw = parts[2] if len(parts) > 2 and parts[2] not in ("-", "") else None
+        username = parts[3] if len(parts) > 3 and parts[3] not in ("-", "") else None
+        ws_name = parts[4] if len(parts) > 4 and parts[4] not in ("-", "") else None
+        ws_4776 = parts[5] if len(parts) > 5 and parts[5] not in ("-", "") else None
+
+        source_ip: str | None = None
+        source_host: str | None = None
+        if event_id == 4625:
+            if looks_like_ipv4_or_ipv6(ip_raw):
+                source_ip = ip_raw
+            source_host = ws_name
+        elif event_id == 4776:
+            # Microsoft: Workstation field is computer name — never treat as IP
+            source_ip = None
+            source_host = ws_4776 or ws_name
+        else:
+            continue
+
         events.append(
             {
                 "event_id": event_id,
+                "record_id": record_id,
                 "source_ip": source_ip,
+                "source_host": source_host,
                 "username": username,
-                "workstation": workstation,
             }
         )
-    return events
-
-
-def _block_ip_powershell(ip: str, scripts_dir: Path) -> bool:
-    script = scripts_dir / "block-ip.ps1"
-    if not script.exists():
-        logger.error("block-ip.ps1 not found at %s", script)
-        return False
-    try:
-        subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                str(script),
-                "-IpAddress",
-                ip,
-                "-Reason",
-                "DVielle brute-force auto-block",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        return True
-    except subprocess.CalledProcessError as exc:
-        logger.error("Failed to block IP %s: %s", ip, exc.stderr)
-        return False
+    return events, degraded, None
 
 
 class AttackMonitor:
@@ -127,64 +154,118 @@ class AttackMonitor:
         self.config = config
         self.scripts_dir = scripts_dir
         self.block_after = int(config.get("thresholds", {}).get("failed_logon_block_after", 5))
+        self.window_minutes = int(config.get("thresholds", {}).get("failed_logon_window_minutes", 15))
 
     def run(self, enable_auto_block: bool = False) -> list[AttackAlert]:
-        global _last_check
-        now = datetime.now(timezone.utc)
-        since = _last_check or (now - timedelta(minutes=5))
-        _last_check = now
-
         if not IS_WINDOWS:
             logger.debug("Attack monitor skipped (non-Windows)")
             return []
 
-        alerts: list[AttackAlert] = []
-        for event in _query_security_events(since):
-            source_ip = event.get("source_ip")
-            if not source_ip or source_ip in ("127.0.0.1", "::1", "-"):
-                continue
+        last_rid = self.store.get_cursor(CURSOR_KEY, default=0)
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
+        events, degraded, err = _query_security_events(after_record_id=last_rid, since=since)
 
-            event_id = int(event["event_id"])  # type: ignore[arg-type]
-            count = self.store.record_failed_logon(
-                event_id=event_id,
-                source_ip=str(source_ip),
-                username=event.get("username"),  # type: ignore[arg-type]
-                workstation=event.get("workstation"),  # type: ignore[arg-type]
+        if err:
+            self.store.log_event(
+                "attacks",
+                "WARNING",
+                f"COLLECTION_DEGRADED: security log query failed — cursor not advanced ({err})",
+                {"cursor": last_rid},
+            )
+            return [
+                AttackAlert(
+                    source_ip=None,
+                    source_host=None,
+                    username=None,
+                    event_id=0,
+                    attempt_count=0,
+                    should_block=False,
+                    collection_degraded=True,
+                )
+            ]
+
+        if degraded:
+            self.store.log_event(
+                "attacks",
+                "WARNING",
+                f"COLLECTION_DEGRADED: processed batch capped at {QUERY_BATCH}; visibility incomplete",
+                {"cursor": last_rid},
             )
 
-            should_block = count >= self.block_after and not self.store.is_ip_blocked(str(source_ip))
+        alerts: list[AttackAlert] = []
+        max_rid = last_rid
+        for event in events:
+            rid = int(event["record_id"])
+            max_rid = max(max_rid, rid)
+            event_id = int(event["event_id"])
+            source_ip = event.get("source_ip")
+            source_host = event.get("source_host")
+            username = event.get("username")
+
+            # Rolling window key: prefer IP for 4625; host for 4776 (correlation only)
+            key = source_ip or (f"host:{source_host}" if source_host else "unknown")
+            count = self.store.record_failed_logon(
+                event_id=event_id,
+                source_ip=key if source_ip else f"host:{source_host or 'unknown'}",
+                username=username,  # type: ignore[arg-type]
+                workstation=source_host,  # type: ignore[arg-type]
+                window_minutes=self.window_minutes,
+            )
+
+            # P0.3: never IP-block from 4776 or non-IP keys
+            can_block = (
+                event_id == 4625
+                and looks_like_ipv4_or_ipv6(source_ip)
+                and count >= self.block_after
+                and not self.store.is_ip_blocked(str(source_ip))
+            )
+            # P0: modules do not mutate; recommend only. Executor path later.
+            should_block = False
+            if can_block and enable_auto_block:
+                self.store.log_event(
+                    "attacks",
+                    "WARNING",
+                    f"RECOMMEND block IP {source_ip} (count={count}) — requires Policy Cortex Decision ID",
+                    {"event_id": event_id, "count": count, "record_id": rid},
+                )
+
             alert = AttackAlert(
-                source_ip=str(source_ip),
-                username=event.get("username"),  # type: ignore[arg-type]
+                source_ip=source_ip if isinstance(source_ip, str) else None,
+                source_host=source_host if isinstance(source_host, str) else None,
+                username=username if isinstance(username, str) else None,
                 event_id=event_id,
                 attempt_count=count,
-                should_block=should_block and enable_auto_block,
+                should_block=should_block,
+                record_id=rid,
+                collection_degraded=degraded,
             )
             alerts.append(alert)
 
-            severity = "CRITICAL" if should_block else "WARNING"
+            severity = "WARNING"
             self.store.log_event(
                 "attacks",
                 severity,
-                f"Failed logon from {source_ip} (count={count}, event={event_id})",
-                {"username": event.get("username"), "count": count},
+                f"Failed auth event={event_id} ip={source_ip} host={source_host} count={count}",
+                {
+                    "username": username,
+                    "count": count,
+                    "record_id": rid,
+                    "source_ip": source_ip,
+                    "source_host": source_host,
+                },
             )
             logger.warning(
-                "Failed logon: IP=%s user=%s count=%s event=%s",
-                source_ip,
-                event.get("username"),
-                count,
+                "Failed auth: event=%s ip=%s host=%s user=%s count=%s rid=%s",
                 event_id,
+                source_ip,
+                source_host,
+                username,
+                count,
+                rid,
             )
 
-            if should_block and enable_auto_block:
-                if _block_ip_powershell(str(source_ip), self.scripts_dir):
-                    self.store.block_ip(str(source_ip), f"Brute force: {count} failed logons")
-                    self.store.log_event(
-                        "attacks",
-                        "CRITICAL",
-                        f"Blocked IP {source_ip} after {count} failed logons",
-                        None,
-                    )
+        # Advance cursor only after successful process/persist
+        if max_rid > last_rid:
+            self.store.set_cursor(CURSOR_KEY, max_rid)
 
         return alerts

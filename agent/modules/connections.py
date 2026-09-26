@@ -316,9 +316,8 @@ class ConnectionMonitor:
             elif _process_whitelisted(proc_name, proc_wl):
                 trusted = True
                 explanation = f"Trusted app ({proc_name}). {explanation}"
-            elif self.store.is_baseline_process(proc_name):
-                trusted = True
-                explanation = f"Seen during baseline learning ({proc_name}). {explanation}"
+            # Name-only baseline is observational history — NOT a trust grant
+            # (Architecture P0: publisher+signature+path+hash identity required).
             elif _domain_whitelisted(hostname, domain_wl):
                 trusted = True
                 explanation = f"Trusted domain ({hostname}). {explanation}"

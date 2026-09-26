@@ -1,7 +1,14 @@
 # DVielle — DEEP VIGILLANCE
 
-**Laptop-only Windows guardian.** Everything runs under `C:\DVILLIE`.  
-Monitor-first: connections, failed logons, RAM/CPU/disk, Defender/firewall health, Microsoft telemetry drift. Not a cloud bot; chat/VILL is deferred.
+**Laptop-local Windows guardian** under `C:\DVILLIE`.  
+Not cloud-first. Not antivirus-first. Not chat-first.
+
+**Product thesis:** continuously observe resources, network, background behavior, privacy exposure, and security posture — then **explain** what is happening and apply **conservative** corrections only when evidence is strong. Especially: protect intentional workloads (including local AI) while reducing unjustified contention.
+
+Full architecture (engines, pipeline, repo map, phases):  
+→ [`docs/VIGILLANCE_MASTER_ARCHITECTURE.md`](docs/VIGILLANCE_MASTER_ARCHITECTURE.md)  
+→ Futuristic Nerve System (roundtable): [`docs/VIGILLANCE_FUTURE_ARCHITECTURE.md`](docs/VIGILLANCE_FUTURE_ARCHITECTURE.md)  
+→ Design system (**Phosphor Void**): [`docs/DESIGN.md`](docs/DESIGN.md)
 
 ---
 
@@ -13,7 +20,7 @@ Monitor-first: connections, failed logons, RAM/CPU/disk, Defender/firewall healt
 
 ## Install
 
-1. Open this repo on the laptop (Cursor Desktop or clone).
+1. Open this repo on the laptop (Cursor Desktop or clone from https://github.com/DVILLIE/VIGILLANCE).
 2. File Explorer → `installer` → right-click **`Install-DVielle.bat`** → Run as administrator.
 
 Creates:
@@ -23,14 +30,7 @@ C:\DVILLIE\
   agent\     config\     data\     scripts\     installer\
 ```
 
-Registers scheduled tasks:
-
-| Task | Role |
-|------|------|
-| **DVielle** | Headless `pythonw -m agent.main` at logon (core guardian) |
-| **DVielleGUI** | Optional GUI (`python -m dvielle`) |
-
-Also enables **logon-failure audit** so Event 4625 feeds the attacks module.
+Registers scheduled task **DVielle** (headless `pythonw -m agent.main` at logon) and enables logon-failure audit for failed-password detection.
 
 ## Daily use
 
@@ -44,10 +44,11 @@ Also enables **logon-failure audit** so Event 4625 feeds the attacks module.
 
 ## Honest limits
 
-- We **reduce and detect** Microsoft data use — we do **not** claim 100% anti-spy.
-- On **Windows Home**, diagnostic data cannot truly reach “Security (0)”; lowest real floor is **Required**.
+- We **reduce and detect** — we do **not** claim 100% anti-spy or replace Defender.
+- On **Windows Home**, diagnostic data cannot truly reach “Security (0)”; lowest real floor is often **Required**.
 - Windows Update / delivery / certificates are **never** blocked by default.
 - No auto-block / auto-trim on day one (7-day baseline + config flags).
+- High RAM alone is often healthy cache — the product targets **memory pressure**, not “used %.”
 
 See [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) and [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md).
 
@@ -56,7 +57,7 @@ See [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) and [docs/CHAT_DEFE
 ```bat
 py -3.12 -m pip install -r requirements.txt
 py -3.12 scripts\smoke_test.py
-py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py tests\test_keep_on_engine.py tests\test_privacy_ai_camera.py tests\test_footprint.py -q
+py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py tests\test_connections_classify.py tests\test_keep_on_engine.py tests\test_privacy_ai_camera.py tests\test_footprint.py -q
 ```
 
 Options decisions (keep-on, then act only after a choice) are in [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md). A local drill for speed, storage, privacy, AI, camera, and footprint that does not close real apps, block real networks, use a camera, or search for a person:
@@ -71,7 +72,8 @@ See [docs/DEV.md](docs/DEV.md).
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/DECISIONS.md](docs/DECISIONS.md) | v1 product defaults |
+| [docs/VIGILLANCE_MASTER_ARCHITECTURE.md](docs/VIGILLANCE_MASTER_ARCHITECTURE.md) | **Master architecture + repo gap map** |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
 | [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
 | [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |
 | [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md) | Why chat/demo waits |

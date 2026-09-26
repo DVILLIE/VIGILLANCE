@@ -1,26 +1,26 @@
-"""Jarvis-inspired futuristic theme for DVielle — larger readable type."""
+"""Phosphor Void theme — VIGILLANCE Mission Console (see docs/DESIGN.md)."""
 
-# Core palette — holographic cyan on deep space black
-BG_DARK = "#050810"
-BG_PANEL = "#0a1220"
-BG_PANEL_ALT = "#0d1a2d"
-BORDER = "#1a3a5c"
-ACCENT = "#00e5ff"
-ACCENT_DIM = "#0099b3"
-ACCENT_GLOW = "#00fff7"
-TEXT = "#e0f7ff"
-TEXT_DIM = "#6b8fa3"
-SUCCESS = "#00ff9d"
-WARNING = "#ffb020"
-DANGER = "#ff3366"
+# Core palette
+BG_DARK = "#070B12"       # void
+BG_PANEL = "#0C121C"      # panel
+BG_PANEL_ALT = "#111925"  # panel-2
+BORDER = "#1E2A3A"        # stroke
+ACCENT = "#3DE8C8"        # phosphor
+ACCENT_DIM = "#1FAE96"    # phosphor-dim
+ACCENT_GLOW = "#7DFFE8"   # phosphor-hot
+TEXT = "#E7F2F0"          # ink
+TEXT_DIM = "#7A8B99"      # ink-mute
+SUCCESS = "#3DFFB0"       # ok
+WARNING = "#F0B429"       # warn
+DANGER = "#FF4D6A"        # crit
 
-# Font scale — tuned for readability (glasses-friendly)
-FONT_DISPLAY = ("Segoe UI", 34, "bold")
-FONT_TITLE = ("Segoe UI", 18, "bold")
+# Font scale — glasses-friendly / mission console
+FONT_DISPLAY = ("Segoe UI", 40, "bold")
+FONT_TITLE = ("Segoe UI", 20, "bold")
 FONT_BODY = ("Segoe UI", 15)
 FONT_MONO = ("Consolas", 14)
 FONT_TAGLINE = ("Segoe UI", 13)
-FONT_ITALIC = ("Segoe UI", 13, "italic")
+FONT_ITALIC = ("Segoe UI", 14, "italic")
 FONT_STATUS_DOT = ("Segoe UI", 28)
 
 CTK_THEME = {
@@ -34,7 +34,7 @@ CTK_THEME = {
         "border_color": ACCENT,
         "border_width": 1,
         "font": FONT_BODY,
-        "height": 36,
+        "height": 40,
     },
     "CTkProgressBar": {
         "progress_color": ACCENT,

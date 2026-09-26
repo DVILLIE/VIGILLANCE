@@ -1,9 +1,13 @@
-"""RAM monitor — read-only alerts; optional trim when critically high."""
+"""RAM monitor — observe pressure signals; automatic trim DISABLED (P0.1).
+
+Microsoft Learn: EmptyWorkingSet is useful primarily for testing and tuning
+(Working Set Information). Working set is a momentary measurement (WPA Reference Set).
+Product path = pressure analysis, not EmptyWorkingSet / EmptyStandbyList automation.
+"""
 
 from __future__ import annotations
 
 import logging
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -11,11 +15,14 @@ from typing import Any
 import psutil
 
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.win_memory import sample_memory
 
 logger = logging.getLogger("dvielle.ram")
 
 _consecutive_high = 0
+
+# Hard product rule — automatic RAM "optimization" is disabled.
+AUTOMATIC_TRIM_ENABLED = False
 
 
 @dataclass
@@ -25,35 +32,19 @@ class RamStatus:
     total_mb: float
     critical: bool
     trimmed: bool = False
+    commit_percent: float | None = None
+    pressure_note: str = ""
 
 
 def _trim_working_sets() -> bool:
-    """Trim process working sets — gentle, per-process."""
-    trimmed_any = False
-    for proc in psutil.process_iter(["pid", "name"]):
-        try:
-            proc.memory_info()
-            # psutil has no direct trim; use Windows API via ctypes on Windows
-            trimmed_any = True
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-    return trimmed_any
+    """DEPRECATED — always False. Never report fake success."""
+    logger.warning("EmptyWorkingSet path disabled (P0.1 — testing/tuning only, not product)")
+    return False
 
 
 def _empty_standby_list(scripts_dir: Path) -> bool:
-    """Invoke EmptyStandbyList if bundled, else skip."""
-    tool = scripts_dir / "EmptyStandbyList.exe"
-    if tool.exists():
-        try:
-            subprocess.run(
-                [str(tool), "standbylist", "modifiedpagelist"],
-                check=True,
-                timeout=30,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-            )
-            return True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-            return False
+    """DEPRECATED — automatic EmptyStandbyList disabled."""
+    logger.warning("EmptyStandbyList path disabled (P0.1)")
     return False
 
 
@@ -68,10 +59,17 @@ class RamMonitor:
     def run(self, enable_trim: bool = False) -> RamStatus:
         global _consecutive_high
         mem = psutil.virtual_memory()
+        snap = sample_memory()
         percent = mem.percent
         available_mb = mem.available / (1024 * 1024)
         total_mb = mem.total / (1024 * 1024)
+        commit_pct = snap.commit_percent
+        # Prefer commit + available over RAM% alone when available
         critical = percent >= self.critical_percent
+        if commit_pct is not None and commit_pct >= 85:
+            critical = True
+        if available_mb < max(256.0, total_mb * 0.05):
+            critical = True
 
         if critical:
             _consecutive_high += 1
@@ -79,20 +77,36 @@ class RamMonitor:
             _consecutive_high = 0
 
         trimmed = False
-        if enable_trim and critical and _consecutive_high >= self.sustained_checks:
-            logger.info("RAM critical (%.1f%%) — attempting trim", percent)
+        # P0.1: ignore enable_trim for automatic product path
+        if enable_trim and AUTOMATIC_TRIM_ENABLED and critical and _consecutive_high >= self.sustained_checks:
             trimmed = _empty_standby_list(self.scripts_dir) or _trim_working_sets()
-            if trimmed:
-                self.store.log_event("ram", "INFO", f"RAM trim executed at {percent:.1f}%", None)
             _consecutive_high = 0
+        elif enable_trim and not AUTOMATIC_TRIM_ENABLED:
+            self.store.log_event(
+                "ram",
+                "INFO",
+                "RAM trim requested but DISABLED by P0 policy (pressure analysis only)",
+                {"percent": percent, "available_mb": available_mb, "commit_percent": commit_pct},
+            )
+            logger.info("Ignoring enable_ram_trim — automatic trim deprecated")
         elif critical:
+            note = (
+                f"Memory pressure signal: RAM {percent:.1f}% / "
+                f"avail {available_mb:.0f} MB"
+                + (f" / commit {commit_pct:.1f}%" if commit_pct is not None else "")
+            )
             self.store.log_event(
                 "ram",
                 "WARNING",
-                f"RAM usage high: {percent:.1f}% ({available_mb:.0f} MB free)",
-                {"percent": percent, "available_mb": available_mb},
+                note,
+                {
+                    "percent": percent,
+                    "available_mb": available_mb,
+                    "commit_percent": commit_pct,
+                    "source": snap.source,
+                },
             )
-            logger.warning("RAM high: %.1f%%", percent)
+            logger.warning("%s", note)
 
         return RamStatus(
             percent=percent,
@@ -100,4 +114,6 @@ class RamMonitor:
             total_mb=total_mb,
             critical=critical,
             trimmed=trimmed,
+            commit_percent=commit_pct,
+            pressure_note="observe_only",
         )

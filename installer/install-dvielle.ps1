@@ -40,6 +40,16 @@ function Resolve-Python312 {
     return $null
 }
 
+function Get-DvielleVersion {
+    param([string]$Root)
+    $pyproject = Join-Path $Root "pyproject.toml"
+    if (Test-Path $pyproject) {
+        $m = Select-String -Path $pyproject -Pattern '^\s*version\s*=\s*"([^"]+)"' | Select-Object -First 1
+        if ($m) { return $m.Matches.Groups[1].Value }
+    }
+    return "0.0.0"
+}
+
 if (-not (Test-IsAdmin)) {
     Write-Host "ERROR: Run Install-DVielle.bat - UAC will request Administrator." -ForegroundColor Red
     exit 1
@@ -98,8 +108,8 @@ Push-Location $InstallDir
 & $pythonExe -m pip install -r requirements.txt -q
 Pop-Location
 
-Write-Host "[4/9] Defender exclusions ..."
-try { Add-MpPreference -ExclusionPath $InstallDir -ErrorAction SilentlyContinue } catch {}
+Write-Host "[4/9] Defender note (no exclusions) ..."
+# Do NOT exclude C:\DVILLIE from Defender. A guardian must not weaken the OS security boundary.
 
 Write-Host "[5/9] Enabling logon-failure audit (Event 4625) ..."
 try {
@@ -143,10 +153,11 @@ $uninstallLnk.WorkingDirectory = "$InstallDir\installer"
 $uninstallLnk.Save()
 
 Write-Host "[8/9] Add/Remove Programs entry ..."
+$displayVersion = Get-DvielleVersion -Root $InstallDir
 $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DVielle"
 New-Item -Path $regPath -Force | Out-Null
 Set-ItemProperty -Path $regPath -Name "DisplayName" -Value "DVielle - Deep Vigilance"
-Set-ItemProperty -Path $regPath -Name "DisplayVersion" -Value "1.4.0"
+Set-ItemProperty -Path $regPath -Name "DisplayVersion" -Value $displayVersion
 Set-ItemProperty -Path $regPath -Name "Publisher" -Value "DVielle"
 Set-ItemProperty -Path $regPath -Name "InstallLocation" -Value $InstallDir
 Set-ItemProperty -Path $regPath -Name "UninstallString" -Value "`"$InstallDir\installer\Uninstall-DVielle.bat`""
