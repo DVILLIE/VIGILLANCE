@@ -2,6 +2,8 @@
 
 **Status:** frozen until the core guardian is solid.
 
+Version 1.6 retains optional chat behind `chat.enabled: false`. The enabled flag is enforced by the assistant and console; core scheduling has no model dependency. Speech recognition, cloud LLM and web search each require their own opt-in. The browser entry point is now a local snapshot viewer and does not activate legacy demo chat or microphone code.
+
 ## Why
 
 Product aim is a **local Windows nurse**: connections, attacks (4625), RAM/CPU/disk, Defender/firewall, Microsoft privacy drift. Chat, TTS (“VILL”), and the Vite web demo are polish — they must not define the product or block core work.

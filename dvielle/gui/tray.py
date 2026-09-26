@@ -1,4 +1,4 @@
-"""System tray integration — minimize/maximize DVielle from taskbar."""
+"""System tray integration — minimize/maximize DVielle from taskbar / notification area."""
 
 from __future__ import annotations
 
@@ -6,31 +6,26 @@ import threading
 from typing import Callable
 
 from dvielle import APP_NAME, TAGLINE
-from dvielle.brand import LOGO_64_PNG, LOGO_PNG, brand_png
+from dvielle.brand import load_brand_pil_image
 
 _tray_icon = None
 
 
 def _create_icon_image():
-    try:
-        from PIL import Image
-
-        for path in (LOGO_64_PNG, brand_png(64), LOGO_PNG):
-            if path.exists():
-                img = Image.open(path).convert("RGBA")
-                return img.resize((64, 64), Image.Resampling.NEAREST)
-    except Exception:
-        pass
+    """Same brand mark as the window/taskbar (.ico), not a separate PNG glyph."""
+    img = load_brand_pil_image(64)
+    if img is not None:
+        return img
     try:
         from PIL import Image, ImageDraw
 
         size = 64
-        img = Image.new("RGBA", (size, size), (5, 8, 16, 255))
-        draw = ImageDraw.Draw(img)
+        fallback = Image.new("RGBA", (size, size), (5, 8, 16, 255))
+        draw = ImageDraw.Draw(fallback)
         draw.ellipse([4, 4, size - 4, size - 4], outline=(0, 229, 255, 255), width=3)
         draw.ellipse([18, 18, size - 18, size - 18], fill=(0, 229, 255, 80))
         draw.text((20, 22), "DV", fill=(0, 255, 247, 255))
-        return img
+        return fallback
     except ImportError:
         return None
 

@@ -11,7 +11,8 @@ from agent.engine.models import AuthToken, PolicyDenied
 from agent.engine.net_block import block_app_network
 from agent.engine.policy import PolicyGate, handler_is_denied
 from agent.engine.temp_clean import free, scan
-from agent.modules.resource_advisor import SYSTEM_PROTECTED, close_process
+from agent.modules.resource_advisor import SYSTEM_PROTECTED
+from agent.policy.dual import HANDLER_KIND, require_cortex_mutate
 
 Lookup = Callable[[int], tuple[str, str] | None]
 Closer = Callable[[int, str], tuple[bool, str]]
@@ -37,8 +38,9 @@ class HandlerContext:
 
 
 class HandlerRegistry:
-    def __init__(self, policy: PolicyGate) -> None:
+    def __init__(self, policy: PolicyGate, dual=None) -> None:
         self.policy = policy
+        self.dual = dual
         self._fns: dict[str, Callable] = {}
 
     def register(self, name: str, fn: Callable) -> None:
@@ -47,10 +49,19 @@ class HandlerRegistry:
         self._fns[name] = fn
 
     def invoke(self, name: str, finding: dict, ctx: HandlerContext, token: AuthToken | None) -> dict:
-        self.policy.require(token, finding["id"], name)
         fn = self._fns.get(name)
         if fn is None:
             raise PolicyDenied(f"no handler registered for {name}")
+        if name in HANDLER_KIND:
+            if self.dual is None:
+                raise PolicyDenied("refusing OS change without Cortex authorization")
+            return self.dual.perform(
+                handler_name=name,
+                finding=finding,
+                token=token,
+                mutator=lambda: fn(finding, ctx),
+            )
+        self.policy.require(token, finding["id"], name)
         return fn(finding, ctx)
 
 
@@ -129,6 +140,7 @@ def _identity(finding: dict, ctx: HandlerContext) -> tuple[bool, str, int, str]:
 
 
 def smart_close(finding: dict, ctx: HandlerContext) -> dict:
+    require_cortex_mutate()
     ok, message, pid, name = _identity(finding, ctx)
     if not ok:
         return _result(False, message)
@@ -139,6 +151,7 @@ def smart_close(finding: dict, ctx: HandlerContext) -> dict:
 
 
 def disable_startup(finding: dict, ctx: HandlerContext) -> dict:
+    require_cortex_mutate()
     source = (finding.get("signals") or {}).get("startup_file")
     if not source or ctx.startup_dir is None:
         return _result(False, "No user startup file was identified. Nothing was disabled.")
@@ -175,6 +188,7 @@ def preview_temp(finding: dict, ctx: HandlerContext) -> dict:
 
 
 def free_temp(finding: dict, ctx: HandlerContext) -> dict:
+    require_cortex_mutate()
     if not ctx.temp_roots:
         return _result(False, "No temporary folder was configured. Nothing was deleted.")
     freed, skipped = free(ctx.temp_roots, ctx.locked_paths)
@@ -188,6 +202,7 @@ def free_temp(finding: dict, ctx: HandlerContext) -> dict:
 
 
 def empty_recycle(finding: dict, ctx: HandlerContext) -> dict:
+    require_cortex_mutate()
     if ctx.trash_root is None or not ctx.trash_root.exists():
         return _result(False, "This system has no recycle bin DVielle can empty. Nothing was deleted.")
     freed, skipped = free([ctx.trash_root], set())
@@ -212,10 +227,19 @@ def default_lookup(pid: int) -> tuple[str, str] | None:
 
 
 def default_close(pid: int, name: str) -> tuple[bool, str]:
-    return close_process(pid, name)
+    require_cortex_mutate()
+    from agent.modules.resource_advisor import close_pids
+
+    return close_pids([pid], [name], force=False)
+
+
+def close_process(pid: int, name: str) -> tuple[bool, str]:
+    """Name kept so a direct OS close can be patched and refused outside DualGate."""
+    return default_close(pid, name)
 
 
 def block_network(finding: dict, ctx: HandlerContext) -> dict:
+    require_cortex_mutate()
     ok, message, _pid, name = _identity(finding, ctx)
     if not ok:
         text = message if "not stopped" in message.lower() else message.rstrip(".") + ". Traffic was not stopped."

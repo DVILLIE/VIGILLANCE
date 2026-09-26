@@ -7,13 +7,13 @@ Never claim full vision when probes are None/unrun.
 from __future__ import annotations
 
 import platform
-import subprocess
+import sys
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 import psutil
 
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 CapState = Literal["AVAILABLE", "LIMITED", "UNKNOWN", "UNAVAILABLE"]
 
@@ -94,14 +94,8 @@ def _os_info() -> tuple[str | None, str | None, str | None, CapState]:
             "Get-CimInstance Win32_OperatingSystem | "
             "Select-Object -ExpandProperty BuildNumber"
         )
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        lines = [ln.strip() for ln in result.stdout.splitlines() if ln.strip()]
+        stdout, _ = run_powershell(ps, timeout=15)
+        lines = [ln.strip() for ln in (stdout or "").splitlines() if ln.strip()]
         if len(lines) >= 2:
             caption, build = lines[0], lines[1]
             low = caption.lower()
@@ -114,7 +108,19 @@ def _os_info() -> tuple[str | None, str | None, str | None, CapState]:
             return caption, build, edition, "AVAILABLE"
     except Exception:
         pass
-    return platform.platform(), None, None, "UNAVAILABLE"
+    return _basic_os()[0], None, None, "UNAVAILABLE"
+
+
+def _basic_os() -> tuple[str, str]:
+    """Shallow boot must not call platform.uname()/platform()/version().
+
+    On Windows those can pull native WMI. On other systems sys.platform is enough;
+    a deeper caption waits for the idle probe.
+    """
+    if sys.platform == "win32":
+        version = sys.getwindowsversion()
+        return f"Windows NT {version.major}.{version.minor} (build {version.build})", str(version.build)
+    return sys.platform, ""
 
 
 def _battery_state() -> CapState:
@@ -135,12 +141,29 @@ def _worst(*states: CapState) -> CapState:
 def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
     gaps: list[str] = []
     notes: list[str] = []
-    caption, build, edition, wmi = _os_info()
-    if wmi != "AVAILABLE" and IS_WINDOWS:
+    if deep:
+        caption, build, edition, wmi = _os_info()
+    else:
+        # Boot never launches WMI/PowerShell. Deep capability probing is deferred.
+        caption, build = _basic_os()
+        edition, wmi = None, "UNKNOWN"
+        if IS_WINDOWS:
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                        r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
+                    sku = str(winreg.QueryValueEx(key, "EditionID")[0])
+                    edition = "Home" if sku.lower().startswith("core") else sku
+            except OSError:
+                pass
+    if wmi == "UNAVAILABLE" and IS_WINDOWS:
         gaps.append("wmi_cim_unavailable")
+    elif wmi == "UNKNOWN":
+        notes.append("Deep WMI and event-log probes have not run; capability is unverified.")
     admin = _is_admin()
 
-    process_vis: CapState = "AVAILABLE" if admin else ("LIMITED" if IS_WINDOWS else "UNKNOWN")
+    # Elevation alone does not prove visibility into every protected process.
+    process_vis: CapState = "LIMITED" if IS_WINDOWS else "UNKNOWN"
     network_vis: CapState = "LIMITED" if IS_WINDOWS else "UNKNOWN"
     if IS_WINDOWS and not admin:
         gaps.append("not_elevated_partial_process_and_event_visibility")
@@ -161,20 +184,11 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
     firewall: CapState = "UNKNOWN"
     if deep and IS_WINDOWS:
         try:
-            r = subprocess.run(
-                [
-                    "powershell",
-                    "-NoProfile",
-                    "-NonInteractive",
-                    "-Command",
-                    "try { Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop | Out-Null; 'ok' } catch { 'no' }",
-                ],
-                capture_output=True,
-                text=True,
+            stdout, _ = run_powershell(
+                "try { Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop | Out-Null; 'ok' } catch { 'no' }",
                 timeout=20,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
             )
-            event_log = "AVAILABLE" if "ok" in (r.stdout or "") else "UNAVAILABLE"
+            event_log = "AVAILABLE" if "ok" in (stdout or "") else "UNAVAILABLE"
             if event_log != "AVAILABLE":
                 gaps.append("security_event_log_unreadable")
         except Exception:

@@ -44,7 +44,7 @@ python -m pytest tests/test_keep_on_engine.py tests/test_privacy_ai_camera.py te
 - Quiet only when keep-on is `allow` and the subject still matches (`allowed_and_expected`). Storage cleanup is never quiet via allow.
 - `never_warn` stays quiet until `suspicious_mismatch`.
 - `deny`, `ask_always`, and unknown subjects open a ticket with `options[]`.
-- A mutation runs only after a selected option (or the published Auto-protect set when `data/learn/auto_protect.txt` contains `enabled=true`).
+- A mutation runs only after a selected option (or the published Auto-protect set for that exact subject when `data/learn/auto_protect.txt` contains `enabled=true`) and a Cortex decision for the matching ActionKind. CLOSE_PROCESS is user-approved only. Either refusal leaves the machine unchanged.
 - Disk monitor cycles no longer delete temp files, even if `enable_disk_cleanup` is on.
 - Turning protection on reports that this version did not change it. Resolved is used only when a mutation actually happened.
 - First Windows startup sighting seeds `baseline_safety.txt`. That file is not a user allow. A later path change on the same startup name is a mismatch.
@@ -65,7 +65,7 @@ Every footprint item is a ticket on the same engine: found, in progress, resolve
 - No live Have I Been Pwned call and no partner API enrollment. Those stay opt-in hooks.
 - Registry Run keys can be observed on Windows; disabling them is refused unless a user Startup-folder file is identified.
 - Live speed identity from the advisor is the process name, not the exe path.
-- Microsoft Guard auto-remediate and attack auto-block are still outside this options engine. Default `monitor_only` limits them.
+- Microsoft Guard auto-remediate and attack auto-block stay observe-only. BLOCK_IP has no gated writer, so the Attacks window does not show an active block count.
 - The Vite demo is not wired to the engine.
 - Undo for a close or a renamed startup file is not stored yet.
 - There is no `twin.json` owner profile.

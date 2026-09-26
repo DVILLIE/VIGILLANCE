@@ -18,6 +18,7 @@ from agent.engine.keep_on import match_keep_on
 from agent.engine.models import QUIET, FailClosed, Observation, PolicyDenied
 from agent.engine.policy import PolicyGate
 from agent.learn.memory import KeepOnMemory
+from agent.policy.dual import DualGate
 from agent.store.db import AgentStore, utc_now
 
 
@@ -55,7 +56,8 @@ class ResolutionEngine:
         if enabled is None:
             enabled = _read_auto(self.memory.learn_dir / "auto_protect.txt")
         self.policy = PolicyGate(auto_enabled=enabled)
-        self.handlers = HandlerRegistry(self.policy)
+        self.dual = DualGate(self.store, self.policy)
+        self.handlers = HandlerRegistry(self.policy, self.dual)
         register_default_handlers(self.handlers)
 
     def evaluate(self, obs: Observation, *, force_surface: bool = False) -> dict:
@@ -163,7 +165,12 @@ class ResolutionEngine:
             self._finish(finding, option_id, finding["last_result"], False)
             return finding
 
-        token = self.policy.issue(finding["id"], option["handler"], auto=False)
+        token = self.policy.issue(
+            finding["id"],
+            option["handler"],
+            auto=False,
+            subject=str(finding.get("subject_identity") or ""),
+        )
         try:
             result = self.handlers.invoke(option["handler"], finding, self.handler_ctx, token)
         except Exception as exc:
@@ -192,7 +199,12 @@ class ResolutionEngine:
 
     def _try_auto(self, finding: dict, handler: str) -> dict | None:
         try:
-            token = self.policy.issue(finding["id"], handler, auto=True)
+            token = self.policy.issue(
+                finding["id"],
+                handler,
+                auto=True,
+                subject=str(finding.get("subject_identity") or ""),
+            )
             result = self.handlers.invoke(handler, finding, self.handler_ctx, token)
         except PolicyDenied as exc:
             self._log("errors", f"ERROR auto-protect refused: {exc}")

@@ -20,5 +20,5 @@ if (-not (Test-Path $canonical)) {
     exit 1
 }
 
-& $canonical -InstallDir $InstallDir
-exit $LASTEXITCODE
+try { & $canonical -InstallDir $InstallDir; exit 0 }
+catch { Write-Error $_; exit 1 }

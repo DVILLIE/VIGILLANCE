@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-import platform
+import sys
 import queue
 import random
 import threading
@@ -16,17 +16,11 @@ logger = logging.getLogger("dvielle.voice")
 PersonaId = Literal["jarvis", "kt"]
 
 GREETINGS = [
-    f"Good to see you. {APP_NAME} online. {TAGLINE} active.",
-    "All systems nominal. Your machine is under deep vigilance.",
-    "At your service. Monitoring network, memory, and privacy channels.",
-    "Vigilance protocols engaged. I will alert you to any threat.",
-    "Welcome back. I have been watching over your system.",
-    "Deep vigilance mode active. Your internet belongs to you alone.",
-    "Scanning complete. No immediate threats detected.",
-    "I am DVielle. Every connection, every process — under my watch.",
+    f"{APP_NAME} console is open. Checking the monitoring agent's current status.",
+    "Welcome back. The console will show observations as they arrive.",
 ]
 
-_ON_WINDOWS = platform.system() == "Windows"
+_ON_WINDOWS = sys.platform == "win32"
 _speech_queue: queue.Queue[tuple[str, PersonaId] | None] | None = None
 _worker_started = False
 _worker_lock = threading.Lock()

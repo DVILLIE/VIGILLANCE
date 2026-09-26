@@ -2,7 +2,7 @@
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
 **Date:** 2026-09-26 (v0.8 — every pillar: user keep-on decisions → learn → quiet when expected → options when suspicious → act)  
-**Product:** DVielle (DEEP VIGILLANCE) — free local guardian for Windows, Linux, and macOS  
+**Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)
 
 ---
@@ -10,6 +10,19 @@
 ## 1. One-sentence promise
 
 DVielle watches this machine, **finds real problems, and drives them to a resolution** — safety, speed, privacy/internet abuse, AI data shipping, disk junk, online footprint exposure, and camera misuse — in simple English. The user decides what is **OK to keep on**; DVielle **learns** those choices, stays quiet when activity matches, and when something looks wrong or unexpected shows an **options card** — the user selects, then DVielle performs. Auto-protect may finish a tiny published set of emergencies if opted in. Every finding is a ticket: Found → Fix → Resolved / Monitoring. We do not steal data, do not attack other systems, and we prefer working solutions (local fixes + trusted partner services) over empty warnings.
+
+### Shipped honesty (1.7)
+
+This version does **not** claim a live multi-OS product.
+
+| Surface | What is true now |
+|---------|------------------|
+| Windows | Primary platform. Installer, Defender/firewall posture, and auth-event collectors are Windows-shaped. |
+| Linux / macOS | Limited mode. Shared keep-on logic can run. Windows-only sensors stay unknown. Do not describe them as full adapters. |
+| Camera | On Windows, in-use detection is **not available yet**. The collector returns unknown and does not invent an off/on state. Linux may read `/dev/video*` links. No frames are stored. |
+| Footprint | The live collector is **empty**. Remote breach, broker, and dark-web rows are drill tickets only. DVielle does not invent hits or search other people. |
+| Blocked IPs | The Attacks window does not show an “active now” block count. No gated BLOCK_IP writer is registered. |
+| Mutations | Firewall, temp delete, startup disable, smart close, and BLOCK_IP need both a keep-on choice (or published auto-protect for that subject) and Cortex. |
 
 ---
 
@@ -342,7 +355,7 @@ Prefer extending current patterns rather than inventing a second owner:
 
 ## 17. Decided product line (README-ready)
 
-> Free local guardian for Windows, Linux, and macOS: find what’s wrong and **drive it to a fix** — safety, speed, privacy, AI data shipping, disk junk, online footprint, and camera use — in simple English. You stay in control. Partners handle heavy internet removals/monitoring when needed; we track resolution to done. We don’t use your PC’s data to train AI.
+> Windows-primary local guardian (Linux and macOS limited-mode): find what’s wrong and **drive it to a fix** — safety, speed, privacy, AI data shipping, disk junk, online footprint, and camera use — in simple English. You stay in control. Camera on Windows is not available yet. Footprint hits are not invented. Partners handle heavy internet removals/monitoring when needed; we track resolution to done. We don’t use your PC’s data to train AI.
 
 ---
 
@@ -549,11 +562,11 @@ At start (and on major change), detect:
 
 Collectors, logs, Auto-protect actions, and wording **switch by OS adapter**. Same five pillars; different sensors.
 
-### Required platforms for this product version
-**Must work on: Windows, Linux, and macOS** (laptop, desktop, and server profiles on each).
+### Platforms for this product version
+**Windows is primary.** Linux and macOS are limited-mode: the shared keep-on brain can run, and any sensor that is not implemented stays unknown. This version does not claim live feature parity on three operating systems.
 
 One shared brain (pillars, learning `.txt`, logs `.txt`, alert gates, load governor, ethics, optional deep personalization).  
-**OS adapters** implement sensors/remediation/install/tray per family. Detect OS at startup and select the adapter; if a sub-feature is not ready on one OS, show a clear limited-mode note — never call Windows-only APIs on Linux/macOS.
+Where an OS adapter exists, use it. If a sub-feature is not ready, show a limited-mode note — never call Windows-only APIs on Linux/macOS, and never invent a reading.
 
 | Family | Notes |
 |--------|--------|
@@ -563,7 +576,7 @@ One shared brain (pillars, learning `.txt`, logs `.txt`, alert gates, load gover
 
 **Out of scope unless later agreed:** mobile OS (iOS/Android), obscure BSDs, etc.
 
-README claim for this version: “Works on Windows, Linux, and macOS” — only once each adapter is installable and smoke-tested; until parity is finished, docs must name which pillar features are full vs limited per OS.
+README claim for this version: Windows-primary, with Linux and macOS named as limited-mode. “Works on Windows, Linux, and macOS” is not a claim until each adapter is installable and smoke-tested.
 
 Shared across OS:
 - Function Spec pillars, alert gates, learning `.txt`, log `.txt`, load governor, no data theft by us, optional deep personalization sandbox  
@@ -650,6 +663,8 @@ High-level only; details at implement time:
 
 ## 27. Digital footprint — Resolution Center (solutions first)
 
+**Current build:** `collect_footprint_facts()` returns no rows. Remote kinds (breach, broker, public search, dark web) are drill tickets only and must be marked synthetic before a ticket opens. The collector does not invent hits.
+
 **Product stance:** Users want **find → fix → verify**, not a lecture. DVielle’s job is to drive **resolutions**. Specialized websites/services already do deep broker scanning, opt-outs, and dark-web *monitoring* (Aura, LifeLock/Norton, DeleteMe, Incogni, REMOVE, and similar). We treat those as **solution partners**, not competitors we dismiss — and as the engines for heavy internet-side research a local free app cannot rebuild overnight.
 
 **How the industry actually solves this (so we solve with them):**  
@@ -693,6 +708,8 @@ Every footprint item is a ticket: **Found → Recommended fix → In progress �
 ---
 
 ## 28. Camera Guard (webcam / USB camera — user decides, then we act)
+
+**Current build:** Camera in-use detection on Windows is not available yet. The Windows collector returns unknown and stores no picture. Do not describe a live Windows camera watch in this version. Linux `/dev/video*` links are best-effort. macOS is limited-mode.
 
 **Added because:** users fear the camera is on and streaming.  
 **Hard limit:** software cannot guarantee a camera was never compromised (firmware, kernel, physical access). A **hardware shutter or cover** plus **OS camera off** is the strongest practical block (Microsoft camera privacy guidance: shutters must work in hardware because software can be compromised).
@@ -800,7 +817,7 @@ Everything decided since kickoff, rewritten as **problems we solve** and **how w
 | Optional deeper growth | Deep personalization OFF by default; double-confirm; sandbox `data/personality/` only |
 | App must not slow the PC | Load governor; defer under pressure; learned CPU budgets |
 | Space | Issue logs as rotating `.txt` per pillar; learning files size-capped |
-| Multi-OS | Windows + Linux + macOS required; OS adapters; same resolution model |
+| Multi-OS | Windows-primary now; Linux and macOS limited-mode until an adapter is smoke-tested |
 | Free + anti-resale worry | License + trademark + packaging options A/B/C **deferred** until owner picks |
 | Ethics | Authorized self-defense of this host only; no offensive kits; we don’t steal data |
 

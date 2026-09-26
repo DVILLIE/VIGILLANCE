@@ -5,6 +5,8 @@
 **Status:** Binding product thesis for design and code review going forward  
 **Canonical repo:** https://github.com/DVILLIE/VIGILLANCE  
 
+**Implementation update (2026-09-13, v1.6):** [AUTONOMY.md](AUTONOMY.md) describes the current runtime and remaining gaps. The engine model and phases below are a target architecture; they do not establish that all features are implemented. Resource budgets currently defer optional work and are not OS-enforced quotas.
+
 ---
 
 ## 0. Product thesis (non-negotiable)
@@ -112,7 +114,9 @@ Binding for audits, PRs, and engineering passes:
 10. **Treat Future Architecture § Adaptive Nerve as the cadence authority** — no global collector cadence; no literal “full collection every N seconds.”
 11. **Self-budget is a hard constraint** — designs that compete with the protected workload are rejected.
 12. **Docs may lead code**; undocumented contradiction is not allowed — either fix code or mark `STATUS: planned / gap`.
-13. **Every action ≥ Level 2** requires evidence, confidence, and rollback semantics.
+13. **Level ≥ 2 decisions** require evidence and confidence. **Mutations require Level ≥ 3**,
+    typed action + registered handler, Authorization (not a free-form policy string), and
+    rollback semantics when reversible. **Level 2 = recommend only — never mutates.**
 
 **Module naming example:** keep `agent/modules/microsoft_guard.py` until a Privacy Control Plane exists; treat it as a provider adapter under the new *contract*, then migrate behind `privacy_control` (or equivalent) when real.
 
@@ -142,9 +146,9 @@ Binding for audits, PRs, and engineering passes:
 | `attacks.py` | G Security | **KEEP + EXTEND** | 4625/4776 is authentication slice only. |
 | `security.py` | G Security | **KEEP + EXTEND** | Defender/firewall health — orchestrate, don’t replace. |
 | `browser_guard.py` | C + G (browser) | **KEEP + EXTEND** | Heuristic stealer/adware; no keylogging (correct). Needs extension/inventory later. |
-| `agent/main.py` `run_once` | J Adaptive (stub) | **REDESIGN** | Fixed interval, all modules every tick. Must become adaptive scheduler + decision layer. |
+| `agent/main.py` + `agent/runtime.py` | J Adaptive | **KEEP + EXTEND** | Independent bounded collectors, cheap heartbeat, workload deferral and retry; `--once` is an explicit diagnostic only. |
 | `agent/store/db.py` | Evidence bus seed | **EXTEND** | Add scores, confidence, evidence blobs, action audit. |
-| `agent/controller.py` | GUI cycle driver | **KEEP** | Thin; decision engine should not live only in GUI. |
+| `agent/controller.py` | Console attachment / ownership | **KEEP** | Attaches to shared state or acquires the single monitoring lease; respects intentional shutdown. |
 
 ### Scripts / installer
 
@@ -274,8 +278,8 @@ When reviewing code, also ask:
 2. Does it respect **workload intent** (especially AI)?  
 3. Does it risk **false “Microsoft = evil”** or break Update/Defender/CRL?  
 4. Does it stay inside **self-budget** and Future Architecture **Adaptive Nerve** cadence?  
-5. Is there an **evidence chain** for any action ≥ Level 2?  
-6. Is rollback / monitor-first preserved?  
+5. Is there an **evidence chain** for Level ≥ 2 decisions, and Authorization + typed handler for Level ≥ 3 mutations?  
+6. Is rollback / monitor-first preserved (and is Level 2 kept recommend-only)?  
 7. Is any rename justified by a real abstraction migration — not terminology alone?
 
 ---
@@ -293,7 +297,7 @@ When reviewing code, also ask:
 
 ## 9. Bottom line
 
-Current repo = **solid collection + early classification UI** (connections, smart close, attacks console, privacy drift, headless install).
+Current v1.6 implementation = **single-owner adaptive observation + durable evidence + measured console + guarded user actions**. See `AUTONOMY.md` for tested behavior and remaining field-validation needs.
 
 Target product = **system intelligence + resource governance + privacy control + defensive assessment + workload orchestration**, with a shared evidence bus and adaptive controller.
 

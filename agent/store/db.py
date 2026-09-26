@@ -14,15 +14,41 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def cutoff_iso(*, days: float = 0.0, hours: float = 0.0) -> str:
+    """UTC ISO timestamp for retention / report windows (lexicographic-safe)."""
+    return (datetime.now(timezone.utc) - timedelta(days=days, hours=hours)).isoformat()
+
+
+# Defaults match config/config.yaml retention + attacks blocks (audit #2.2).
+DEFAULT_RETENTION: dict[str, int] = {
+    "connections_days": 7,
+    "events_days": 14,
+    "health_snapshots_days": 14,
+    "failed_logons_days": 30,
+    "work_log_days": 14,
+    "privacy_checks_days": 14,
+}
+DEFAULT_REVIEW_WINDOW_HOURS = 24.0
+DEFAULT_SUMMARY_WINDOW_DAYS = 14.0
+
+
 class AgentStore:
-    def __init__(self, db_path: Path) -> None:
+    def __init__(self, db_path: Path, *, initialize: bool = True) -> None:
         self.db_path = db_path
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_schema()
+        self._initialize = initialize
+        if initialize:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._init_schema()
 
     @contextmanager
     def _conn(self) -> Generator[sqlite3.Connection, None, None]:
-        conn = sqlite3.connect(self.db_path, timeout=30)
+        if self._initialize:
+            conn = sqlite3.connect(self.db_path, timeout=30)
+        else:
+            # An attached console may arrive while the owner is still starting.
+            # It may use the owner's existing ledger but must not create an empty
+            # replacement when the database is missing or has been moved.
+            conn = sqlite3.connect(self.db_path.resolve().as_uri() + "?mode=rw", uri=True, timeout=30)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
@@ -105,12 +131,15 @@ class AgentStore:
                     check_name TEXT NOT NULL,
                     expected TEXT,
                     actual TEXT,
-                    passed INTEGER NOT NULL
+                    passed INTEGER
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
                 CREATE INDEX IF NOT EXISTS idx_connections_ts ON connections(ts);
+                CREATE INDEX IF NOT EXISTS idx_connections_suspicious_ts
+                    ON connections(suspicious, ts);
                 CREATE INDEX IF NOT EXISTS idx_failed_logons_ip ON failed_logons(source_ip);
+                CREATE INDEX IF NOT EXISTS idx_failed_logons_ts ON failed_logons(ts);
 
                 CREATE TABLE IF NOT EXISTS work_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,8 +175,56 @@ class AgentStore:
                     ts TEXT NOT NULL,
                     payload TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS action_decisions (
+                    decision_id TEXT PRIMARY KEY,
+                    claimed_at TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    payload TEXT,
+                    result TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS decisions (
+                    decision_id TEXT PRIMARY KEY,
+                    ts TEXT NOT NULL,
+                    initiator TEXT,
+                    action TEXT NOT NULL,
+                    action_level INTEGER NOT NULL,
+                    confidence REAL,
+                    target TEXT,
+                    reversible INTEGER,
+                    rollback_plan TEXT,
+                    policy_ref TEXT,
+                    evidence TEXT,
+                    details TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_decisions_ts ON decisions(ts);
                 """
             )
+
+            # Additive migrations preserve existing installations and audit history.
+            # sqlite3's legacy transaction control does not begin a transaction for
+            # DDL. Explicitly include every migration step, including temporary-table
+            # creation, so an interrupted rebuild cannot strand the next startup.
+            conn.execute("BEGIN IMMEDIATE")
+            columns = {row["name"] for row in conn.execute("PRAGMA table_info(failed_logons)")}
+            for name, kind in (("record_id", "INTEGER"), ("status", "TEXT"),
+                               ("event_key", "TEXT"), ("ingested_at", "TEXT")):
+                if name not in columns:
+                    conn.execute(f"ALTER TABLE failed_logons ADD COLUMN {name} {kind}")
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_failed_logons_event_key "
+                         "ON failed_logons(event_key) WHERE event_key IS NOT NULL")
+            cursor_columns = {row["name"] for row in conn.execute("PRAGMA table_info(agent_cursors)")}
+            if "event_ts" not in cursor_columns:
+                conn.execute("ALTER TABLE agent_cursors ADD COLUMN event_ts TEXT")
+            privacy_columns = list(conn.execute("PRAGMA table_info(privacy_checks)"))
+            if any(row["name"] == "passed" and row["notnull"] for row in privacy_columns):
+                conn.execute("CREATE TABLE privacy_checks_nullable (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                             "ts TEXT NOT NULL, check_name TEXT NOT NULL, expected TEXT, actual TEXT, passed INTEGER)")
+                conn.execute("INSERT INTO privacy_checks_nullable SELECT * FROM privacy_checks")
+                conn.execute("DROP TABLE privacy_checks")
+                conn.execute("ALTER TABLE privacy_checks_nullable RENAME TO privacy_checks")
 
     def log_event(
         self,
@@ -186,7 +263,8 @@ class AgentStore:
         with self._conn() as conn:
             return list(
                 conn.execute(
-                    "SELECT id, ts, action, message, details FROM work_log ORDER BY id ASC LIMIT ?",
+                    "SELECT * FROM (SELECT id, ts, action, message, details FROM work_log "
+                    "ORDER BY id DESC LIMIT ?) ORDER BY id ASC",
                     (limit,),
                 ).fetchall()
             )
@@ -210,9 +288,97 @@ class AgentStore:
                 """
                 INSERT INTO agent_cursors (key, value, updated_at)
                 VALUES (?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at,
+                    event_ts = NULL
                 """,
                 (key, int(value), utc_now()),
+            )
+
+    def get_cursor_timestamp(self, key: str) -> str | None:
+        with self._conn() as conn:
+            row = conn.execute("SELECT event_ts FROM agent_cursors WHERE key = ?", (key,)).fetchone()
+            return row["event_ts"] if row else None
+
+    def ingest_security_events(
+        self, events: list[dict[str, Any]], *, cursor_key: str,
+        next_record_id: int, next_timestamp: str | None,
+    ) -> list[dict[str, Any]]:
+        """Commit failure evidence and its source cursor together; retries are idempotent.
+
+        Identity includes source event time because Windows reuses record IDs after
+        a Security-log clear. Successful/unknown 4776 rows advance the cursor but
+        never count as failed authentication.
+        """
+        inserted: list[dict[str, Any]] = []
+        with self._conn() as conn:
+            for event in events:
+                timestamp = datetime.fromisoformat(str(event["timestamp"]).replace("Z", "+00:00"))
+                if timestamp.tzinfo is None:
+                    raise ValueError("Security event timestamp must include timezone")
+                ts = timestamp.astimezone(timezone.utc).isoformat()
+                if not event.get("is_failure"):
+                    continue
+                source = event.get("source_ip") or f"host:{event.get('source_host') or 'unknown'}"
+                identity = f"Security:{int(event['record_id'])}:{ts}:{int(event['event_id'])}"
+                cur = conn.execute(
+                    "INSERT OR IGNORE INTO failed_logons "
+                    "(ts, event_id, source_ip, username, workstation, count, record_id, status, event_key, ingested_at) "
+                    "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
+                    (ts, event["event_id"], source, event.get("username"), event.get("source_host"),
+                     event["record_id"], event.get("status"), identity, utc_now()),
+                )
+                if cur.rowcount:
+                    inserted.append(event)
+            conn.execute(
+                "INSERT INTO agent_cursors (key, value, updated_at, event_ts) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value, "
+                "updated_at=excluded.updated_at, event_ts=excluded.event_ts",
+                (cursor_key, int(next_record_id), utc_now(), next_timestamp),
+            )
+        return inserted
+
+    def log_decision(self, decision: dict[str, Any]) -> None:
+        """Persist an issued Decision (L2 recommendation or higher) as a durable,
+        first-class row the WHY surface can read — the observe→explain→recommend
+        evidence chain, not an ephemeral UUID inside a log blob. Idempotent by id.
+        """
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO decisions
+                (decision_id, ts, initiator, action, action_level, confidence, target,
+                 reversible, rollback_plan, policy_ref, evidence, details)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(decision_id) DO NOTHING
+                """,
+                (
+                    decision.get("decision_id"),
+                    decision.get("ts") or utc_now(),
+                    decision.get("initiator"),
+                    decision.get("action"),
+                    int(decision.get("action_level", 0)),
+                    decision.get("confidence"),
+                    decision.get("target"),
+                    1 if decision.get("reversible") else 0,
+                    decision.get("rollback_plan"),
+                    decision.get("policy_ref"),
+                    json.dumps(decision.get("evidence_summary") or []),
+                    json.dumps(decision.get("details") or {}),
+                ),
+            )
+
+    def recent_decisions(self, limit: int = 50) -> list[sqlite3.Row]:
+        with self._conn() as conn:
+            return list(
+                conn.execute(
+                    """
+                    SELECT decision_id, ts, initiator, action, action_level, confidence,
+                           target, reversible, rollback_plan, policy_ref, evidence, details
+                    FROM decisions
+                    ORDER BY ts DESC LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
             )
 
     def log_action_audit(self, payload: dict[str, Any]) -> None:
@@ -220,6 +386,49 @@ class AgentStore:
             conn.execute(
                 "INSERT INTO action_audit (ts, payload) VALUES (?, ?)",
                 (utc_now(), json.dumps(payload)),
+            )
+
+    def claim_decision_id(
+        self,
+        decision_id: str,
+        payload: dict[str, Any] | None = None,
+    ) -> bool:
+        """Atomically claim a Decision ID. False if already claimed (replay protection)."""
+        if not decision_id:
+            return False
+        with self._conn() as conn:
+            try:
+                conn.execute(
+                    """
+                    INSERT INTO action_decisions (decision_id, claimed_at, status, payload)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        decision_id,
+                        utc_now(),
+                        "CLAIMED",
+                        json.dumps(payload) if payload else None,
+                    ),
+                )
+                return True
+            except sqlite3.IntegrityError:
+                return False
+
+    def finalize_decision(
+        self,
+        decision_id: str,
+        *,
+        status: str,
+        result: str | None = None,
+    ) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                """
+                UPDATE action_decisions
+                SET status = ?, result = ?
+                WHERE decision_id = ?
+                """,
+                (status, result, decision_id),
             )
 
     def log_connection(
@@ -265,6 +474,7 @@ class AgentStore:
         workstation: str | None,
         *,
         window_minutes: int = 15,
+        event_time: datetime | None = None,
     ) -> int:
         """Insert one failed-logon observation; return count inside rolling window.
 
@@ -272,7 +482,7 @@ class AgentStore:
         (Architecture P0). Each event is a row; ``count`` column stores 1.
         """
         ip = source_ip or "unknown"
-        now = utc_now()
+        now = (event_time.astimezone(timezone.utc).isoformat() if event_time else utc_now())
         with self._conn() as conn:
             conn.execute(
                 """
@@ -286,7 +496,8 @@ class AgentStore:
     def _failed_logon_count_locked(
         self, conn: sqlite3.Connection, source_ip: str, window_minutes: int
     ) -> int:
-        cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(minutes=window_minutes)
         rows = conn.execute(
             "SELECT ts FROM failed_logons WHERE source_ip = ?",
             (source_ip,),
@@ -297,7 +508,7 @@ class AgentStore:
                 ts = datetime.fromisoformat(str(row["ts"]))
                 if ts.tzinfo is None:
                     ts = ts.replace(tzinfo=timezone.utc)
-                if ts >= cutoff:
+                if cutoff <= ts <= now:
                     n += 1
             except ValueError:
                 continue
@@ -341,8 +552,8 @@ class AgentStore:
                     snapshot.get("ram_available_mb"),
                     snapshot.get("disk_percent_used"),
                     snapshot.get("disk_free_gb"),
-                    1 if snapshot.get("defender_enabled") else 0,
-                    1 if snapshot.get("firewall_enabled") else 0,
+                    None if snapshot.get("defender_enabled") is None else int(bool(snapshot["defender_enabled"])),
+                    None if snapshot.get("firewall_enabled") is None else int(bool(snapshot["firewall_enabled"])),
                     json.dumps(snapshot.get("details", {})),
                 ),
             )
@@ -371,7 +582,7 @@ class AgentStore:
             return row is not None
 
     def log_privacy_check(
-        self, check_name: str, expected: str, actual: str, passed: bool
+        self, check_name: str, expected: str, actual: str, passed: bool | None
     ) -> None:
         with self._conn() as conn:
             conn.execute(
@@ -379,18 +590,43 @@ class AgentStore:
                 INSERT INTO privacy_checks (ts, check_name, expected, actual, passed)
                 VALUES (?, ?, ?, ?, ?)
                 """,
-                (utc_now(), check_name, expected, actual, 1 if passed else 0),
+                (utc_now(), check_name, expected, actual, None if passed is None else int(passed)),
             )
 
-    def recent_suspicious_connections(self, limit: int = 50) -> list[sqlite3.Row]:
+    def recent_suspicious_connections(
+        self,
+        limit: int = 50,
+        *,
+        window_hours: float = DEFAULT_REVIEW_WINDOW_HOURS,
+    ) -> list[sqlite3.Row]:
+        """FLAGGED peers in the review window — one row per (process, ip), not per pulse.
+
+        Audit #2.2: a repeating connection must not fill the report with 60 copies of
+        itself. reason comes from the group's newest row (MAX(id)), not a bare GROUP BY.
+        """
+        cutoff = cutoff_iso(hours=float(window_hours))
         with self._conn() as conn:
             return list(
                 conn.execute(
                     """
-                    SELECT * FROM connections WHERE suspicious = 1
-                    ORDER BY id DESC LIMIT ?
+                    SELECT
+                        c.process_name AS process_name,
+                        c.remote_ip AS remote_ip,
+                        c.remote_addr AS remote_addr,
+                        c.reason AS reason,
+                        c.ts AS ts,
+                        g.hits AS hits
+                    FROM connections c
+                    INNER JOIN (
+                        SELECT process_name, remote_ip, MAX(id) AS max_id, COUNT(*) AS hits
+                        FROM connections
+                        WHERE suspicious = 1 AND ts >= ?
+                        GROUP BY process_name, remote_ip
+                    ) g ON c.id = g.max_id
+                    ORDER BY c.ts DESC
+                    LIMIT ?
                     """,
-                    (limit,),
+                    (cutoff, limit),
                 ).fetchall()
             )
 
@@ -429,7 +665,7 @@ class AgentStore:
             return list(
                 conn.execute(
                     """
-                    SELECT id, ts, event_id, source_ip, username, workstation, count
+                    SELECT id, ts, event_id, source_ip, username, workstation, count, record_id, status, ingested_at
                     FROM failed_logons
                     ORDER BY id DESC LIMIT ?
                     """,
@@ -437,9 +673,20 @@ class AgentStore:
                 ).fetchall()
             )
 
-    def attack_summary(self) -> dict[str, Any]:
+    def attack_summary(
+        self, *, window_days: float = DEFAULT_SUMMARY_WINDOW_DAYS
+    ) -> dict[str, Any]:
+        """Historical counts windowed + labeled; blocked_ips is live state (unwindowed)."""
+        now = utc_now()
+        cutoff = cutoff_iso(days=float(window_days))
         with self._conn() as conn:
-            fail = conn.execute("SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons").fetchone()
+            fail = conn.execute(
+                """
+                SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons
+                WHERE ts >= ? AND ts <= ?
+                """,
+                (cutoff, now),
+            ).fetchone()
             blocked = conn.execute(
                 "SELECT COUNT(*) AS n FROM blocked_ips WHERE active = 1"
             ).fetchone()
@@ -447,19 +694,24 @@ class AgentStore:
                 """
                 SELECT COUNT(*) AS n FROM events
                 WHERE module = 'browser_guard' AND severity IN ('WARNING', 'CRITICAL')
-                """
+                  AND ts >= ?
+                """,
+                (cutoff,),
             ).fetchone()
             attack_warn = conn.execute(
                 """
                 SELECT COUNT(*) AS n FROM events
                 WHERE module = 'attacks' AND severity IN ('WARNING', 'CRITICAL')
-                """
+                  AND ts >= ?
+                """,
+                (cutoff,),
             ).fetchone()
         return {
             "failed_logon_attempts": int(fail["n"] if fail else 0),
             "blocked_ips": int(blocked["n"] if blocked else 0),
             "browser_threat_events": int(browser_warn["n"] if browser_warn else 0),
             "attack_events": int(attack_warn["n"] if attack_warn else 0),
+            "summary_window_days": float(window_days),
         }
 
     def save_finding(self, finding: dict[str, Any]) -> None:
@@ -518,3 +770,28 @@ class AgentStore:
                 """
             ).fetchall()
         return [json.loads(row["payload"]) for row in rows]
+
+    def prune_old(self, retention: dict[str, Any] | None = None) -> dict[str, int]:
+        """Age out observations. Never touches decisions / audits / blocks.
+
+        Returns deleted-row counts per table. Safe to call from idle_deep.
+        """
+        cfg = {**DEFAULT_RETENTION, **(retention or {})}
+        deleted: dict[str, int] = {}
+        plans = (
+            ("connections", int(cfg["connections_days"])),
+            ("events", int(cfg["events_days"])),
+            ("health_snapshots", int(cfg["health_snapshots_days"])),
+            ("failed_logons", int(cfg["failed_logons_days"])),
+            ("work_log", int(cfg["work_log_days"])),
+            ("privacy_checks", int(cfg["privacy_checks_days"])),
+        )
+        with self._conn() as conn:
+            for table, days in plans:
+                if days <= 0:
+                    deleted[table] = 0
+                    continue
+                cutoff = cutoff_iso(days=float(days))
+                cur = conn.execute(f"DELETE FROM {table} WHERE ts < ?", (cutoff,))
+                deleted[table] = int(cur.rowcount or 0)
+        return deleted

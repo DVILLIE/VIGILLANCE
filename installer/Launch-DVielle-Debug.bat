@@ -1,10 +1,14 @@
 @echo off
-REM Debug launcher — keeps a console so errors are visible.
-cd /d C:\DVILLIE
+setlocal
+cd /d "%~dp0.."
 title DVielle - Deep Vigilance (debug)
-echo Starting DVielle GUI (console stays open for errors)...
-echo.
-py -3.12 -m dvielle
-echo.
-echo DVielle exited. Code=%ERRORLEVEL%
+if not exist ".venv\Scripts\python.exe" (
+  echo DVielle's Python 3.12 environment is missing. Run Install-DVielle.bat first.
+  pause
+  exit /b 1
+)
+".venv\Scripts\python.exe" -m dvielle
+set "DVIELLE_EXIT=%ERRORLEVEL%"
+echo DVielle exited. Code=%DVIELLE_EXIT%
 pause
+exit /b %DVIELLE_EXIT%

@@ -8,6 +8,7 @@ import customtkinter as ctk
 
 from agent.store.db import AgentStore
 from dvielle import APP_NAME, TAGLINE
+from dvielle.brand import apply_tk_window_icon
 from dvielle.gui import theme as T
 
 
@@ -43,6 +44,7 @@ class WorkLogWindow(ctk.CTkToplevel):
         self.title(f"{APP_NAME} — Work Log Report")
         self.geometry("820x580")
         self.configure(fg_color=T.BG_DARK)
+        apply_tk_window_icon(self)
 
         ctk.CTkLabel(
             self, text="WORK LOG REPORT", font=T.FONT_TITLE, text_color=T.ACCENT,

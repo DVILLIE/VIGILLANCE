@@ -1,180 +1,148 @@
 #Requires -Version 5.1
-<#
-.SYNOPSIS
-    Install DVielle to C:\DVILLIE with UAC elevation.
-    Registers headless vigilance agent at logon + GUI shortcut/task.
-#>
+<# Install with the vetted Python 3.12 runtime. This script changes the system only when run explicitly. #>
 param(
     [string]$SourceRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$InstallDir = "C:\DVILLIE"
+    [string]$InstallDir = 'C:\DVILLIE'
 )
-
-$ErrorActionPreference = "Stop"
-$DataDir = "$InstallDir\data"
-$ConfigDir = "$InstallDir\config"
-$TaskName = "DVielle"
-$TaskNameGui = "DVielleGUI"
-$ShortcutName = "DVielle - Deep Vigilance"
-
-function Test-IsAdmin {
-    $id = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $p = New-Object Security.Principal.WindowsPrincipal($id)
-    return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 function Resolve-Python312 {
-    # Prefer Python 3.12 for DVielle
-    try {
-        $exe = & py -3.12 -c "import sys; print(sys.executable)" 2>$null
-        if ($exe -and (Test-Path $exe.Trim())) { return $exe.Trim() }
-    } catch {}
-    foreach ($name in @("python3.12", "python")) {
+    foreach ($candidate in @(@('py', '-3.12'), @('python3.12'), @('python'))) {
         try {
-            $exe = & $name -c "import sys; print(sys.executable)" 2>$null
-            if ($exe -and (Test-Path $exe.Trim())) {
-                $ver = & $name -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null
-                if ($ver -and [version]$ver -ge [version]"3.12") { return $exe.Trim() }
+            $program = $candidate[0]
+            $prefix = @($candidate | Select-Object -Skip 1)
+            $result = & $program @prefix -c 'import sys; print(sys.executable); sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)' 2>$null
+            if ($LASTEXITCODE -eq 0 -and $result -and (Test-Path -LiteralPath ([string]$result).Trim())) {
+                return ([string]$result).Trim()
             }
-        } catch {}
+        } catch { continue }
     }
-    return $null
+    throw 'Python 3.12 is required. Install the free Windows Python 3.12 distribution from python.org.'
 }
 
-function Get-DvielleVersion {
-    param([string]$Root)
-    $pyproject = Join-Path $Root "pyproject.toml"
-    if (Test-Path $pyproject) {
-        $m = Select-String -Path $pyproject -Pattern '^\s*version\s*=\s*"([^"]+)"' | Select-Object -First 1
-        if ($m) { return $m.Matches.Groups[1].Value }
+if (-not (Test-DvielleAdmin)) { throw 'Run installer\Install-DVielle.bat as Administrator.' }
+$srcRoot = Resolve-DvielleRoot $SourceRoot
+$InstallDir = Resolve-DvielleRoot $InstallDir
+foreach ($required in @('agent\main.py', 'dvielle\__main__.py', 'pyproject.toml', 'config\config.yaml', 'scripts\smoke_test.py', 'scripts\verify_runtime.py')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $srcRoot $required) -PathType Leaf)) {
+        throw "Invalid source tree: missing $required. Nothing installed."
     }
-    return "0.0.0"
 }
-
-if (-not (Test-IsAdmin)) {
-    Write-Host "ERROR: Run Install-DVielle.bat - UAC will request Administrator." -ForegroundColor Red
-    exit 1
+$metadata = Get-Content -LiteralPath (Join-Path $srcRoot 'pyproject.toml') -Raw
+if ($metadata -notmatch '(?m)^name\s*=\s*"dvielle"\s*$') { throw 'Source metadata is not the DVielle project.' }
+if ($InstallDir.StartsWith($srcRoot + '\', [StringComparison]::OrdinalIgnoreCase) -or
+    $srcRoot.StartsWith($InstallDir + '\', [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Source and destination may be identical, but neither may be nested inside the other.'
 }
+$basePython = Resolve-Python312
+Write-Host "Installing DVielle to $InstallDir with Python 3.12."
 
-Write-Host ""
-Write-Host "  DVIELLE - DEEP VIGILLANCE  ->  C:\DVILLIE" -ForegroundColor Cyan
-Write-Host ""
+# Disable owned startup triggers before quiescing the runtime, so it cannot restart during copying.
+foreach ($relative in @('agent', 'dvielle', 'scripts', 'installer', 'tests', 'docs', 'assets', 'config', 'requirements.txt', 'pyproject.toml', 'README.md')) {
+    Assert-DvielleTreeNoReparse $srcRoot (Join-Path $srcRoot $relative)
+    Assert-DvielleTreeNoReparse $InstallDir (Join-Path $InstallDir $relative)
+}
+foreach ($relative in @('data', '.venv')) { Assert-DvielleTreeNoReparse $InstallDir (Join-Path $InstallDir $relative) }
+Disable-DvielleOwnedTasks $InstallDir
+if (Test-Path -LiteralPath (Join-Path $InstallDir 'agent\main.py')) { Stop-DvielleOwnedRuntime $InstallDir }
 
-Write-Host "[1/9] Creating $InstallDir and copying files ..."
-New-Item -ItemType Directory -Force -Path $InstallDir, $DataDir, $ConfigDir, "$DataDir\logs" | Out-Null
-
-# Same folder = already living at C:\DVILLIE (dev / laptop checkout). Skip self-copy.
-$srcRoot = (Resolve-Path $SourceRoot).Path.TrimEnd('\')
-$dstRoot = (Resolve-Path $InstallDir).Path.TrimEnd('\')
-if ($srcRoot -ieq $dstRoot) {
-    Write-Host "  Source is already $InstallDir - skip file copy."
-} else {
-    $dirs = @("agent", "dvielle", "config", "scripts", "installer", "tests", "docs", "assets")
-    foreach ($d in $dirs) {
-        $src = Join-Path $SourceRoot $d
-        if (Test-Path $src) {
-            Copy-Item -Path $src -Destination $InstallDir -Recurse -Force
+New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
+if ($srcRoot -ine $InstallDir) {
+    foreach ($folder in @('agent', 'dvielle', 'scripts', 'installer', 'tests', 'docs', 'assets')) {
+        $source = Join-Path $srcRoot $folder
+        if (Test-Path -LiteralPath $source) { Copy-Item -LiteralPath $source -Destination $InstallDir -Recurse -Force }
+    }
+    foreach ($file in @('requirements.txt', 'pyproject.toml', 'README.md')) {
+        Copy-Item -LiteralPath (Join-Path $srcRoot $file) -Destination $InstallDir -Force
+    }
+    # Preserve all existing user configuration; copy only missing defaults.
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $srcRoot 'config') -File -Recurse) {
+        $relative = $file.FullName.Substring($srcRoot.Length + 1)
+        $target = Join-Path $InstallDir $relative
+        if (-not (Test-Path -LiteralPath $target)) {
+            New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+            Copy-Item -LiteralPath $file.FullName -Destination $target
         }
     }
-    foreach ($f in @("requirements.txt", "pyproject.toml", "README.md")) {
-        $src = Join-Path $SourceRoot $f
-        if (Test-Path $src) { Copy-Item $src $InstallDir -Force }
-    }
 }
-
-$nested = Join-Path $InstallDir "DVILLIE"
-if (Test-Path $nested) {
-    Remove-Item $nested -Recurse -Force -ErrorAction SilentlyContinue
-}
-
-Write-Host "[2/9] Setting up config ..."
-if (-not (Test-Path "$ConfigDir\config.yaml")) {
-    Write-Host "ERROR: Missing $ConfigDir\config.yaml" -ForegroundColor Red
-    exit 1
-}
-Write-Host "  Config OK: $ConfigDir"
-
-Write-Host "[3/9] Installing Python dependencies (prefer 3.12) ..."
-$pythonExe = Resolve-Python312
-if (-not $pythonExe) {
-    Write-Host "ERROR: Python 3.12+ required. Install 3.12 from https://python.org" -ForegroundColor Red
-    exit 1
-}
-Write-Host "  Using: $pythonExe"
-$pythonw = $pythonExe -replace 'python\.exe$', 'pythonw.exe'
-if (-not (Test-Path $pythonw)) { $pythonw = $pythonExe }
-
+New-Item -ItemType Directory -Path (Join-Path $InstallDir 'data\logs') -Force | Out-Null
+$venv = Join-Path $InstallDir '.venv'
+$python = Join-Path $venv 'Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $python)) { Invoke-DvielleNative $basePython @('-m', 'venv', $venv) }
+Invoke-DvielleNative $python @('-c', 'import sys; sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)')
+$pythonw = Join-Path $venv 'Scripts\pythonw.exe'
+if (-not (Test-Path -LiteralPath $pythonw)) { throw 'The Python 3.12 environment lacks pythonw.exe.' }
 Push-Location $InstallDir
-& $pythonExe -m pip install --upgrade pip -q
-& $pythonExe -m pip install -r requirements.txt -q
-Pop-Location
-
-Write-Host "[4/9] Defender note (no exclusions) ..."
-# Do NOT exclude C:\DVILLIE from Defender. A guardian must not weaken the OS security boundary.
-
-Write-Host "[5/9] Enabling logon-failure audit (Event 4625) ..."
 try {
-    & auditpol.exe /set /subcategory:"Logon" /failure:enable | Out-Null
-    Write-Host "  auditpol Logon failure = enabled"
-} catch {
-    Write-Host "  WARNING: auditpol failed - attacks module may see no events." -ForegroundColor Yellow
+    Invoke-DvielleNative $python @('-m', 'pip', 'install', '-e', '.[windows,chat]')
+    Invoke-DvielleNative $python @('-m', 'pip', 'check')
+    # No collector execution, persistence, cloud lookup, or machine mutation in this check.
+    Invoke-DvielleNative $python @('scripts\smoke_test.py')
+} finally { Pop-Location }
+
+# GUIDs avoid localized Logon and Credential Validation display names (4625 and 4776).
+foreach ($subcategory in @('{0CCE9215-69AE-11D9-BED3-505054503030}', '{0CCE923F-69AE-11D9-BED3-505054503030}')) {
+    Invoke-DvielleNative 'auditpol.exe' @('/set', ('/subcategory:' + $subcategory), '/failure:enable')
+    Invoke-DvielleNative 'auditpol.exe' @('/get', ('/subcategory:' + $subcategory))
 }
 
-Write-Host "[6/9] Registering startup tasks (headless agent + GUI) ..."
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
-$trigger = New-ScheduledTaskTrigger -AtLogOn
-
-$actionAgent = New-ScheduledTaskAction -Execute $pythonw -Argument "-m agent.main" -WorkingDirectory $InstallDir
-Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-Register-ScheduledTask -TaskName $TaskName -Action $actionAgent -Trigger $trigger -Settings $settings -Principal $principal -Description "DVielle Deep Vigilance headless agent" | Out-Null
-
-# GUI is optional via shortcut only — do not auto-open a second window at logon
-Unregister-ScheduledTask -TaskName $TaskNameGui -Confirm:$false -ErrorAction SilentlyContinue
-Unregister-ScheduledTask -TaskName "FortoroAgent" -Confirm:$false -ErrorAction SilentlyContinue
-
-Write-Host "[7/9] Creating shortcuts ..."
-$wsh = New-Object -ComObject WScript.Shell
-$startMenu = [Environment]::GetFolderPath("Programs")
-$desktop = [Environment]::GetFolderPath("Desktop")
-foreach ($target in @($startMenu, $desktop)) {
-    $lnk = $wsh.CreateShortcut("$target\$ShortcutName.lnk")
-    # pythonw = GUI only, no black console window
-    $lnk.TargetPath = $pythonw
-    $lnk.Arguments = "-m dvielle"
-    $lnk.WorkingDirectory = $InstallDir
-    $lnk.Description = "DVielle - DEEP VIGILLANCE"
-    $ico = Join-Path $InstallDir "assets\brand\dvielle.ico"
-    if (Test-Path $ico) { $lnk.IconLocation = "$ico,0" }
-    $lnk.Save()
+# All prerequisites have passed before task activation.
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+$settings = New-ScheduledTaskSettingsSet -Disable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
+$settings.ExecutionTimeLimit = 'PT0S'
+# Resident task runs Limited. Highest is not the default.
+# Elevation is only the explicit installer/uninstall path in elevate.ps1 (RunAs).
+$principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
+$action = New-ScheduledTaskAction -Execute $pythonw -Argument '-m agent.main' -WorkingDirectory $InstallDir
+Register-ScheduledTask -TaskName 'DVielle' -TaskPath '\' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'DVielle resident monitor' -Force | Out-Null
+$registered = Get-ScheduledTask -TaskName 'DVielle' -TaskPath '\'
+if ($registered.Settings.ExecutionTimeLimit -ne 'PT0S' -or $registered.Settings.MultipleInstances -ne 'IgnoreNew' -or
+    $registered.Settings.RestartCount -ne 3 -or
+    -not (Test-DvielleTaskOwner $registered $InstallDir)) {
+    Disable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
+    throw 'Registered task settings did not match the resident-agent safety requirements; task disabled.'
 }
-$uninstallLnk = $wsh.CreateShortcut("$startMenu\Uninstall DVielle.lnk")
-$uninstallLnk.TargetPath = "$InstallDir\installer\Uninstall-DVielle.bat"
-$uninstallLnk.WorkingDirectory = "$InstallDir\installer"
-$uninstallLnk.Save()
+$oldGui = Get-ScheduledTask -TaskName 'DVielleGUI' -TaskPath '\' -ErrorAction SilentlyContinue
+if ($oldGui -and (Test-DvielleTaskOwner $oldGui $InstallDir)) {
+    Unregister-ScheduledTask -TaskName 'DVielleGUI' -TaskPath '\' -Confirm:$false
+}
 
-Write-Host "[8/9] Add/Remove Programs entry ..."
-$displayVersion = Get-DvielleVersion -Root $InstallDir
-$regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DVielle"
-New-Item -Path $regPath -Force | Out-Null
-Set-ItemProperty -Path $regPath -Name "DisplayName" -Value "DVielle - Deep Vigilance"
-Set-ItemProperty -Path $regPath -Name "DisplayVersion" -Value $displayVersion
-Set-ItemProperty -Path $regPath -Name "Publisher" -Value "DVielle"
-Set-ItemProperty -Path $regPath -Name "InstallLocation" -Value $InstallDir
-Set-ItemProperty -Path $regPath -Name "UninstallString" -Value "`"$InstallDir\installer\Uninstall-DVielle.bat`""
+$shell = New-Object -ComObject WScript.Shell
+$startMenu = [Environment]::GetFolderPath('Programs')
+foreach ($directory in @($startMenu, [Environment]::GetFolderPath('Desktop'))) {
+    $shortcut = $shell.CreateShortcut((Join-Path $directory 'DVielle - Deep Vigilance.lnk'))
+    $shortcut.TargetPath = $pythonw
+    $shortcut.Arguments = '-m dvielle'
+    $shortcut.WorkingDirectory = $InstallDir
+    $shortcut.Description = 'DVielle - Deep Vigilance'
+    $icon = Join-Path $InstallDir 'assets\brand\dvielle.ico'
+    if (Test-Path -LiteralPath $icon) { $shortcut.IconLocation = "$icon,0" }
+    $shortcut.Save()
+}
+$uninstall = $shell.CreateShortcut((Join-Path $startMenu 'Uninstall DVielle.lnk'))
+$uninstall.TargetPath = Join-Path $InstallDir 'installer\Uninstall-DVielle.bat'
+$uninstall.WorkingDirectory = Join-Path $InstallDir 'installer'
+$uninstall.Save()
+$regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DVielle'
+if (-not (Test-Path -LiteralPath $regPath)) { New-Item -Path $regPath | Out-Null }
+$version = [regex]::Match($metadata, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
+Set-ItemProperty -Path $regPath -Name DisplayName -Value 'DVielle - Deep Vigilance'
+Set-ItemProperty -Path $regPath -Name DisplayVersion -Value $version
+Set-ItemProperty -Path $regPath -Name Publisher -Value 'DVielle'
+Set-ItemProperty -Path $regPath -Name InstallLocation -Value $InstallDir
+Set-ItemProperty -Path $regPath -Name UninstallString -Value ('"' + (Join-Path $InstallDir 'installer\Uninstall-DVielle.bat') + '"')
 
-Write-Host "[9/9] Running smoke test ..."
+# Scheduler owns the only launch; no extra unmanaged Start-Process instance.
 Push-Location $InstallDir
-& $pythonExe scripts\smoke_test.py
-$smokeOk = $LASTEXITCODE
-Pop-Location
-if ($smokeOk -ne 0) {
-    Write-Host "WARNING: Smoke test reported issues - check logs." -ForegroundColor Yellow
-}
-
-Write-Host ""
-Write-Host "  Installed to C:\DVILLIE" -ForegroundColor Green
-Write-Host "  Headless task: $TaskName | GUI task: $TaskNameGui" -ForegroundColor Green
-Write-Host "  Optional harden: scripts\harden-once.ps1 (Admin)" -ForegroundColor Green
-Write-Host ""
-
-Start-Process $pythonw -ArgumentList "-m agent.main" -WorkingDirectory $InstallDir
+try {
+    Enable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
+    Start-ScheduledTask -TaskName 'DVielle' -TaskPath '\'
+    Invoke-DvielleNative $python @('scripts\verify_runtime.py', '--config-dir', (Join-Path $InstallDir 'config'), '--timeout', '30')
+} catch {
+    Disable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
+    Write-Warning 'The resident heartbeat could not be verified. Startup is disabled; inspect data\logs before retrying.'
+    throw
+} finally { Pop-Location }
+Write-Host 'Installation checks passed and a current resident heartbeat was verified. Open the desktop shortcut for the console.' -ForegroundColor Green
