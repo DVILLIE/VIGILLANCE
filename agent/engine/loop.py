@@ -49,6 +49,8 @@ class ResolutionEngine:
         self.now = now or utc_now
         self.cooldown_seconds = cooldown_seconds
         self.handler_ctx = handler_ctx or HandlerContext(lookup=default_lookup, close=default_close)
+        if self.handler_ctx.learn_dir is None:
+            self.handler_ctx.learn_dir = self.memory.learn_dir
         enabled = auto_enabled
         if enabled is None:
             enabled = _read_auto(self.memory.learn_dir / "auto_protect.txt")
@@ -171,7 +173,10 @@ class ResolutionEngine:
             self.store.save_finding(finding)
             raise
         finding["last_result"] = result["message"]
-        if effect == "preview" or not result["performed"]:
+        reported = result.get("status")
+        if reported in ("found", "in_progress", "resolved", "monitoring", "dismissed"):
+            finding["resolution_status"] = reported
+        elif effect == "preview" or not result["performed"]:
             finding["resolution_status"] = "monitoring" if effect == "guidance" else "found"
         else:
             finding["resolution_status"] = "resolved"

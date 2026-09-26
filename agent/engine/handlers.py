@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
+from agent.engine.footprint import FootprintProgress, partner_playbook
 from agent.engine.models import AuthToken, PolicyDenied
 from agent.engine.net_block import block_app_network
 from agent.engine.policy import PolicyGate, handler_is_denied
@@ -16,6 +17,7 @@ Lookup = Callable[[int], tuple[str, str] | None]
 Closer = Callable[[int, str], tuple[bool, str]]
 Blocker = Callable[[str, str], tuple[bool, str]]
 Opener = Callable[[str], tuple[bool, str]]
+BreachCheck = Callable[[str], list]
 
 
 @dataclass
@@ -29,6 +31,9 @@ class HandlerContext:
     os_family: str = ""
     block_app: Blocker | None = None
     open_os: Opener | None = None
+    learn_dir: Path | None = None
+    breach_email: str | None = None
+    breach_check: BreachCheck | None = None
 
 
 class HandlerRegistry:
@@ -67,10 +72,19 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("camera.open_app_settings", open_camera_app_settings)
     registry.register("camera.open_system_settings", open_camera_system_settings)
     registry.register("camera.cover_reminder", cover_reminder)
+    registry.register("footprint.lockdown", footprint_lockdown)
+    registry.register("footprint.breach_check", footprint_breach_check)
+    registry.register("footprint.diy_opt_out", footprint_diy_opt_out)
+    registry.register("footprint.open_partner", footprint_open_partner)
+    registry.register("footprint.mark_resolved", footprint_mark_resolved)
+    registry.register("footprint.still_monitoring", footprint_still_monitoring)
 
 
-def _result(performed: bool, message: str, *, reversible: str = "no") -> dict:
-    return {"performed": performed, "message": message, "reversible": reversible}
+def _result(performed: bool, message: str, *, reversible: str = "no", status: str | None = None) -> dict:
+    body = {"performed": performed, "message": message, "reversible": reversible}
+    if status:
+        body["status"] = status
+    return body
 
 
 def turn_protection_on(finding: dict, ctx: HandlerContext) -> dict:
@@ -273,4 +287,120 @@ def cover_reminder(finding: dict, ctx: HandlerContext) -> dict:
         False,
         "A physical cover or shutter is still the surest way to make sure nobody sees you. "
         "DVielle did not turn the camera off and stored no picture.",
+    )
+
+
+def _footprint_subject(finding: dict) -> str:
+    return str(finding.get("subject_identity") or "")
+
+
+def _remember_progress(ctx: HandlerContext, finding: dict, status: str, partner: str = "", notes: str = "") -> None:
+    if ctx.learn_dir is None:
+        return
+    progress = FootprintProgress(ctx.learn_dir / "baseline_footprint.txt")
+    updated = str(finding.get("updated_at") or "")
+    progress.record(_footprint_subject(finding), status, updated, partner=partner, notes=notes)
+
+
+def _own_machine(finding: dict) -> str | None:
+    target = (finding.get("signals") or {}).get("target") or "self"
+    if target != "self":
+        return "DVielle will not look up another person. Nothing was searched."
+    return None
+
+
+def footprint_lockdown(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    _remember_progress(ctx, finding, "in_progress", notes="local lockdown steps opened")
+    return _result(
+        False,
+        "On this PC: sign out of accounts you are not using, revoke leftover app sessions, "
+        "and turn on two-factor login. DVielle did not sign you out and did not change a password. "
+        "This ticket stays in progress until you mark it resolved.",
+        status="in_progress",
+    )
+
+
+def footprint_breach_check(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    email = (ctx.breach_email or "").strip()
+    notice = (
+        "A breach check sends your email off this device to a service such as Have I Been Pwned. "
+        "DVielle does not look up other people."
+    )
+    if "@" not in email:
+        return _result(
+            False,
+            "No email was enrolled. DVielle did not send an address off this device and did not look up any person.",
+            status="found",
+        )
+    if ctx.breach_check is None:
+        return _result(False, notice + " No checker is connected, so nothing was sent.", status="found")
+    try:
+        hits = list(ctx.breach_check(email) or [])
+    except OSError:
+        return _result(False, notice + " The check failed. Nothing was marked as a live breach.", status="found")
+    _remember_progress(ctx, finding, "in_progress", notes=f"opt-in check returned {len(hits)} hit(s)")
+    return _result(
+        False,
+        notice
+        + f" The checker reported {len(hits)} hit(s). Change those passwords and turn on two-factor login. "
+        + "This does not erase copies on the internet.",
+        status="in_progress",
+    )
+
+
+def footprint_diy_opt_out(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    _remember_progress(ctx, finding, "in_progress", notes="diy opt-out checklist opened")
+    return _result(
+        False,
+        "Do-it-yourself path: search only your own name, open each site's opt-out or takedown page, "
+        "and set a Google Alert for your name if you want a reminder. "
+        "DVielle did not search anyone and did not submit a form. This ticket stays in progress.",
+        status="in_progress",
+    )
+
+
+def footprint_open_partner(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    if ctx.open_os is not None:
+        try:
+            ctx.open_os("footprint_partner")
+        except OSError:
+            pass
+    _remember_progress(ctx, finding, "monitoring", partner="playbook", notes="partner playbook opened")
+    return _result(False, partner_playbook() + "\nThis stays on the monitoring list.", status="monitoring")
+
+
+def footprint_mark_resolved(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    _remember_progress(ctx, finding, "resolved", notes="user marked resolved")
+    return _result(
+        True,
+        "You marked this ticket resolved. DVielle did not delete your data from the internet, "
+        "and this free app does not erase every copy on earth.",
+        status="resolved",
+    )
+
+
+def footprint_still_monitoring(finding: dict, ctx: HandlerContext) -> dict:
+    refused = _own_machine(finding)
+    if refused:
+        return _result(False, refused, status="found")
+    _remember_progress(ctx, finding, "monitoring", notes="user left it monitoring")
+    return _result(
+        False,
+        "This stays on the monitoring list. Nothing was erased. A later checkup or a partner alert can open it again.",
+        status="monitoring",
     )

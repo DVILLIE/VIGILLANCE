@@ -12,6 +12,7 @@ from agent.engine.observations import (
     from_speed_sample,
     startup_observations,
 )
+from agent.engine.footprint import FootprintProgress, collect_footprint_facts, observation_from_footprint
 from agent.engine.watch import observation_from_camera, observation_from_egress
 from agent.learn.memory import SafetyBaseline
 from agent.modules.resource_advisor import SYSTEM_PROTECTED
@@ -31,6 +32,7 @@ def ingest_monitors(
     startup_items=None,
     egress_facts=None,
     camera_facts=None,
+    footprint_facts=None,
     collect_live: bool = False,
 ) -> list[dict]:
     """Feed one cycle into the engine. Does not close apps, block networks, or delete files by itself."""
@@ -45,6 +47,8 @@ def ingest_monitors(
             from agent.modules.camera_guard import collect_camera_holders
 
             camera_facts = collect_camera_holders()
+        if footprint_facts is None:
+            footprint_facts = collect_footprint_facts()
     if security is not None:
         for obs in from_security(security):
             results.append(engine.evaluate(obs))
@@ -66,6 +70,14 @@ def ingest_monitors(
         obs = observation_from_camera(fact)
         if obs is not None:
             results.append(engine.evaluate(obs))
+    progress = FootprintProgress(engine.memory.learn_dir / "baseline_footprint.txt")
+    for fact in footprint_facts or []:
+        obs = observation_from_footprint(fact)
+        if obs is None:
+            continue
+        if not fact.get("fresh") and progress.get(obs.subject_identity) in ("in_progress", "resolved", "monitoring"):
+            continue
+        results.append(engine.evaluate(obs))
     return results
 
 

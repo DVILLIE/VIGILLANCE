@@ -25,6 +25,12 @@ USER_HANDLERS = frozenset(
         "camera.open_app_settings",
         "camera.open_system_settings",
         "camera.cover_reminder",
+        "footprint.lockdown",
+        "footprint.breach_check",
+        "footprint.diy_opt_out",
+        "footprint.open_partner",
+        "footprint.mark_resolved",
+        "footprint.still_monitoring",
     }
 )
 AUTO_HANDLERS = frozenset({"safety.turn_protection_on", "storage.free_safe_temp"})

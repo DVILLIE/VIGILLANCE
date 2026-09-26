@@ -243,11 +243,45 @@ def camera_options() -> list[Option]:
     ]
 
 
-def _stub(pillar_label: str) -> list[Option]:
+def footprint_options() -> list[Option]:
     return [
-        _learn("allow", f"Allow — keep on ({pillar_label})", "Remember this subject as allowed.", "allow", "monitoring"),
+        _guide(
+            "lockdown",
+            "Start local lockdown steps",
+            "Walk through sign-out, session revoke, and two-factor login on this PC. Nothing is changed until you do it.",
+            "footprint.lockdown",
+        ),
+        _guide(
+            "breach_check",
+            "Check breach (opt-in email)",
+            "An opt-in check sends your email off this device. DVielle will not look up anyone else.",
+            "footprint.breach_check",
+        ),
+        _guide(
+            "diy_opt_out",
+            "Open DIY opt-out",
+            "Open a takedown and opt-out checklist you complete yourself. DVielle does not search a name.",
+            "footprint.diy_opt_out",
+        ),
+        _guide(
+            "partner",
+            "Start / open partner removal or monitoring",
+            "Show removal and monitoring playbooks such as DeleteMe, Incogni, Aura, LifeLock, and REMOVE. No service is required.",
+            "footprint.open_partner",
+        ),
+        _guide(
+            "mark_resolved",
+            "Mark resolved",
+            "Record that you finished this step. This does not erase copies on the internet.",
+            "footprint.mark_resolved",
+        ),
+        _guide(
+            "still_monitoring",
+            "Still monitoring",
+            "Keep this ticket on the monitoring list. A partner or a later checkup can bring it back.",
+            "footprint.still_monitoring",
+        ),
         _not_now(),
-        _never("Never for this", "Stop nagging about this subject."),
         _why(),
     ]
 
@@ -260,9 +294,17 @@ CATALOGS = {
     ("storage", "safe_temp"): storage_options,
     ("privacy", "unexpected_egress"): privacy_options,
     ("ai_data", "unexpected_upload"): ai_options,
-    ("footprint", "exposure"): lambda: _stub("footprint"),
     ("camera", "camera_use"): camera_options,
 }
+for _footprint_kind in (
+    "exposure",
+    "local_residue",
+    "breach_hit",
+    "public_search",
+    "broker_listing",
+    "dark_web_alert",
+):
+    CATALOGS[("footprint", _footprint_kind)] = footprint_options
 
 
 def options_for(pillar: str, kind: str) -> list[Option]:

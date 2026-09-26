@@ -12,6 +12,7 @@ from agent.engine.handlers import HandlerContext
 from agent.engine.loop import ResolutionEngine
 from agent.engine.models import PolicyDenied
 from agent.engine.observations import from_disk_status, from_speed_sample
+from agent.engine.footprint import observation_from_footprint
 from agent.engine.watch import observation_from_camera, observation_from_egress
 from agent.modules.disk import DiskStatus
 from agent.store.db import AgentStore
@@ -151,6 +152,43 @@ def main() -> int:
     print(f"    Settings asked: {opened_settings}. Still no Zoom close: {calls}")
     learn = (root / "learn" / "keep_on.txt").read_text(encoding="utf-8")
     print(f"18. Keep-on has privacy={('privacy|egress:chatty.exe|allow' in learn)} camera={('camera|camera:zoom.exe|allow' in learn)}")
+
+    local = observation_from_footprint({"kind": "local_residue", "label": "this-pc", "target": "self"})
+    assert local is not None
+    foot = engine.evaluate(local)
+    labels = [item["label"] for item in foot["finding"]["options"]]
+    print(f"19. Footprint ticket options: {', '.join(labels)}")
+    try:
+        engine.mutate(foot["finding"]["id"], "footprint.breach_check")
+    except PolicyDenied as exc:
+        print(f"20. Breach check without a choice refused: {exc}")
+    steps = engine.select(foot["finding"]["id"], "lockdown")
+    print(f"21. Local lockdown: {steps['resolution_status']}. {steps['last_result'].split('.')[0]}.")
+    quiet_check = engine.select(foot["finding"]["id"], "breach_check")
+    print(f"22. No email enrolled: {quiet_check['last_result']}")
+    sent: list[str] = []
+
+    def _checker(email: str) -> list[str]:
+        sent.append(email)
+        return ["SyntheticDrill"]
+
+    engine.handler_ctx.breach_check = _checker
+    engine.handler_ctx.breach_email = "drill-user@example.com"
+    broker = observation_from_footprint(
+        {"kind": "broker_listing", "label": "people-search", "target": "self", "synthetic": True}
+    )
+    assert broker is not None
+    broker_card = engine.evaluate(broker)
+    checked = engine.select(broker_card["finding"]["id"], "breach_check")
+    print(f"23. Opt-in check ran={len(sent)==1} status={checked['resolution_status']}")
+    print(f"    {checked['last_result']}")
+    partner = engine.select(broker_card["finding"]["id"], "partner")
+    print(f"24. Partner playbook status={partner['resolution_status']}")
+    print("    " + partner["last_result"].splitlines()[1])
+    done = engine.select(broker_card["finding"]["id"], "mark_resolved")
+    print(f"25. {done['resolution_status']}: {done['last_result']}")
+    progress = (root / "learn" / "baseline_footprint.txt").read_text(encoding="utf-8")
+    print(f"26. Progress file has no email address: {'@' not in progress}")
     print(f"Drill files are under {root}")
     return 0
 

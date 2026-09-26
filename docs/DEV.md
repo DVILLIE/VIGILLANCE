@@ -27,11 +27,16 @@ That command uses a throwaway folder, a fake process closer, a fake per-app bloc
 15. Camera use named as Zoom while Zoom is not open opens a ticket and does not close anything.
 16. **Stop this app's camera use** runs only after that choice, and only for the app you picked.
 17. **Turn camera off in system settings** asks for the settings page and does not turn the camera off or store a picture.
+18. A footprint ticket lists lockdown, opt-in breach check, DIY opt-out, partner playbooks, mark resolved, and still monitoring.
+19. The breach check is refused until you choose it. With no email enrolled, nothing is sent.
+20. An opt-in drill check says the email leaves the device, stores no address, and does not claim the internet was erased.
+21. Partner names (DeleteMe, Incogni, Aura, LifeLock, REMOVE) are links in the playbook. None is required, and none is called.
+22. **Mark resolved** records your confirmation. The progress file is `data/learn/baseline_footprint.txt`.
 
-Unit coverage is `tests/test_keep_on_engine.py` and `tests/test_privacy_ai_camera.py`:
+Unit coverage is `tests/test_keep_on_engine.py`, `tests/test_privacy_ai_camera.py`, and `tests/test_footprint.py`:
 
 ```bash
-python -m pytest tests/test_keep_on_engine.py tests/test_privacy_ai_camera.py -q
+python -m pytest tests/test_keep_on_engine.py tests/test_privacy_ai_camera.py tests/test_footprint.py -q
 ```
 
 ## What this slice does
@@ -50,10 +55,14 @@ The same engine evaluates them. Live egress uses established public connections 
 
 Blocking an app’s network and stopping camera use are options-only. Auto-protect does not do either. There is no per-app firewall helper on Linux, so the default block says traffic was not stopped. The inbound `scripts/block-ip.ps1` rule is not used for this.
 
+## Footprint Resolution Center
+
+Every footprint item is a ticket on the same engine: found, in progress, resolved, or monitoring. Remote items (breach, public page, broker listing, dark-web style alert) open only from an explicit synthetic fixture or a future confirmed source. The live collector does not search the web and does not invent a breach. An opt-in breach check says the email leaves the device; with no checker connected, nothing is sent, and the address is not written to the ticket or `baseline_footprint.txt`. Partner rows are playbook links, not accounts.
+
 ## Deferred
 
-- Footprint Resolution Center is still a catalog stub.
 - No real firewall or Defender toggle.
+- No live Have I Been Pwned call and no partner API enrollment. Those stay opt-in hooks.
 - Registry Run keys can be observed on Windows; disabling them is refused unless a user Startup-folder file is identified.
 - Live speed identity from the advisor is the process name, not the exe path.
 - Microsoft Guard auto-remediate and attack auto-block are still outside this options engine. Default `monitor_only` limits them.
