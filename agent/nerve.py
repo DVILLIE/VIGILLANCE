@@ -1,26 +1,27 @@
-"""Adaptive Nerve Plane — per-collector cadence (Future Architecture authority).
-
-Cadence is NOT a global full-scan timer. Each collector has its own interval.
-FAST HEARTBEAT = cheap counters only (see agent.win_memory).
-"""
-
+"""Independent cadence, bounded workers, workload deferral, and retry backoff."""
 from __future__ import annotations
 
 import logging
+import math
+import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable
 
-logger = logging.getLogger("dvielle.nerve")
+logger = logging.getLogger('dvielle.nerve')
+
+
+class CollectionIncomplete(RuntimeError):
+    """Successful bounded observation with a coverage gap; no failure backoff."""
 
 
 class Cadence(str, Enum):
-    EVENT = "event"
-    HEARTBEAT = "heartbeat"
-    PULSE = "pulse"
-    IDLE_DEEP = "idle_deep"
-    EMERGENCY = "emergency"
+    EVENT = 'event'
+    HEARTBEAT = 'heartbeat'
+    PULSE = 'pulse'
+    IDLE_DEEP = 'idle_deep'
+    EMERGENCY = 'emergency'
 
 
 @dataclass
@@ -31,89 +32,154 @@ class CollectorSpec:
     enabled: bool = True
     run: Callable[[], None] | None = None
     last_run_monotonic: float = 0.0
-    # Skip pulse/idle_deep when workload profile is MAXIMUM (AI/gaming)
     defer_under_maximum_workload: bool = False
+    background: bool = False
+    critical: bool = False
+    failures: int = 0
+    running: bool = False
+    status: str = 'pending'
+    error: str | None = None
+    duration_ms: float | None = None
 
 
 @dataclass
 class NervePlane:
-    """Schedules collectors independently; sleep is the min remaining delay."""
-
     collectors: list[CollectorSpec] = field(default_factory=list)
     workload_maximum: bool = False
     emergency: bool = False
+    idle: bool = True
+    budget_exceeded: bool = False
+    max_workers: int = 2
+    on_status: Callable[[CollectorSpec], None] | None = None
+    _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
+    _threads: set[threading.Thread] = field(default_factory=set, repr=False)
+    _optional_running: int = 0
+    _closing: bool = False
 
     def register(self, spec: CollectorSpec) -> None:
+        if not math.isfinite(spec.interval_seconds) or spec.interval_seconds <= 0:
+            raise ValueError('collector intervals must be finite and positive')
+        if any(c.name == spec.name for c in self.collectors):
+            raise ValueError(f'duplicate collector {spec.name}')
         self.collectors.append(spec)
+
+    def _deferred(self, c: CollectorSpec) -> bool:
+        if c.critical or c.cadence == Cadence.HEARTBEAT:
+            return False
+        if c.cadence == Cadence.IDLE_DEEP and (not self.idle or self.workload_maximum):
+            return True
+        return self.budget_exceeded or (self.workload_maximum and c.defer_under_maximum_workload)
+
+    def _interval(self, c: CollectorSpec) -> float:
+        return min(c.interval_seconds * (2 ** min(c.failures, 4)), max(c.interval_seconds, 900))
 
     def due(self, now: float | None = None) -> list[CollectorSpec]:
         now = time.monotonic() if now is None else now
-        due: list[CollectorSpec] = []
-        for c in self.collectors:
-            if not c.enabled or c.run is None:
-                continue
-            if c.cadence == Cadence.EVENT:
-                continue  # event-driven elsewhere
-            if (
-                self.workload_maximum
-                and c.defer_under_maximum_workload
-                and c.cadence in (Cadence.PULSE, Cadence.IDLE_DEEP)
-                and not self.emergency
-            ):
-                continue
-            if c.cadence == Cadence.IDLE_DEEP and self.workload_maximum and not self.emergency:
-                continue
-            interval = c.interval_seconds
-            if self.emergency and c.cadence in (Cadence.PULSE, Cadence.HEARTBEAT):
-                interval = min(interval, 15.0)
-            if now - c.last_run_monotonic >= interval:
-                due.append(c)
-        return due
+        with self._lock:
+            if self._closing:
+                return []
+            return [c for c in self.collectors if c.enabled and c.run is not None
+                    and not c.running and c.cadence != Cadence.EVENT
+                    and not self._deferred(c)
+                    and (c.last_run_monotonic == 0 or now - c.last_run_monotonic >= self._interval(c))]
+
+    def _notify(self, c: CollectorSpec) -> None:
+        if self.on_status:
+            try:
+                self.on_status(c)
+            except Exception:
+                logger.exception('collector status publication failed')
+
+    def _execute(self, c: CollectorSpec) -> None:
+        t0 = time.perf_counter()
+        try:
+            c.run()
+        except CollectionIncomplete as exc:
+            with self._lock:
+                c.failures, c.status, c.error = 0, 'partial', str(exc)[:300]
+            logger.warning('collector partial: %s: %s', c.name, exc)
+        except Exception as exc:
+            with self._lock:
+                c.failures += 1
+                c.status, c.error = 'error', f'{type(exc).__name__}: {exc}'[:300]
+            logger.exception('collector failed: %s', c.name)
+        else:
+            with self._lock:
+                c.failures, c.status, c.error = 0, 'ok', None
+        finally:
+            with self._lock:
+                c.duration_ms = (time.perf_counter() - t0) * 1000
+                c.last_run_monotonic = time.monotonic()
+                c.running = False
+                if c.background and not c.critical:
+                    self._optional_running = max(0, self._optional_running - 1)
+                self._threads.discard(threading.current_thread())
+            self._notify(c)
 
     def run_due(self) -> list[str]:
-        now = time.monotonic()
-        ran: list[str] = []
-        for c in self.due(now):
-            t0 = time.perf_counter()
-            try:
-                assert c.run is not None
-                c.run()
-                c.last_run_monotonic = time.monotonic()
-                ran.append(c.name)
-                ms = (time.perf_counter() - t0) * 1000
-                logger.debug("nerve %s (%s) %.1fms", c.name, c.cadence.value, ms)
-            except Exception:
-                c.last_run_monotonic = time.monotonic()
-                logger.exception("nerve collector failed: %s", c.name)
+        ran = []
+        # Refresh heartbeat before re-evaluating workload gates in the same turn.
+        ordered = sorted(self.collectors, key=lambda c: (c.cadence != Cadence.HEARTBEAT, not c.critical))
+        for c in ordered:
+            inline = False
+            with self._lock:
+                if c not in self.due():
+                    if not c.running and c.enabled and self._deferred(c) and c.status != 'deferred':
+                        c.status = 'deferred'
+                        self._notify(c)
+                    continue
+                if c.background and len(self._threads) >= self.max_workers:
+                    continue
+                # Reserve one worker for security when optional I/O stalls.
+                if c.background and not c.critical and self._optional_running >= max(1, self.max_workers - 1):
+                    continue
+                c.running, c.status = True, 'running'
+                self._notify(c)
+                if c.background:
+                    if not c.critical:
+                        self._optional_running += 1
+                    thread = threading.Thread(target=self._execute, args=(c,), daemon=True,
+                                              name=f'dv-{c.name}')
+                    self._threads.add(thread)
+                    thread.start()
+                else:
+                    inline = True
+            # Do not hold the scheduler lock during an inline callback.
+            if inline:
+                self._execute(c)
+            ran.append(c.name)
         return ran
 
-    def sleep_seconds(self, default: float = 2.0) -> float:
-        """How long until the next collector is due (bounded)."""
+    def sleep_seconds(self, default: float = 1.0) -> float:
         now = time.monotonic()
-        waits: list[float] = []
-        for c in self.collectors:
-            if not c.enabled or c.run is None or c.cadence == Cadence.EVENT:
-                continue
-            if (
-                self.workload_maximum
-                and c.defer_under_maximum_workload
-                and c.cadence in (Cadence.PULSE, Cadence.IDLE_DEEP)
-                and not self.emergency
-            ):
-                continue
-            remaining = c.interval_seconds - (now - c.last_run_monotonic)
-            waits.append(max(0.05, remaining))
-        if not waits:
-            return default
-        return min(default, min(waits))
+        with self._lock:
+            waits = [max(0.1, self._interval(c) - (now - c.last_run_monotonic))
+                     for c in self.collectors if c.enabled and c.run and not c.running
+                     and c.cadence != Cadence.EVENT and not self._deferred(c)]
+        return min(default, min(waits)) if waits else default
+
+    def close(self, timeout: float = 60.0) -> bool:
+        """Lease must remain held until in-flight observations have drained."""
+        with self._lock:
+            self._closing = True
+            threads = list(self._threads)
+        end = time.monotonic() + timeout
+        for thread in threads:
+            thread.join(max(0, end - time.monotonic()))
+        with self._lock:
+            return not self._threads
 
 
 def default_intervals(config: dict) -> dict[str, float]:
-    """Config overrides; defaults match Adaptive Nerve spirit (not 2–5s full scan)."""
-    nerve = config.get("nerve", {})
-    pulse = float(config.get("agent", {}).get("interval_seconds", 60))
-    return {
-        "heartbeat": float(nerve.get("heartbeat_seconds", 5)),
-        "pulse": float(nerve.get("pulse_seconds", pulse)),
-        "idle_deep": float(nerve.get("idle_deep_seconds", 900)),
+    cfg = config.get('nerve', {})
+    values = {
+        'heartbeat': float(cfg.get('heartbeat_seconds', 5)),
+        'pulse': float(cfg.get('pulse_seconds', config.get('agent', {}).get('interval_seconds', 60))),
+        'idle_deep': float(cfg.get('idle_deep_seconds', 900)),
     }
+    if any(not math.isfinite(v) or v <= 0 for v in values.values()):
+        raise ValueError('nerve intervals must be finite and positive')
+    values['heartbeat'] = max(1.0, values['heartbeat'])
+    values['pulse'] = max(10.0, values['pulse'])
+    values['idle_deep'] = max(60.0, values['idle_deep'])
+    return values

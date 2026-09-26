@@ -32,7 +32,9 @@ def close_process_handler(request: ActionRequest) -> tuple[bool, str]:
     details = request.details or {}
     pids = details.get("pids") or []
     names = details.get("names") or []
-    force = bool(details.get("force", False))
+    force = details.get("force", False)
+    if not isinstance(force, bool):
+        return False, "REJECTED: force must be an explicit boolean"
 
     if not pids:
         return False, "REJECTED: no target PIDs in Decision.details"
@@ -49,4 +51,9 @@ def close_process_handler(request: ActionRequest) -> tuple[bool, str]:
         pid_list,
         names,
     )
-    return close_pids(pid_list, names, force=force)
+    return close_pids(
+        pid_list, names, force=force,
+        identities=details.get("identities"),
+        observed_at=details.get("observed_at"),
+        never_close=frozenset(str(n).casefold() for n in details.get("never_close", [])),
+    )

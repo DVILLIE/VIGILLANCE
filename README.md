@@ -1,71 +1,44 @@
-# DVielle — DEEP VIGILLANCE
+# DVielle — DEEP VIGILANCE
 
-**Laptop-local Windows guardian** under `C:\DVILLIE`.  
-Not cloud-first. Not antivirus-first. Not chat-first.
+DVielle is a local Windows guardian. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 1.6 adds one monitoring owner, independent collectors, workload deferral, bounded history and provider retry recovery.
 
-**Product thesis:** continuously observe resources, network, background behavior, privacy exposure, and security posture — then **explain** what is happening and apply **conservative** corrections only when evidence is strong. Especially: protect intentional workloads (including local AI) while reducing unjustified contention.
-
-Full architecture (engines, pipeline, repo map, phases):  
-→ [`docs/VIGILLANCE_MASTER_ARCHITECTURE.md`](docs/VIGILLANCE_MASTER_ARCHITECTURE.md)  
-→ Futuristic Nerve System (roundtable): [`docs/VIGILLANCE_FUTURE_ARCHITECTURE.md`](docs/VIGILLANCE_FUTURE_ARCHITECTURE.md)  
-→ Design system (**Phosphor Void**): [`docs/DESIGN.md`](docs/DESIGN.md)
-
----
-
-## Prerequisites
-
-- Windows 10/11
-- **Python 3.12** ([python.org](https://www.python.org/downloads/) — tick Add to PATH)
-- Admin once for install / optional harden
+The native console attaches to the background agent. Its values and activity come from measured state; unavailable or stale evidence is shown explicitly. Monitoring runs autonomously. Closing an application still requires a fresh process identity and explicit confirmation; automatic file cleanup, firewall changes and RAM trimming are disabled.
 
 ## Install
 
-1. Open this repo on the laptop (Cursor Desktop or clone from https://github.com/DVILLIE/VIGILLANCE).
-2. File Explorer → `installer` → right-click **`Install-DVielle.bat`** → Run as administrator.
+Windows 10/11 and Python 3.12 are required. Run `installer\Install-DVielle.bat` as administrator on the PC. The installer creates `C:\DVILLIE\.venv`, checks dependencies, registers the resident logon task and verifies startup. Existing configuration is preserved.
 
-Creates:
-
-```
-C:\DVILLIE\
-  agent\     config\     data\     scripts\     installer\
-```
-
-Registers scheduled task **DVielle** (headless `pythonw -m agent.main` at logon) and enables logon-failure audit for failed-password detection.
-
-## Daily use
-
-| Action | How |
-|--------|-----|
-| Headless agent | Auto at logon, or `py -3.12 -m agent.main` from `C:\DVILLIE` |
-| One cycle | `py -3.12 -m agent.main --once` |
-| Optional GUI | Desktop shortcut or `py -3.12 -m dvielle` |
-| Harden once | Admin: `scripts\harden-once.ps1` (restore point first) |
+| Action | Command from C:\DVILLIE |
+|---|---|
+| Native console | `.venv\Scripts\pythonw.exe -m dvielle` or desktop shortcut |
+| Headless monitoring | `.venv\Scripts\python.exe -m agent.main` |
+| One observe-only diagnostic pass | `.venv\Scripts\python.exe -m agent.main --once` |
+| Graceful owner shutdown | `.venv\Scripts\python.exe -m agent.main --stop` |
+| Optional hardening | Review `scripts\harden-once.ps1` and its explicit apply/restore parameters |
+| Browser snapshot viewer | See [demo/README.md](demo/README.md) |
 | Uninstall | `installer\Uninstall-DVielle.bat` |
 
-## Honest limits
+A second headless launch exits without duplicating collectors. A console can acquire ownership when no agent is running, attach when one is, and recover after an owner crash. An intentional shutdown is respected.
 
-- We **reduce and detect** — we do **not** claim 100% anti-spy or replace Defender.
-- On **Windows Home**, diagnostic data cannot truly reach “Security (0)”; lowest real floor is often **Required**.
-- Windows Update / delivery / certificates are **never** blocked by default.
-- No auto-block / auto-trim on day one (7-day baseline + config flags).
-- High RAM alone is often healthy cache — the product targets **memory pressure**, not “used %.”
+## Behavior and limits
 
-See [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) and [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md).
+- Scheduling responds to sustained CPU demand, measured memory pressure, configured foreground workloads and session inactivity. This is a conservative rule-based assessment; it does not infer arbitrary user intent.
+- The CPU/RSS budget defers optional collectors after sustained excess. It is a scheduling control, not an operating-system quota or a verified performance guarantee.
+- Authentication counts use source event time and record identity. Successful 4776 events are excluded; a 4776 workstation is a hostname, not a blockable source IP.
+- Unknown peers, familiar process names, reverse DNS and cloud hosting do not establish trust or maliciousness.
+- Windows Home and Pro have a Required diagnostic-data floor. Registry settings alone do not prove that traffic stopped.
+- Public-IP lookup, cloud chat, cloud speech and web search require separate opt-ins. Core monitoring does not need a model.
+- DVielle complements Windows security. It cannot prove a machine is free of threats.
 
-## Dev checks
+See [implemented autonomy and verification](docs/AUTONOMY.md), [architecture](docs/VIGILLANCE_MASTER_ARCHITECTURE.md), [product decisions](docs/DECISIONS.md), and [Windows privacy details](docs/TELEMETRY_AND_HOME.md).
+
+## Development checks
 
 ```bat
-py -3.12 -m pip install -r requirements.txt
+py -3.12 -m pip install -e ".[windows,chat,dev]"
 py -3.12 scripts\smoke_test.py
-py -3.12 -m pytest tests\test_db.py tests\test_utils.py tests\test_resource_advisor.py tests\test_network_info.py tests\test_connections_classify.py -q
+py -3.12 -m pytest -q
+py -3.12 -m ruff check agent dvielle scripts/smoke_test.py --select E9,F63,F7,F82
 ```
 
-## Docs
-
-| Doc | Purpose |
-|-----|---------|
-| [docs/VIGILLANCE_MASTER_ARCHITECTURE.md](docs/VIGILLANCE_MASTER_ARCHITECTURE.md) | **Master architecture + repo gap map** |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
-| [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
-| [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |
-| [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md) | Why chat/demo waits |
+The installer smoke checks imports and package metadata without starting collectors. Unit tests use isolated fixtures; lifecycle tests start actual child processes with heavy collectors disabled and temporary state. A successful test run does not substitute for Windows installation and long-running field validation.

@@ -25,20 +25,30 @@ DEFAULT_RETENTION: dict[str, int] = {
     "events_days": 14,
     "health_snapshots_days": 14,
     "failed_logons_days": 30,
+    "work_log_days": 14,
+    "privacy_checks_days": 14,
 }
 DEFAULT_REVIEW_WINDOW_HOURS = 24.0
 DEFAULT_SUMMARY_WINDOW_DAYS = 14.0
 
 
 class AgentStore:
-    def __init__(self, db_path: Path) -> None:
+    def __init__(self, db_path: Path, *, initialize: bool = True) -> None:
         self.db_path = db_path
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_schema()
+        self._initialize = initialize
+        if initialize:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._init_schema()
 
     @contextmanager
     def _conn(self) -> Generator[sqlite3.Connection, None, None]:
-        conn = sqlite3.connect(self.db_path, timeout=30)
+        if self._initialize:
+            conn = sqlite3.connect(self.db_path, timeout=30)
+        else:
+            # An attached console may arrive while the owner is still starting.
+            # It may use the owner's existing ledger but must not create an empty
+            # replacement when the database is missing or has been moved.
+            conn = sqlite3.connect(self.db_path.resolve().as_uri() + "?mode=rw", uri=True, timeout=30)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
@@ -121,7 +131,7 @@ class AgentStore:
                     check_name TEXT NOT NULL,
                     expected TEXT,
                     actual TEXT,
-                    passed INTEGER NOT NULL
+                    passed INTEGER
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
@@ -180,6 +190,29 @@ class AgentStore:
                 """
             )
 
+            # Additive migrations preserve existing installations and audit history.
+            # sqlite3's legacy transaction control does not begin a transaction for
+            # DDL. Explicitly include every migration step, including temporary-table
+            # creation, so an interrupted rebuild cannot strand the next startup.
+            conn.execute("BEGIN IMMEDIATE")
+            columns = {row["name"] for row in conn.execute("PRAGMA table_info(failed_logons)")}
+            for name, kind in (("record_id", "INTEGER"), ("status", "TEXT"),
+                               ("event_key", "TEXT"), ("ingested_at", "TEXT")):
+                if name not in columns:
+                    conn.execute(f"ALTER TABLE failed_logons ADD COLUMN {name} {kind}")
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_failed_logons_event_key "
+                         "ON failed_logons(event_key) WHERE event_key IS NOT NULL")
+            cursor_columns = {row["name"] for row in conn.execute("PRAGMA table_info(agent_cursors)")}
+            if "event_ts" not in cursor_columns:
+                conn.execute("ALTER TABLE agent_cursors ADD COLUMN event_ts TEXT")
+            privacy_columns = list(conn.execute("PRAGMA table_info(privacy_checks)"))
+            if any(row["name"] == "passed" and row["notnull"] for row in privacy_columns):
+                conn.execute("CREATE TABLE privacy_checks_nullable (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                             "ts TEXT NOT NULL, check_name TEXT NOT NULL, expected TEXT, actual TEXT, passed INTEGER)")
+                conn.execute("INSERT INTO privacy_checks_nullable SELECT * FROM privacy_checks")
+                conn.execute("DROP TABLE privacy_checks")
+                conn.execute("ALTER TABLE privacy_checks_nullable RENAME TO privacy_checks")
+
     def log_event(
         self,
         module: str,
@@ -217,7 +250,8 @@ class AgentStore:
         with self._conn() as conn:
             return list(
                 conn.execute(
-                    "SELECT id, ts, action, message, details FROM work_log ORDER BY id ASC LIMIT ?",
+                    "SELECT * FROM (SELECT id, ts, action, message, details FROM work_log "
+                    "ORDER BY id DESC LIMIT ?) ORDER BY id ASC",
                     (limit,),
                 ).fetchall()
             )
@@ -241,10 +275,54 @@ class AgentStore:
                 """
                 INSERT INTO agent_cursors (key, value, updated_at)
                 VALUES (?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at,
+                    event_ts = NULL
                 """,
                 (key, int(value), utc_now()),
             )
+
+    def get_cursor_timestamp(self, key: str) -> str | None:
+        with self._conn() as conn:
+            row = conn.execute("SELECT event_ts FROM agent_cursors WHERE key = ?", (key,)).fetchone()
+            return row["event_ts"] if row else None
+
+    def ingest_security_events(
+        self, events: list[dict[str, Any]], *, cursor_key: str,
+        next_record_id: int, next_timestamp: str | None,
+    ) -> list[dict[str, Any]]:
+        """Commit failure evidence and its source cursor together; retries are idempotent.
+
+        Identity includes source event time because Windows reuses record IDs after
+        a Security-log clear. Successful/unknown 4776 rows advance the cursor but
+        never count as failed authentication.
+        """
+        inserted: list[dict[str, Any]] = []
+        with self._conn() as conn:
+            for event in events:
+                timestamp = datetime.fromisoformat(str(event["timestamp"]).replace("Z", "+00:00"))
+                if timestamp.tzinfo is None:
+                    raise ValueError("Security event timestamp must include timezone")
+                ts = timestamp.astimezone(timezone.utc).isoformat()
+                if not event.get("is_failure"):
+                    continue
+                source = event.get("source_ip") or f"host:{event.get('source_host') or 'unknown'}"
+                identity = f"Security:{int(event['record_id'])}:{ts}:{int(event['event_id'])}"
+                cur = conn.execute(
+                    "INSERT OR IGNORE INTO failed_logons "
+                    "(ts, event_id, source_ip, username, workstation, count, record_id, status, event_key, ingested_at) "
+                    "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
+                    (ts, event["event_id"], source, event.get("username"), event.get("source_host"),
+                     event["record_id"], event.get("status"), identity, utc_now()),
+                )
+                if cur.rowcount:
+                    inserted.append(event)
+            conn.execute(
+                "INSERT INTO agent_cursors (key, value, updated_at, event_ts) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value, "
+                "updated_at=excluded.updated_at, event_ts=excluded.event_ts",
+                (cursor_key, int(next_record_id), utc_now(), next_timestamp),
+            )
+        return inserted
 
     def log_decision(self, decision: dict[str, Any]) -> None:
         """Persist an issued Decision (L2 recommendation or higher) as a durable,
@@ -383,6 +461,7 @@ class AgentStore:
         workstation: str | None,
         *,
         window_minutes: int = 15,
+        event_time: datetime | None = None,
     ) -> int:
         """Insert one failed-logon observation; return count inside rolling window.
 
@@ -390,7 +469,7 @@ class AgentStore:
         (Architecture P0). Each event is a row; ``count`` column stores 1.
         """
         ip = source_ip or "unknown"
-        now = utc_now()
+        now = (event_time.astimezone(timezone.utc).isoformat() if event_time else utc_now())
         with self._conn() as conn:
             conn.execute(
                 """
@@ -404,7 +483,8 @@ class AgentStore:
     def _failed_logon_count_locked(
         self, conn: sqlite3.Connection, source_ip: str, window_minutes: int
     ) -> int:
-        cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(minutes=window_minutes)
         rows = conn.execute(
             "SELECT ts FROM failed_logons WHERE source_ip = ?",
             (source_ip,),
@@ -415,7 +495,7 @@ class AgentStore:
                 ts = datetime.fromisoformat(str(row["ts"]))
                 if ts.tzinfo is None:
                     ts = ts.replace(tzinfo=timezone.utc)
-                if ts >= cutoff:
+                if cutoff <= ts <= now:
                     n += 1
             except ValueError:
                 continue
@@ -459,8 +539,8 @@ class AgentStore:
                     snapshot.get("ram_available_mb"),
                     snapshot.get("disk_percent_used"),
                     snapshot.get("disk_free_gb"),
-                    1 if snapshot.get("defender_enabled") else 0,
-                    1 if snapshot.get("firewall_enabled") else 0,
+                    None if snapshot.get("defender_enabled") is None else int(bool(snapshot["defender_enabled"])),
+                    None if snapshot.get("firewall_enabled") is None else int(bool(snapshot["firewall_enabled"])),
                     json.dumps(snapshot.get("details", {})),
                 ),
             )
@@ -489,7 +569,7 @@ class AgentStore:
             return row is not None
 
     def log_privacy_check(
-        self, check_name: str, expected: str, actual: str, passed: bool
+        self, check_name: str, expected: str, actual: str, passed: bool | None
     ) -> None:
         with self._conn() as conn:
             conn.execute(
@@ -497,7 +577,7 @@ class AgentStore:
                 INSERT INTO privacy_checks (ts, check_name, expected, actual, passed)
                 VALUES (?, ?, ?, ?, ?)
                 """,
-                (utc_now(), check_name, expected, actual, 1 if passed else 0),
+                (utc_now(), check_name, expected, actual, None if passed is None else int(passed)),
             )
 
     def recent_suspicious_connections(
@@ -572,7 +652,7 @@ class AgentStore:
             return list(
                 conn.execute(
                     """
-                    SELECT id, ts, event_id, source_ip, username, workstation, count
+                    SELECT id, ts, event_id, source_ip, username, workstation, count, record_id, status, ingested_at
                     FROM failed_logons
                     ORDER BY id DESC LIMIT ?
                     """,
@@ -584,14 +664,15 @@ class AgentStore:
         self, *, window_days: float = DEFAULT_SUMMARY_WINDOW_DAYS
     ) -> dict[str, Any]:
         """Historical counts windowed + labeled; blocked_ips is live state (unwindowed)."""
+        now = utc_now()
         cutoff = cutoff_iso(days=float(window_days))
         with self._conn() as conn:
             fail = conn.execute(
                 """
                 SELECT COALESCE(SUM(count), 0) AS n FROM failed_logons
-                WHERE ts >= ?
+                WHERE ts >= ? AND ts <= ?
                 """,
-                (cutoff,),
+                (cutoff, now),
             ).fetchone()
             blocked = conn.execute(
                 "SELECT COUNT(*) AS n FROM blocked_ips WHERE active = 1"
@@ -621,7 +702,7 @@ class AgentStore:
         }
 
     def prune_old(self, retention: dict[str, Any] | None = None) -> dict[str, int]:
-        """Age out high-volume tables. Never touches decisions / audits / blocks / work_log.
+        """Age out observations. Never touches decisions / audits / blocks.
 
         Returns deleted-row counts per table. Safe to call from idle_deep.
         """
@@ -632,6 +713,8 @@ class AgentStore:
             ("events", int(cfg["events_days"])),
             ("health_snapshots", int(cfg["health_snapshots_days"])),
             ("failed_logons", int(cfg["failed_logons_days"])),
+            ("work_log", int(cfg["work_log_days"])),
+            ("privacy_checks", int(cfg["privacy_checks_days"])),
         )
         with self._conn() as conn:
             for table, days in plans:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import threading
+import queue
 from datetime import datetime
 from pathlib import Path
 
@@ -11,7 +12,8 @@ import psutil
 
 from agent.chat.assistant import ChatAssistant
 from agent.controller import AgentController
-from agent.modules.network_info import collect_network_snapshot
+from agent.modules.network_info import NetworkSnapshot
+from agent.runtime import load_runtime_config, _resolve_data_dir
 from agent.modules.resource_advisor import (
     AppGroup,
     get_app_groups,
@@ -27,6 +29,7 @@ from dvielle.gui import theme as T
 from dvielle.gui.attacks_window import AttacksWindow
 from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
+from dvielle.gui.observations import activity_summary, chat_stats, collector_state, section_current, snapshot_fresh
 from dvielle.gui.presence import (
     ActivityTicker,
     ClockMono,
@@ -56,6 +59,11 @@ class DVielleApp:
             raise RuntimeError("customtkinter required")
 
         self.config_dir = config_dir or (PROJECT_ROOT / "config")
+        self._config, _, _ = load_runtime_config(self.config_dir)
+        self.data_dir = _resolve_data_dir(self._config)
+        self._ui_events = queue.SimpleQueue()
+        self._process_scan_running = False
+        set_minimized_to_tray(False)
         self._store = self._open_store()
         self._store.log_work("OPEN", "Mission Console launched — presence online")
 
@@ -94,17 +102,16 @@ class DVielleApp:
 
         self._build_ui()
         setup_tray(
-            on_show=self._show_window,
-            on_hide=self._minimize_to_tray,
-            on_quit=self._quit_app,
-            on_toggle_vigilance=self._toggle_vigilance,
+            on_show=lambda: self._ui_events.put(self._show_window),
+            on_hide=lambda: self._ui_events.put(self._minimize_to_tray),
+            on_quit=lambda: self._ui_events.put(self._quit_app),
+            on_toggle_vigilance=lambda: self._ui_events.put(self._toggle_vigilance),
         )
 
         launch_greeting = greet_on_startup()
         self.jarvis_line.configure(text=f'"{launch_greeting}"')
-        self.mission_lbl.configure(text="Observing this PC — press START to arm the guardian.")
-        self._append_log("[DVIELLE] Mission Console online. Presence active.")
-        self._append_log("[DVIELLE] Stats live. START arms Adaptive Nerve agent.")
+        self.mission_lbl.configure(text="Connecting to the monitoring agent…")
+        self._append_log("[DVIELLE] Console opened. Waiting for current observations.")
 
         self._refresh_network_async()
         self._tick_stats()
@@ -112,9 +119,11 @@ class DVielleApp:
         self._tick_logs()
         self._pulse_status()
         self._tick_mission_presence()
+        self._drain_ui()
+        self.root.after(0, self._on_start_agent)
 
     def _open_store(self) -> AgentStore:
-        data_dir = DEFAULT_DATA_DIR
+        data_dir = self.data_dir
         data_dir.mkdir(parents=True, exist_ok=True)
         return AgentStore(data_dir / "agent.db")
 
@@ -204,7 +213,7 @@ class DVielleApp:
         )
         self.status_dot.pack(side="left", padx=(0, 6))
         self.status_label = ctk.CTkLabel(
-            status_row, text="PRESENCE LIVE", font=T.FONT_TITLE, text_color=T.ACCENT
+            status_row, text="CONNECTING", font=T.FONT_TITLE, text_color=T.TEXT_DIM
         )
         self.status_label.pack(side="left")
         self.agent_status_lbl = ctk.CTkLabel(
@@ -258,7 +267,7 @@ class DVielleApp:
             ("Why", self._open_why, T.ACCENT_DIM),
             ("Attacks Console", self._open_attacks, T.DANGER),
             ("Clear Log", self._clear_work_log, T.BG_PANEL_ALT),
-            ("Chat (deferred)", self._open_chat, T.ACCENT_DIM),
+            ("Chat" if self._config.get("chat", {}).get("enabled") is True else "Chat disabled", self._open_chat, T.ACCENT_DIM),
         ):
             ctk.CTkButton(
                 left_footer,
@@ -401,50 +410,39 @@ class DVielleApp:
         ).pack(side="bottom", pady=(8, 0))
 
     def _on_start_agent(self) -> None:
-        if self._agent_started:
+        if self.controller.status.ownership in {"starting", "owner", "attached"}:
             return
         self._agent_started = True
-        self.start_btn.configure(state="disabled", text="●  AGENT ARMED", fg_color=T.SUCCESS)
-        self.agent_status_lbl.configure(
-            text="Agent ACTIVE  ·  Console LIVE", text_color=T.SUCCESS
-        )
-        self.status_label.configure(text="VIGILANCE ACTIVE", text_color=T.SUCCESS)
-        self.mission_lbl.configure(text="Guardian armed — protecting responsiveness under your workload.")
-        self.vigilance_btn.configure(state="normal")
-
-        greeting = greet_on_startup()
-        self.jarvis_line.configure(text=f'"{greeting}"')
-        self._store.log_work("START", "Deep vigilance agent started")
-        self._append_log(f"[DVIELLE] Agent STARTED. {greeting}")
-        self.ticker.push("NERVE · agent armed · pulse online")
-
+        self.start_btn.configure(state="disabled", text="CONNECTING…")
+        self.mission_lbl.configure(text="Connecting to the monitoring owner…")
+        self._store.log_work("START_REQUEST", "Requested monitoring start or attachment")
         self.controller.start()
-        self._tick_greeting()
 
     def _open_chat(self) -> None:
-        if self._chat is None:
-            try:
-                cfg = load_yaml(self.config_dir / "config.yaml")
-            except Exception:
-                cfg = {}
-            # Cloud LLM stays off unless config opts in (audit C2).
-            self._chat = ChatAssistant.from_config(cfg)
+        try:
+            cfg = load_yaml(self.config_dir / "config.yaml")
+            configured_chat = ChatAssistant.from_config(cfg)
+        except (OSError, TypeError, ValueError) as exc:
+            self._append_log(f"[CHAT] Configuration unavailable: {exc}")
+            return
+        if cfg.get("chat", {}).get("enabled") is not True:
+            self._append_log("[CHAT] Chat is disabled in configuration.")
+            return
         if self._chat_win is not None and self._chat_win.winfo_exists():
             self._chat_win.lift()
             return
-
-        from agent.chat.context import gather_stats_context
+        # Reopening applies current privacy options instead of retaining old opt-ins.
+        self._chat = configured_chat
 
         def stats() -> dict:
-            return gather_stats_context(
-                self._agent_started,
-                self.controller.status.cycle_count if self._agent_started else 0,
-            )
+            twin = self.controller.twin
+            return chat_stats(twin.as_dict() if twin else None,
+                              self.controller.status.running, self.controller.status.cycle_count)
 
         self._chat_win = ChatWindow(
             self.root,
             self._chat,
-            agent_started=lambda: self._agent_started,
+            agent_started=lambda: self.controller.status.running,
             cycle_count=lambda: self.controller.status.cycle_count if self._agent_started else 0,
             stats_provider=stats,
             on_cloud_use=self._on_chat_cloud_use,
@@ -505,33 +503,18 @@ class DVielleApp:
         self._append_log(f"[DVIELLE] Work log cleared ({n} entries).")
 
     def _refresh_network_async(self) -> None:
-        if self._minimized:
-            self.root.after(60000, self._refresh_network_async)  # hidden: skip PowerShell/IP fetch
-            return
-
-        def _work() -> None:
-            try:
-                snap = collect_network_snapshot()
-                self.root.after(0, lambda: self.network_panel.update_snapshot(snap))
-                key = f"{snap.public_ip}|{snap.vpn_active}|{snap.vpn_ip}"
-                if key != self._last_network_key:
-                    self._last_network_key = key
-                    msg = (
-                        f"VPN {snap.vpn_adapter} IP {snap.vpn_ip}"
-                        if snap.vpn_active
-                        else f"Direct connection public IP {snap.public_ip}"
-                    )
-                    self.root.after(
-                        0, lambda m=msg, d=snap.to_dict(): self._store.log_work("NETWORK", m, d)
-                    )
-                    self.root.after(
-                        0, lambda: self.ticker.push("TRAFFIC · topology refresh")
-                    )
-            except Exception as exc:
-                self.root.after(0, lambda: self._append_log(f"[NETWORK] {exc}"))
-
-        threading.Thread(target=_work, daemon=True).start()
-        self.root.after(60000, self._refresh_network_async)  # topology is slow-changing
+        # The console reads the owner's observations; opening it never adds network probes.
+        if not self._minimized:
+            twin = self.controller.twin
+            data = twin.as_dict() if twin else None
+            net = (data or {}).get("network") or {}
+            if section_current(data, "network_info") and net.get("hostname"):
+                fields = NetworkSnapshot.__dataclass_fields__
+                self.network_panel.update_snapshot(NetworkSnapshot(**{k: v for k, v in net.items() if k in fields}))
+            else:
+                self.network_panel.update_snapshot(None)
+            self.network_panel.set_observation_state(collector_state(data, "network_info"), net.get("sampled_at"))
+        self.root.after(5000, self._refresh_network_async)
 
     def _replay_greeting(self) -> None:
         text = greet_on_startup()
@@ -541,22 +524,29 @@ class DVielleApp:
         self.scan_feed.append(line)
 
     def _on_cycle(self, status) -> None:
-        ts = datetime.now().strftime("%H:%M:%S")
-        self.root.after(
-            0, lambda: self._append_log(f"[{ts}] Agent cycle {status.cycle_count} complete.")
-        )
-        self.root.after(
-            0, lambda: self.ticker.push(f"PULSE · cycle {status.cycle_count} · twin sync")
-        )
+        count = status.cycle_count
+        self._ui_events.put(lambda: self._append_log(f"[MONITOR] Observation summary {count} published."))
+
+    def _drain_ui(self) -> None:
+        for _ in range(50):
+            try:
+                callback = self._ui_events.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                callback()
+            except Exception as exc:
+                self._append_log(f"[CONSOLE] {exc}")
+        self.root.after(100, self._drain_ui)
 
     def _tick_stats(self) -> None:
         if self._minimized:
             self.root.after(4000, self._tick_stats)  # hidden: don't sample/paint
             return
         v = self._read_vitals()
-        self.cpu_gauge.set_value(v["cpu"] if v["cpu"] is not None else 0.0)
-        self.ram_gauge.set_value(v["mem"] if v["mem"] is not None else 0.0)
-        self.disk_gauge.set_value(v["disk"] if v["disk"] is not None else 0.0)
+        self.cpu_gauge.set_value(v["cpu"])
+        self.ram_gauge.set_value(v["mem"])
+        self.disk_gauge.set_value(v["disk"])
         self.mem_detail_lbl.configure(text=v["mem_detail"])
         self.budget_lbl.configure(text=v["budget"])
         if self._agent_started:
@@ -565,11 +555,7 @@ class DVielleApp:
         self.root.after(1500, self._tick_stats)
 
     def _read_vitals(self) -> dict:
-        """Read pressure vitals from the Twin when armed; else a cheap preview.
-
-        The MEM value is commit pressure (not raw used%). The pre-arm preview uses
-        the same win_memory sampler the Twin uses — not a separate raw-% poller.
-        """
+        """Read only current shared observations; missing values remain unavailable."""
         tw = self.controller.twin if self._agent_started else None
         data = tw.as_dict() if tw is not None else None
 
@@ -587,43 +573,31 @@ class DVielleApp:
             detail = "memory: " + " · ".join(bits) if bits else "memory: —"
             return (commit if commit is not None else load), detail
 
-        if data:
+        if data and snapshot_fresh(data):
             sysd = data.get("system") or {}
             sb = data.get("self_budget") or {}
-            mem_val, mem_detail = _mem_fields(data.get("memory") or {})
+            memory = data.get("memory") or {}
+            mem_val, mem_detail = _mem_fields(memory) if section_current(data, "heartbeat", memory.get("sampled_at")) else (None, "Memory observation unavailable")
             sb_cpu = sb.get("cpu_percent")
             sb_rss = sb.get("rss_bytes")
             budget = f"VILL footprint: {sb_cpu:.0f}% CPU" if sb_cpu is not None else "VILL footprint: —"
             if sb_rss:
                 budget += f" · {sb_rss / (1024 * 1024):.0f} MB"
+            budget += " · " + sb.get("reason", "budget status unavailable")
             return {
-                "cpu": sysd.get("cpu_percent"),
+                "cpu": sysd.get("cpu_percent") if section_current(data, "heartbeat", sysd.get("cpu_sampled_at")) else None,
                 "mem": mem_val,
-                "disk": sysd.get("disk_percent"),
+                "disk": sysd.get("disk_percent") if section_current(data, "disk") else None,
                 "mem_detail": mem_detail,
                 "budget": budget,
                 "twin": data,
             }
 
-        # Pre-arm preview (agent not running): cheap, same pressure source as the twin.
-        from agent.win_memory import sample_memory
-
-        mem_val, mem_detail = _mem_fields(sample_memory().to_dict())
-        try:
-            cpu = psutil.cpu_percent(interval=None)
-        except Exception:
-            cpu = None
-        try:
-            disk = psutil.disk_usage("C:\\" if sys.platform == "win32" else "/").percent
-        except Exception:
-            disk = None
         return {
-            "cpu": cpu,
-            "mem": mem_val,
-            "disk": disk,
-            "mem_detail": mem_detail,
-            "budget": "VILL footprint: standby (arm the agent)",
-            "twin": None,
+            "cpu": None, "mem": None, "disk": None,
+            "mem_detail": "Memory observation unavailable or stale",
+            "budget": "Agent footprint unavailable or stale",
+            "twin": data,
         }
 
     def _update_surface(self, v: dict) -> None:
@@ -633,6 +607,7 @@ class DVielleApp:
             return
         data = v.get("twin")
         sec = (data or {}).get("security") or {}
+        security_current = section_current(data, "security")
 
         def _posture(name: str, val) -> None:
             row = rows.get(name)
@@ -643,15 +618,15 @@ class DVielleApp:
             elif val is False:
                 row.set_state("OFF", T.DANGER)
             else:
-                row.set_state("UNKNOWN" if self._agent_started else "—", T.TEXT_DIM)
+                row.set_state(collector_state(data, "security").upper() + " / UNKNOWN", T.TEXT_DIM)
 
-        _posture("Defender", sec.get("defender_enabled") if data else None)
-        _posture("Firewall", sec.get("firewall_enabled") if data else None)
+        _posture("Defender", sec.get("defender_enabled") if security_current else None)
+        _posture("Firewall", sec.get("firewall_enabled") if security_current else None)
 
-        running = self._agent_started and self.controller.status.running
+        running = self.controller.status.running and snapshot_fresh(data)
         rows["Nerve"].set_state("LIVE" if running else "STANDBY", T.SUCCESS if running else T.TEXT_DIM)
 
-        vision = (data or {}).get("vision") if data else None
+        vision = (data or {}).get("vision") if snapshot_fresh(data) else None
         vcolor = {"AVAILABLE": T.SUCCESS, "LIMITED": T.WARNING, "UNAVAILABLE": T.DANGER}.get(
             vision or "", T.TEXT_DIM
         )
@@ -664,23 +639,31 @@ class DVielleApp:
             rows["Pulse"].set_state("—", T.TEXT_DIM)
 
     def _tick_mission_presence(self) -> None:
-        """Rotate NOW sentence so the console feels continuously engaged."""
-        standby = (
-            "Watching pressure · traffic · surface — presence is live.",
-            "Your PC is under observation. Arm the agent when ready.",
-            "Mission Console idle-armed — Nerve rail scanning.",
-        )
-        active = (
-            "Guardian protecting responsiveness under your workload.",
-            "Adaptive Nerve online — heartbeat and pulse running.",
-            "Observing contention · classifying purpose · ready to explain.",
-        )
-        pool = active if self._agent_started else standby
-        self._mission_verbs = (self._mission_verbs + 1) % len(pool)
-        # Don't overwrite right after START for a few seconds — mission_lbl set there
-        if not (self._agent_started and self._mission_verbs == 0):
-            self.mission_lbl.configure(text=pool[self._mission_verbs])
-        self.root.after(7000, self._tick_mission_presence)
+        status = self.controller.status
+        twin = self.controller.twin
+        data = twin.as_dict() if twin else None
+        running = status.running and snapshot_fresh(data)
+        label = "MONITORING" if running else status.ownership.upper()
+        self.status_label.configure(text=label, text_color=T.SUCCESS if running else T.WARNING)
+        self.agent_status_lbl.configure(text=f"{status.ownership.upper()} · {status.message}", text_color=T.SUCCESS if running else T.WARNING)
+        self.mission_lbl.configure(text=status.message)
+        self.ticker.push(activity_summary(data))
+        self.nerve_rail.set_states(data)
+        self.radar.set_running(running)
+        if status.ownership == "attached":
+            self.start_btn.configure(text="ATTACHED TO BACKGROUND AGENT", state="disabled")
+            self.vigilance_btn.configure(text="Background owner", state="disabled")
+            self.mission_lbl.configure(text=status.message + ". Pause is controlled by the background owner.")
+        elif status.ownership == "owner":
+            self.start_btn.configure(text="MONITORING OWNER", state="disabled")
+            self.vigilance_btn.configure(text="Pause Agent", state="normal" if running else "disabled")
+        elif status.ownership == "starting":
+            self.start_btn.configure(text="CONNECTING…", state="disabled")
+            self.vigilance_btn.configure(state="disabled")
+        else:
+            self.start_btn.configure(text="START / RECONNECT", state="normal")
+            self.vigilance_btn.configure(text="Resume Agent", state="normal")
+        self.root.after(2000, self._tick_mission_presence)
 
     def _tick_close_panel(self) -> None:
         if self._minimized:
@@ -690,15 +673,35 @@ class DVielleApp:
         self.root.after(8000, self._tick_close_panel)
 
     def _rebuild_close_panel(self) -> None:
+        if self._process_scan_running:
+            return
+        self._process_scan_running = True
+        self.close_hint.configure(text="Reading current app identities…")
+
+        def work():
+            try:
+                cfg = load_yaml(self.config_dir / "config.yaml")
+                groups = get_app_groups(5, include_active=True, never_close=never_close_from_config(cfg))
+                self._ui_events.put(lambda: self._render_close_groups(groups))
+            except Exception as exc:
+                self._ui_events.put(lambda error=str(exc): self._close_scan_failed(error))
+
+        threading.Thread(target=work, name="DVielle-App-Review", daemon=True).start()
+
+    def _close_scan_failed(self, error: str) -> None:
+        self._process_scan_running = False
+        self._render_close_groups([])
+        self.close_hint.configure(text="Process observations unavailable. Retry after the next refresh.")
+        self._append_log(f"[APP REVIEW] {error}")
+
+    def _render_close_groups(self, groups: list[AppGroup]) -> None:
+        self._process_scan_running = False
         for btn in self._close_buttons:
             try:
                 btn.destroy()
             except Exception:
                 pass
         self._close_buttons.clear()
-        cfg = load_yaml(self.config_dir / "config.yaml") if (self.config_dir / "config.yaml").exists() else {}
-        never_close = never_close_from_config(cfg)
-        groups = get_app_groups(5, include_active=True, never_close=never_close)
         if not groups:
             self.close_hint.configure(text="No notable apps to manage.")
             return
@@ -728,7 +731,7 @@ class DVielleApp:
             elif g.risk == "caution":
                 color, prefix = T.WARNING, "LINKED"
             else:
-                color, prefix = T.SUCCESS, "SAFE"
+                color, prefix = T.TEXT_DIM, "BACKGROUND"
             label = f"[{prefix}] {g.display_name} ×{n} ({g.memory_mb:.0f}MB)"
             btn = ctk.CTkButton(
                 self.close_panel,
@@ -746,12 +749,15 @@ class DVielleApp:
     def _explain_protected(self, group: AppGroup) -> None:
         """Protected rows have no close affordance — tapping just explains why."""
         speak_async(
-            f"{group.display_name} is on your protect list. I will not offer to close it.",
+            f"{group.display_name} is protected. I will keep it running.",
             persona="jarvis",
         )
         self._append_log(f"[PROTECTED] {group.close_advice}")
 
     def _smart_close(self, group: AppGroup) -> None:
+        if group.risk == "protected" or group.is_active_work:
+            self._explain_protected(group)
+            return
         speak_async(group.voice_line, persona="jarvis")
         self._append_log(f"[SMART CLOSE] {group.close_advice}")
 
@@ -793,7 +799,7 @@ class DVielleApp:
         elif group.risk == "caution":
             prompt = "This may affect another app. Close anyway?"
         else:
-            prompt = "Safe to close. Proceed?"
+            prompt = "Background work may still be active. Close this app?"
         ctk.CTkLabel(dlg, text=prompt, font=T.FONT_TAGLINE, text_color=T.WARNING).pack(
             padx=16, pady=(12, 8), anchor="w"
         )
@@ -809,17 +815,7 @@ class DVielleApp:
         def _confirm() -> None:
             dlg.destroy()
             speak_async(f"Closing {group.display_name} now.", persona="jarvis")
-            # Graceful pass first (WM_CLOSE), gated through PolicyGate.
-            ok, msg = self._issue_and_close(group, force=False)
-            self._store.log_work("CLOSE_APP", msg)
-            if ok:
-                self._append_log(f"[ACTION/OK] {msg}")
-                speak_async("Done. Application closed.", persona="jarvis")
-                self.root.after(400, self._rebuild_close_panel)
-            else:
-                # Did not exit on its own — require a separate, explicit force confirm.
-                self._append_log(f"[ACTION/HOLD] {msg}")
-                self._prompt_force_close(group, msg)
+            self._execute_close_async(group, force=False)
 
         ctk.CTkButton(
             row, text="Keep open", width=140, command=_cancel, fg_color=T.BORDER, hover_color=T.ACCENT_DIM
@@ -847,6 +843,9 @@ class DVielleApp:
         the registered handler. reversible=False: closing an app cannot be undone.
         """
         gate = self._get_user_gate()
+        if group.is_active_work or group.risk == "protected":
+            return False, "Refused: active or protected application; refresh the process list"
+        cfg = load_yaml(self.config_dir / "config.yaml")
         pids = list(group.pids)
         evidence = [
             f"User confirmed Smart Close in Mission Console (force={force})",
@@ -870,11 +869,34 @@ class DVielleApp:
                 "pids": pids,
                 "names": list(group.process_names),
                 "force": force,
+                "identities": list(group.identities),
+                "observed_at": group.observed_at,
+                "never_close": sorted(never_close_from_config(cfg)),
             },
         )
         if decision is None:
             return False, "Refused by policy — Decision not issued"
         return gate.executor.execute(decision, before_state=f"running:{len(pids)}")
+
+    def _execute_close_async(self, group: AppGroup, *, force: bool) -> None:
+        def work():
+            try:
+                ok, msg = self._issue_and_close(group, force=force)
+                self._store.log_work("CLOSE_APP", msg)
+            except Exception as exc:
+                ok, msg = False, f"Close unavailable: {exc}"
+            self._ui_events.put(lambda: self._close_result(group, force, ok, msg))
+        threading.Thread(target=work, name="DVielle-Confirmed-Close", daemon=True).start()
+
+    def _close_result(self, group: AppGroup, force: bool, ok: bool, msg: str) -> None:
+        self._append_log(f"[ACTION/{'OK' if ok else 'HOLD'}] {msg}")
+        if ok:
+            speak_async(msg, persona="jarvis")
+        elif not force and msg.startswith("Not closed"):
+            self._prompt_force_close(group, msg)
+        else:
+            speak_async("The close request could not be completed. Review the recorded reason and refresh the app list.", persona="jarvis")
+        self.root.after(400, self._rebuild_close_panel)
 
     def _prompt_force_close(self, group: AppGroup, reason: str) -> None:
         """Second, explicit confirm before terminating (no silent kill escalation)."""
@@ -918,16 +940,7 @@ class DVielleApp:
         def _force() -> None:
             dlg.destroy()
             speak_async(f"Force closing {group.display_name}.", persona="jarvis")
-            ok, msg = self._issue_and_close(group, force=True)
-            self._store.log_work("CLOSE_APP", msg)
-            self._append_log(f"[ACTION/{'OK' if ok else 'FAILED'}] {msg}")
-            speak_async(
-                "Done. Application closed."
-                if ok
-                else "I could not fully close it even with force. You may need administrator rights.",
-                persona="jarvis",
-            )
-            self.root.after(400, self._rebuild_close_panel)
+            self._execute_close_async(group, force=True)
 
         ctk.CTkButton(
             row, text="Keep open", width=140, command=_cancel,
@@ -945,15 +958,13 @@ class DVielleApp:
                 if key in self._seen_events:
                     continue
                 self._seen_events.add(key)
+                if len(self._seen_events) > 1000:
+                    self._seen_events = {f"{e.get('ts')}{e.get('message')}" for e in self.controller.recent_events(100)}
                 sev = ev.get("severity", "INFO")
                 msg = ev.get("message", "")
                 ts = ev.get("ts", "")[:19].replace("T", " ")
                 self._append_log(f"[{ts}] [{sev}] {msg}")
-                if sev == "CRITICAL" and self._minimized:
-                    notify_tray(APP_NAME, msg)
-                    from agent.utils import show_toast
-
-                    show_toast(APP_NAME, msg, severity="CRITICAL")
+                # Alerts are delivered once by the monitoring owner, not replayed from history.
         self.root.after(5000, self._tick_logs)
 
     def _tick_greeting(self) -> None:
@@ -977,22 +988,19 @@ class DVielleApp:
         self.root.after(700, self._pulse_status)
 
     def _toggle_vigilance(self) -> None:
-        if not self._agent_started:
+        if self.controller.status.ownership in {"attached", "starting"}:
             return
         if self.controller.status.running:
             self.controller.stop()
-            self._store.log_work("PAUSE", "Agent paused by operator")
-            self.status_label.configure(text="AGENT PAUSED", text_color=T.WARNING)
-            self.mission_lbl.configure(text="Agent paused — console presence still live.")
-            self.vigilance_btn.configure(text="Resume Agent")
-            self.ticker.push("NERVE · paused by operator")
+            self._store.log_work("PAUSE_REQUEST", "Operator requested monitoring stop")
+            self.status_label.configure(text="STOPPING", text_color=T.WARNING)
+            self.vigilance_btn.configure(state="disabled")
         else:
             self.controller.start()
-            self._store.log_work("RESUME", "Agent resumed")
-            self.status_label.configure(text="VIGILANCE ACTIVE", text_color=T.SUCCESS)
-            self.mission_lbl.configure(text="Guardian re-armed — Nerve pulse resumed.")
-            self.vigilance_btn.configure(text="Pause Agent")
-            self.ticker.push("NERVE · resumed · pulse online")
+            self._agent_started = True
+            self._store.log_work("RESUME_REQUEST", "Requested monitoring start or attachment")
+            self.status_label.configure(text="CONNECTING", text_color=T.WARNING)
+            self.vigilance_btn.configure(state="disabled")
 
     def _minimize_to_tray(self) -> None:
         self._minimized = True

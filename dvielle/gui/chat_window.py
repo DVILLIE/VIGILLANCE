@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+import queue
 from typing import Callable
 
 import customtkinter as ctk
@@ -24,6 +25,8 @@ class ChatWindow(ctk.CTkToplevel):
         stats_provider: Callable[[], dict] | None = None,
         on_cloud_use: Callable[[], None] | None = None,
     ) -> None:
+        if not assistant.enabled:
+            raise RuntimeError("Chat is disabled in configuration")
         super().__init__(master)
         self.assistant = assistant
         self._agent_started = agent_started
@@ -32,6 +35,9 @@ class ChatWindow(ctk.CTkToplevel):
         self._on_cloud_use = on_cloud_use
         self._persona = ctk.StringVar(value="jarvis")
         self._busy = False
+        self._events = queue.SimpleQueue()
+        self._closed = False
+        self._poll_id = self.after(100, self._drain_events)
 
         self.title("DVielle Chat — Jarvis & KT")
         self.geometry("520x640")
@@ -47,7 +53,7 @@ class ChatWindow(ctk.CTkToplevel):
         )
         ctk.CTkLabel(
             top,
-            text="Jarvis (US) · KT (British) · reads your screen stats · web on voice only",
+            text="Jarvis (US) · KT (British) · explains available observations",
             font=T.FONT_TAGLINE,
             text_color=T.TEXT_DIM,
             wraplength=460,
@@ -71,8 +77,9 @@ class ChatWindow(ctk.CTkToplevel):
         self.log.pack(fill="both", expand=True, padx=12, pady=6)
         self.log.configure(state="disabled")
 
+        speech_notice = self._speech_notice()
         self.status = ctk.CTkLabel(
-            self, text="Tip: use 🎤 for web questions. Type for on-screen stats.",
+            self, text=speech_notice,
             font=T.FONT_TAGLINE, text_color=T.TEXT_DIM, wraplength=480,
         )
         self.status.pack(anchor="w", padx=14)
@@ -87,13 +94,53 @@ class ChatWindow(ctk.CTkToplevel):
         ctk.CTkButton(
             entry_row, text="🎤", width=40, command=self._send_voice,
             fg_color=T.BG_PANEL_ALT, hover_color=T.ACCENT_DIM,
+            state="normal" if self._speech_allowed() else "disabled",
         ).pack(side="left", padx=2)
         ctk.CTkButton(
             entry_row, text="Send", width=70, command=self._send_text,
             fg_color=T.ACCENT_DIM, hover_color=T.ACCENT, text_color=T.BG_DARK,
         ).pack(side="left", padx=2)
 
-        self._append("system", "Jarvis & KT online. Ask 'how is my RAM?' or use 🎤 for web questions.")
+        self._append("system", speech_notice)
+        if assistant.allow_cloud:
+            self._append("system", "Cloud LLM fallback is enabled: questions and context may be sent to Groq.")
+        if assistant.allow_web_search:
+            self._append("system", "Web lookup is enabled: voice search queries may leave this computer.")
+
+    def _dispatch(self, callback: Callable[[], None]) -> None:
+        """Workers enqueue replies; only the Tk thread touches widgets."""
+        if not self._closed:
+            self._events.put(callback)
+
+    def _drain_events(self) -> None:
+        if self._closed:
+            return
+        for _ in range(20):
+            try:
+                callback = self._events.get_nowait()
+            except queue.Empty:
+                break
+            callback()
+        self._poll_id = self.after(100, self._drain_events)
+
+    def destroy(self) -> None:
+        self._closed = True
+        if getattr(self, "_poll_id", None):
+            self.after_cancel(self._poll_id)
+        super().destroy()
+
+    def _speech_allowed(self) -> bool:
+        return self.assistant.enabled and (
+            self.assistant.speech_backend == "local"
+            or (self.assistant.speech_backend == "google" and self.assistant.allow_cloud_speech)
+        )
+
+    def _speech_notice(self) -> str:
+        if not self._speech_allowed():
+            return "Microphone disabled. Type a question; speech requires explicit configuration."
+        if self.assistant.speech_backend == "google":
+            return "Microphone uses Google: recorded audio leaves this computer when you click the microphone."
+        return "Microphone uses local PocketSphinx if installed. Audio stays on this computer."
 
     def _append(self, who: str, text: str) -> None:
         self.log.configure(state="normal")
@@ -112,20 +159,22 @@ class ChatWindow(ctk.CTkToplevel):
         self._run_query(q, from_voice=False)
 
     def _send_voice(self) -> None:
-        if self._busy:
+        if self._busy or not self._speech_allowed():
             return
-        self.status.configure(text="Listening… speak now")
+        self._busy = True
+        self.status.configure(text="Listening… " + self._speech_notice())
         threading.Thread(target=self._listen_and_ask, daemon=True).start()
 
     def _listen_and_ask(self) -> None:
         text = self._recognize_speech()
         if not text:
-            self.after(0, lambda: self.status.configure(text="Couldn't hear that — try again or type."))
+            self._dispatch(lambda: self._query_failed("Couldn't hear that — try again or type."))
             return
-        self.after(0, lambda: self.entry.insert(0, text))
-        self.after(0, lambda: self._run_query(text, from_voice=True))
+        self._dispatch(lambda: self._run_query(text, from_voice=True))
 
     def _recognize_speech(self) -> str | None:
+        if not self._speech_allowed():
+            return None
         try:
             import speech_recognition as sr
 
@@ -133,10 +182,12 @@ class ChatWindow(ctk.CTkToplevel):
             with sr.Microphone() as source:
                 r.adjust_for_ambient_noise(source, duration=0.4)
                 audio = r.listen(source, timeout=6, phrase_time_limit=12)
+            if self.assistant.speech_backend == "local":
+                return r.recognize_sphinx(audio, language="en-US")
             return r.recognize_google(audio, language="en-US")
         except Exception as exc:
             logger_msg = str(exc)
-            self.after(0, lambda: self._append("system", f"Voice input failed: {logger_msg}"))
+            self._dispatch(lambda: self._append("system", f"Voice input failed: {logger_msg}"))
             return None
 
     def _run_query(self, question: str, *, from_voice: bool) -> None:
@@ -147,25 +198,32 @@ class ChatWindow(ctk.CTkToplevel):
         self.status.configure(text="Thinking…")
 
         def work() -> None:
-            stats = self._stats_provider() if self._stats_provider else None
-            resp = self.assistant.ask(
-                question,
-                persona_id=persona,
-                from_voice=from_voice,
-                agent_started=self._agent_started(),
-                cycle_count=self._cycle_count(),
-                stats_override=stats,
-            )
+            try:
+                stats = self._stats_provider() if self._stats_provider else None
+                resp = self.assistant.ask(
+                    question,
+                    persona_id=persona,
+                    from_voice=from_voice,
+                    agent_started=self._agent_started(),
+                    cycle_count=self._cycle_count(),
+                    stats_override=stats,
+                )
+            except Exception as exc:
+                self._dispatch(lambda error=str(exc): self._query_failed(error))
+                return
             if resp.used_cloud and self._on_cloud_use:
                 try:
                     self._on_cloud_use()
                 except Exception:
                     pass
-            self.after(
-                0, lambda: self._show_reply(resp.text, resp.persona, resp.used_web, resp.used_cloud)
-            )
+            self._dispatch(lambda: self._show_reply(resp.text, resp.persona, resp.used_web, resp.used_cloud))
 
         threading.Thread(target=work, daemon=True).start()
+
+    def _query_failed(self, error: str) -> None:
+        self._busy = False
+        self.status.configure(text="Chat unavailable. You can retry.")
+        self._append("system", error)
 
     def _show_reply(self, text: str, persona: str, used_web: bool, used_cloud: bool = False) -> None:
         self._append(persona, text)
@@ -183,5 +241,5 @@ class ChatWindow(ctk.CTkToplevel):
         if used_cloud:
             notes.append("⚠ cloud (Groq)")
         note = f" ({', '.join(notes)})" if notes else ""
-        self.status.configure(text=f"Reply spoken by {persona.upper()}{note}")
+        self.status.configure(text=f"Reply ready from {persona.upper()}{note}")
         self._busy = False

@@ -246,7 +246,7 @@ def test_build_app_group_never_close_is_protected(monkeypatch):
     g = ra._build_app_group("steam.exe", fps, "cursor.exe", set(), frozenset({"steam.exe"}))
     assert g.risk == "protected"
     assert g.role == "protected"
-    assert "protect list" in g.close_advice
+    assert "protected directly or through its parent" in g.close_advice
 
 
 def test_build_app_group_shell_is_caution_never_safe(monkeypatch):

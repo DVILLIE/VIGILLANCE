@@ -13,6 +13,7 @@ from typing import Any
 import psutil
 
 from agent import net_resolve
+from agent.net_identity import host_matches_any
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS, ip_in_whitelist, run_powershell
 
@@ -54,7 +55,7 @@ class ConnectionAlert:
 def _process_info(pid: int | None) -> tuple[str, str | None, str | None]:
     """Return (display_name, exe_path, note)."""
     if pid is None:
-        return "System / driver (no PID)", None, "Windows did not expose a process id"
+        return "Unknown process (no PID)", None, "Windows did not expose a process id"
     try:
         proc = psutil.Process(pid)
         name = proc.name() or f"pid-{pid}"
@@ -71,7 +72,7 @@ def _process_info(pid: int | None) -> tuple[str, str | None, str | None]:
     except psutil.NoSuchProcess:
         return f"Ended process (was PID {pid})", None, "Process exited before lookup"
     except psutil.AccessDenied:
-        return f"Protected process (PID {pid})", None, "Need Administrator for full name"
+        return f"Protected process (PID {pid})", None, "Elevation may improve visibility; full name unavailable"
 
 
 def _reverse_dns(ip: str) -> str | None:
@@ -98,8 +99,10 @@ def _default_gateway() -> str | None:
         timeout=8,
     )
     candidate = (stdout or "").strip()
-    if candidate and all(c.isdigit() or c == "." for c in candidate):
-        gw = candidate
+    try:
+        gw = str(ipaddress.IPv4Address(candidate))
+    except ValueError:
+        pass
     _gw_cache["value"] = gw
     _gw_cache["expiry"] = now + _GW_TTL
     return gw
@@ -142,7 +145,7 @@ def classify_remote(
     try:
         addr = ipaddress.ip_address(remote_ip)
     except ValueError:
-        return "invalid", f"Invalid remote address {remote_ip}", True
+        return "invalid", f"Invalid remote address {remote_ip}; identity unavailable", False
 
     if addr.is_loopback:
         return "loopback", "Local loopback (this PC talking to itself)", False
@@ -151,12 +154,17 @@ def classify_remote(
     if gateway and remote_ip == gateway:
         return (
             "router",
-            f"Your network gateway/router ({remote_ip}). Normal — not an internet attacker.",
+            f"Configured network gateway/router ({remote_ip}); location does not establish trust.",
             False,
         )
 
-    # Private LAN — phone, extender, printer, NAS, etc.
-    if addr.is_private:
+    if addr.is_link_local:
+        return "link_local", f"Link-local address ({remote_ip}) — local link only.", False
+
+    # Only RFC1918/ULA ranges imply private addressing; is_private also includes
+    # reserved and documentation space on supported Python versions.
+    if any(addr in ipaddress.ip_network(cidr) for cidr in
+           ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7")):
         same_subnet = False
         for lip in local_ips:
             try:
@@ -172,13 +180,13 @@ def classify_remote(
         if same_subnet:
             return (
                 "lan_device",
-                f"Device on your home/office network ({remote_ip}). "
-                f"Could be a phone, Wi‑Fi extender, smart TV, printer, or another PC.{host_bit}",
+                f"Private address ({remote_ip}) shares a prefix with a local address; subnet mask unverified. "
+                f"Device type is unknown (could include a phone, Wi‑Fi extender, printer, or PC).{host_bit}",
                 False,
             )
         return (
             "lan_private",
-            f"Private network address ({remote_ip}) — usually router/LAN gear, not the public internet.{host_bit}",
+            f"Private network address ({remote_ip}); device identity and route are unverified.{host_bit}",
             False,
         )
 
@@ -190,57 +198,34 @@ def classify_remote(
             False,
         )
 
-    # Link-local
-    if addr.is_link_local:
-        return "link_local", f"Link-local address ({remote_ip}) — local link only.", False
+    if remote_ip in ("1.1.1.1", "8.8.8.8", "8.8.4.4", "9.9.9.9"):
+        return "dns", f"Known public DNS address ({remote_ip}); use is not proof of safety.", False
 
     cloud = _cloud_label(remote_ip)
-    host_l = (hostname or "").lower()
-    if cloud or any(
-        x in host_l
-        for x in (
-            "cloudflare",
-            "akamai",
-            "cloudfront",
-            "amazonaws",
-            "azure",
-            "googleusercontent",
-            "1e100.net",
-            "fastly",
-        )
-    ):
-        label = cloud or "major CDN/cloud"
+    if cloud:
         return (
             "cdn_cloud",
-            f"{label} endpoint ({remote_ip}"
-            + (f" / {hostname}" if hostname else "")
-            + "). Usually a website, app update, or API — not your router or phone.",
+            f"Static address-range hint: {cloud} ({remote_ip}). "
+            "Ownership and tenant identity are unverified; cloud hosting does not establish trust.",
             False,
         )
-
-    if remote_ip in ("1.1.1.1", "8.8.8.8", "8.8.4.4", "9.9.9.9") or "dns" in host_l:
-        return "dns", f"Public DNS service ({remote_ip}). Normal for name lookups.", False
-
     if hostname:
         return (
             "named_internet",
-            f"Internet host {hostname} ({remote_ip}). Not a home router/phone — review which app opened it.",
-            True,
+            f"Internet IP {remote_ip}; reverse-DNS name {hostname} is an unverified naming hint. "
+            "No threat determination from the name alone.",
+            False,
         )
-
     return (
         "unknown_internet",
-        f"Public internet IP {remote_ip} with no hostname. "
-        f"Not a typical home router/phone/extender — worth a closer look.",
-        True,
+        f"Public internet IP {remote_ip}; reverse DNS unavailable. "
+        "An unknown peer is an observation, not evidence of malicious activity.",
+        False,
     )
 
 
 def _domain_whitelisted(hostname: str | None, domains: list[str]) -> bool:
-    if not hostname:
-        return False
-    host = hostname.lower()
-    return any(d.lower() in host for d in domains)
+    return host_matches_any(hostname, domains)
 
 
 def _process_whitelisted(name: str | None, processes: list[str]) -> bool:
@@ -285,17 +270,12 @@ def _within_resolve_grace(remote_ip: str, *, resolved: bool) -> bool:
 def _refine_suspicion(
     *, base_suspicious: bool, hostname: str | None, within_grace: bool, is_signed: bool
 ) -> tuple[bool, str]:
-    """Pure post-classification: pending-DNS ≠ suspicious; validly-signed app → observe.
+    """Preserve explicit adverse evidence regardless of PTR or signature metadata.
 
-    Returns (suspicious, note) where note ∈ {"", "pending_dns", "signed_downgrade", "review"}.
+    Unknown identity is never the base trigger. A signature proves neither the
+    destination's identity nor the safety of the process's current behavior.
     """
-    if not base_suspicious:
-        return False, ""
-    if hostname is None and within_grace:
-        return False, "pending_dns"      # no PTR yet — async DNS still filling
-    if is_signed:
-        return False, "signed_downgrade"  # validly Authenticode-signed → downgrade to observe
-    return True, "review"
+    return (True, "review") if base_suspicious else (False, "")
 
 
 def _alert_cooldown_ok(key: str) -> bool:
@@ -310,14 +290,16 @@ def _alert_cooldown_ok(key: str) -> bool:
     last = _alerted_at.get(key)
     if last is not None and (now - last) < _ALERT_TTL:
         return False
+    if len(_alerted_at) >= 1024 and key not in _alerted_at:
+        _alerted_at.pop(min(_alerted_at, key=_alerted_at.get))
     _alerted_at[key] = now
     return True
 
 
 def _is_signed_valid(exe_path: str | None) -> bool:
     """Whether exe is validly Authenticode-signed (Status == Valid), cached by
-    (path, size, mtime) so a replaced binary re-checks. Path is NOT trust; the
-    signature is (connections.py contract). Only called for would-be-flagged conns.
+    (path, size, mtime) so a replaced binary re-checks. Signature validity is
+    metadata only; it does not establish destination trust or process safety.
     """
     if not exe_path or not IS_WINDOWS:
         return False
@@ -330,8 +312,10 @@ def _is_signed_valid(exe_path: str | None) -> bool:
     if cached is not None:
         return cached
     safe = exe_path.replace("'", "''")
-    stdout, _ = run_powershell(f"(Get-AuthenticodeSignature -LiteralPath '{safe}').Status", timeout=8)
-    valid = stdout is not None and stdout.strip() == "Valid"
+    stdout, timed_out = run_powershell(f"(Get-AuthenticodeSignature -LiteralPath '{safe}').Status", timeout=8)
+    valid = not timed_out and stdout is not None and stdout.strip() == "Valid"
+    if len(_sig_cache) >= 512:
+        _sig_cache.pop(next(iter(_sig_cache)))
     _sig_cache[key] = valid
     return valid
 
@@ -339,6 +323,7 @@ def _is_signed_valid(exe_path: str | None) -> bool:
 class ConnectionMonitor:
     def __init__(self, store: AgentStore, config: dict[str, Any], whitelists: dict[str, Any]) -> None:
         self.store = store
+        self.collection_error: str | None = None
         self.config = config
         self.whitelists = whitelists
         self._gateway = _default_gateway()
@@ -349,18 +334,17 @@ class ConnectionMonitor:
         ip_wl = self.whitelists.get("ips", [])
         proc_wl = self.whitelists.get("processes", [])
         domain_wl = list(self.whitelists.get("domains", []))
-        # CDN hosts are not "attacks"
-        domain_wl.extend(
-            ["cloudflare.com", "cloudflare.net", "akamai", "cloudfront.net", "fastly.net"]
-        )
+        self.collection_error = None
+        review_ips = self.config.get("network", {}).get("review_ips", [])
 
         # Refresh local topology each cycle (cheap)
-        self._gateway = _default_gateway() or self._gateway
-        self._local_ips = _local_ipv4s() or self._local_ips
+        self._gateway = _default_gateway()
+        self._local_ips = _local_ipv4s()
 
         try:
             connections = psutil.net_connections(kind="inet")
-        except (psutil.AccessDenied, PermissionError) as exc:
+        except (psutil.AccessDenied, OSError) as exc:
+            self.collection_error = f"Connection collection unavailable: {type(exc).__name__}"
             logger.warning("Cannot read connections (run as admin for full visibility): %s", exc)
             return alerts
 
@@ -383,52 +367,18 @@ class ConnectionMonitor:
                 remote_ip, hostname, self._gateway, self._local_ips
             )
 
-            # Trust rules
-            trusted = False
+            # These fields are context only. Neither an executable name nor a
+            # PTR name, signature, or shared cloud range identifies a safe peer.
             if ip_in_whitelist(remote_ip, ip_wl):
-                trusted = True
-                if kind.startswith("lan") or kind == "router":
-                    explanation = explanation  # keep LAN story
-                else:
-                    explanation = f"Trusted network range. {explanation}"
-            elif _process_whitelisted(proc_name, proc_wl):
-                trusted = True
-                explanation = f"Trusted app ({proc_name}). {explanation}"
-            # Name-only baseline is observational history — NOT a trust grant
-            # (Architecture P0: publisher+signature+path+hash identity required).
-            elif _domain_whitelisted(hostname, domain_wl):
-                trusted = True
-                explanation = f"Trusted domain ({hostname}). {explanation}"
-            elif kind in ("router", "lan_device", "lan_private", "vpn_or_cgnat", "cdn_cloud", "dns", "loopback", "link_local"):
-                trusted = True
+                explanation += " Matches an explicitly configured IP allowlist."
+            if _process_whitelisted(proc_name, proc_wl):
+                explanation += f" Recognized process name ({proc_name}); executable identity unverified."
+            if _domain_whitelisted(hostname, domain_wl):
+                explanation += " PTR matches a configured domain; peer identity unverified."
 
-            # Only flag when we truly don't know the internet peer OR process is opaque + public IP
-            base_suspicious = False
-            if not trusted and could_be_threat:
-                base_suspicious = True
-            elif not trusted and kind == "named_internet" and "Protected process" in proc_name:
-                base_suspicious = True
-                explanation += " Process name hidden — run DVielle as Admin for the real app."
-
-            # Network honesty (audit #2): pending DNS ≠ suspicious; validly-signed app → observe.
-            # Only evaluate (and track resolution grace) for would-be-flagged conns, so the
-            # grace dict stays bounded to the handful of IPs we'd actually review.
-            if base_suspicious:
-                within_grace = _within_resolve_grace(remote_ip, resolved=hostname is not None)
-                is_signed = _is_signed_valid(exe_path)
-                suspicious, refine = _refine_suspicion(
-                    base_suspicious=True,
-                    hostname=hostname,
-                    within_grace=within_grace,
-                    is_signed=is_signed,
-                )
-            else:
-                suspicious, refine = False, ""
-            if refine == "pending_dns":
-                kind = "pending_dns"
-                explanation = f"Resolving {remote_ip} — no PTR yet; not flagged while DNS fills."
-            elif refine == "signed_downgrade":
-                explanation = f"Signed app ({proc_name}) — downgraded to observe. {explanation}"
+            suspicious = ip_in_whitelist(remote_ip, review_ips)
+            if suspicious:
+                explanation += " Matches an explicitly configured network.review_ips rule; review requested."
 
             reason = f"[{kind}] {explanation}"
             if proc_note:

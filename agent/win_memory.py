@@ -16,13 +16,13 @@ Non-Windows: psutil best-effort fallback; commit fields may be None.
 
 from __future__ import annotations
 
-import platform
+import sys
 from dataclasses import dataclass
 from typing import Any
 
 import psutil
 
-IS_WINDOWS = platform.system() == "Windows"
+IS_WINDOWS = sys.platform == "win32"
 
 
 @dataclass(frozen=True)

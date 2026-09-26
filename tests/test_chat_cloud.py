@@ -127,7 +127,7 @@ def test_assistant_offline_never_calls_cloud(monkeypatch):
     called = {"groq": False}
     monkeypatch.setattr(llm, "_chat_ollama", lambda *a, **k: None)
     monkeypatch.setattr(llm, "_chat_groq", lambda *a, **k: called.__setitem__("groq", True) or "cloud")
-    bot = ChatAssistant.from_config({})  # cloud off
+    bot = ChatAssistant.from_config({"chat": {"enabled": True}})  # cloud off
     resp = bot.ask("tell me a joke", persona_id="jarvis", stats_override=STATS)
     assert called["groq"] is False
     assert resp.used_cloud is False
@@ -136,7 +136,7 @@ def test_assistant_offline_never_calls_cloud(monkeypatch):
 def test_assistant_used_cloud_propagates(monkeypatch):
     monkeypatch.setattr(llm, "_chat_ollama", lambda *a, **k: None)
     monkeypatch.setattr(llm, "_chat_groq", lambda messages, *, temperature: "cloud reply")
-    bot = ChatAssistant.from_config({"chat": {"allow_cloud_llm": True}})
+    bot = ChatAssistant.from_config({"chat": {"enabled": True, "allow_cloud_llm": True}})
     resp = bot.ask("tell me a joke", persona_id="jarvis", stats_override=STATS)
     assert resp.used_cloud is True
     assert resp.used_llm is True

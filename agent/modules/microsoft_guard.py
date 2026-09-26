@@ -39,6 +39,7 @@ TELEMETRY_PROCESSES = {
 }
 
 UPDATE_SAFE_DOMAINS = (
+    "settings-win.data.microsoft.com",
     "windowsupdate.com",
     "update.microsoft.com",
     "download.microsoft.com",

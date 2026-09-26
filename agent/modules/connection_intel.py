@@ -3,34 +3,36 @@
 from __future__ import annotations
 
 import logging
-import socket
 from dataclasses import dataclass
 from typing import Any
 
 import psutil
 
+from agent import net_resolve
+from agent.net_identity import host_matches_domain
+
 logger = logging.getLogger("dvielle.connection_intel")
 
-# Hostname / org hints (substring match on reverse DNS or known labels)
+# Exact DNS boundaries provide naming hints only, never destination trust.
 ORG_HINTS: tuple[tuple[str, str], ...] = (
-    ("cloudflare", "Cloudflare CDN (content delivery — often normal for websites)"),
-    ("akamai", "Akamai CDN (often normal)"),
-    ("fastly", "Fastly CDN (often normal)"),
-    ("amazonaws", "Amazon AWS cloud service"),
-    ("cloudfront", "Amazon CloudFront CDN"),
-    ("google", "Google / related service"),
+    ("cloudflare.com", "Cloudflare naming domain"),
+    ("akamai.net", "Akamai naming domain"),
+    ("fastly.net", "Fastly naming domain"),
+    ("amazonaws.com", "Amazon AWS naming domain"),
+    ("cloudfront.net", "Amazon CloudFront naming domain"),
+    ("google.com", "Google naming domain"),
     ("1e100.net", "Google infrastructure"),
-    ("microsoft", "Microsoft service"),
+    ("microsoft.com", "Microsoft naming domain"),
     ("msft.net", "Microsoft network"),
-    ("azure", "Microsoft Azure"),
-    ("office", "Microsoft Office / 365"),
-    ("facebook", "Meta / Facebook"),
-    ("fbcdn", "Facebook CDN"),
-    ("twitter", "X / Twitter"),
-    ("github", "GitHub"),
-    ("openai", "OpenAI"),
-    ("cursor", "Cursor / related"),
-    ("tailscale", "Tailscale VPN mesh"),
+    ("azure.com", "Microsoft Azure naming domain"),
+    ("office.com", "Microsoft Office naming domain"),
+    ("facebook.com", "Meta naming domain"),
+    ("fbcdn.net", "Facebook CDN naming domain"),
+    ("twitter.com", "X naming domain"),
+    ("github.com", "GitHub naming domain"),
+    ("openai.com", "OpenAI naming domain"),
+    ("cursor.com", "Cursor naming domain"),
+    ("tailscale.com", "Tailscale naming domain"),
 )
 
 # Well-known public CDN / cloud prefixes (coarse — for plain English only)
@@ -61,7 +63,7 @@ IP_ORG_PREFIXES: tuple[tuple[str, str], ...] = (
 
 PORT_MEANING = {
     80: "HTTP (web)",
-    443: "HTTPS (secure web)",
+    443: "HTTPS convention (protocol/encryption unverified)",
     8080: "HTTP alternate",
     8443: "HTTPS alternate",
     22: "SSH",
@@ -85,37 +87,28 @@ class ConnectionIntel:
     hostname: str | None
     org_hint: str | None
     port_meaning: str | None
-    verdict: str  # likely_benign | review | elevated_unknown
+    verdict: str  # observed | identity_unavailable
     summary: str
     detail_lines: list[str]
 
 
 def reverse_dns(ip: str, timeout: float = 0.8) -> str | None:
-    old = socket.getdefaulttimeout()
-    try:
-        socket.setdefaulttimeout(timeout)
-        host, _, _ = socket.gethostbyaddr(ip)
-        return host
-    except OSError:
-        return None
-    finally:
-        socket.setdefaulttimeout(old)
+    return net_resolve.resolve_blocking(ip, timeout=timeout)
 
 
 def _org_from_host(hostname: str | None) -> str | None:
     if not hostname:
         return None
-    h = hostname.lower()
     for needle, label in ORG_HINTS:
-        if needle in h:
-            return label
+        if host_matches_domain(hostname, needle):
+            return f"Unverified PTR naming hint: {label}"
     return None
 
 
 def _org_from_ip(ip: str) -> str | None:
     for prefix, label in IP_ORG_PREFIXES:
         if ip.startswith(prefix):
-            return label
+            return f"Unverified coarse IP-prefix hint: {label}"
     return None
 
 
@@ -181,7 +174,7 @@ def investigate(
 
     if not name and pid is None:
         verdict = "elevated_unknown"
-        who = "Unknown process (Windows hid the owner — run DVielle as Administrator for full names)"
+        who = "Unknown process (owner was not available in this observation; elevation may improve visibility)"
     elif not name:
         verdict = "review"
         who = f"PID {pid} (name unavailable)"
@@ -189,44 +182,23 @@ def investigate(
         who = name
         verdict = "review"
 
-    # Soften verdict for known CDNs from browsers / system
-    browserish = (name or "").lower() in {
-        "chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe",
-        "msedgewebview2.exe", "searchhost.exe", "widgets.exe",
-    }
-    if org and ("CDN" in org or "Cloudflare" in org or "Akamai" in org or "Fastly" in org):
-        if browserish or not name:
-            verdict = "likely_benign"
-        else:
-            verdict = "review"
+    # Names and shared-hosting hints do not determine trust or maliciousness.
+    verdict = "identity_unavailable" if not name else "observed"
 
     lines = [
         f"Process: {who}" + (f"  PID {pid}" if pid else ""),
         f"Program path: {exe or 'unknown'}",
         f"Remote: {remote_ip}" + (f":{remote_port}" if remote_port else ""),
-        f"DNS name: {hostname or 'no reverse DNS'}",
-        f"Likely service: {org or 'unknown organization'}",
+        f"Reverse-DNS hint (unverified): {hostname or 'unavailable'}",
+        f"Organization hint: {org or 'unavailable'}",
         f"Port: {remote_port} ({port_meaning or 'uncommon / app-specific'})",
     ]
 
-    if verdict == "likely_benign":
-        summary = (
-            f"{who} → {hostname or remote_ip} — looks like normal CDN/web traffic "
-            f"({org or 'known cloud'}). Usually safe."
-        )
-    elif verdict == "elevated_unknown":
-        summary = (
-            f"Outbound to {hostname or remote_ip}:{remote_port or '?'} but the process name "
-            f"is hidden. Re-run the agent elevated to identify who owns it. "
-            f"{org or ''}"
-        ).strip()
-    else:
-        summary = (
-            f"{who} opened {port_meaning or 'a connection'} to "
-            f"{hostname or remote_ip}"
-            + (f" ({org})" if org else "")
-            + ". Not on your trust list — worth a glance."
-        )
+    summary = (
+        f"{who} opened {port_meaning or 'a connection'} to {hostname or remote_ip}"
+        + (f" ({org})" if org else "")
+        + ". Connection observed; these metadata do not establish safety or maliciousness."
+    )
 
     lines.append(f"Verdict: {verdict.replace('_', ' ')}")
     lines.append(f"Plain English: {summary}")

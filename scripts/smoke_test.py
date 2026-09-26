@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DVielle smoke test — run after install or in CI."""
+"""Non-collecting installation check; never starts the agent or reads host telemetry."""
 
 from __future__ import annotations
 
@@ -23,11 +23,18 @@ def check(name: str, fn) -> None:
 
 
 def main() -> int:
+    FAILURES.clear()
     print("")
     print("  DVIELLE SMOKE TEST")
     print("  ==================")
     print(f"  Root: {ROOT}")
     print("")
+
+    def _python_version():
+        if sys.version_info[:2] != (3, 12):
+            raise RuntimeError("DVielle requires the vetted Python 3.12 runtime")
+
+    check("Python 3.12", _python_version)
 
     check("import dvielle", lambda: importlib.import_module("dvielle"))
     check("import agent.main", lambda: importlib.import_module("agent.main"))
@@ -48,24 +55,11 @@ def main() -> int:
 
     check("gui modules", _gui_imports)
 
-    def _agent_once():
-        from agent.main import main as agent_main
-        rc = agent_main(["--once", "--config-dir", str(ROOT / "config")])
-        if rc != 0:
-            raise RuntimeError(f"agent --once returned {rc}")
-
-    check("agent one cycle", _agent_once)
-
-    def _closeable():
-        from agent.modules.resource_advisor import get_closeable_processes
-        get_closeable_processes(3)
-
-    check("get_closeable_processes", _closeable)
-
     def _config():
-        from agent.utils import load_yaml
-        cfg = load_yaml(ROOT / "config" / "config.yaml")
-        assert cfg.get("agent", {}).get("name") == "DVielle"
+        from agent.runtime import load_runtime_config
+        cfg, _, _ = load_runtime_config(ROOT / "config")
+        if cfg.get("agent", {}).get("name") != "DVielle":
+            raise RuntimeError("config.yaml does not identify DVielle")
 
     check("config.yaml", _config)
 

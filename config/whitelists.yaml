@@ -1,4 +1,4 @@
-# Trusted processes (exe name, case-insensitive) — extend during baseline learning
+# Familiar process-name hints only; names alone never establish security trust.
 processes:
   - System
   - svchost.exe
@@ -23,7 +23,7 @@ ips:
   - 172.16.0.0/12
   - 192.168.0.0/16
 
-# Domains never flagged (substring match)
+# Familiar domain hints (exact domain or subdomain boundary only).
 domains:
   - microsoft.com
   - windowsupdate.com
@@ -44,8 +44,9 @@ domains:
   - 1e100.net
 
 
-# Windows Update / delivery / CRL — never block (substring match in guard)
+# Windows Update / delivery / CRL — never block (domain boundary matching).
 never_block_domains:
+  - settings-win.data.microsoft.com
   - download.windowsupdate.com
   - update.microsoft.com
   - windowsupdate.com

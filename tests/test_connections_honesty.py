@@ -1,5 +1,4 @@
-"""Audit #2: network honesty — pending-DNS ≠ suspicious, signed-app downgrade,
-cross-pulse dedup. Pure helpers + cached Authenticode check (mocked)."""
+"""Metadata cannot erase explicit review evidence; cooldowns remain bounded."""
 
 from __future__ import annotations
 
@@ -14,19 +13,19 @@ def test_refine_passthrough_when_not_suspicious():
     assert C._refine_suspicion(base_suspicious=False, hostname=None, within_grace=False, is_signed=False) == (False, "")
 
 
-def test_refine_pending_dns_within_grace():
+def test_pending_dns_does_not_erase_explicit_adverse_evidence():
     s, note = C._refine_suspicion(base_suspicious=True, hostname=None, within_grace=True, is_signed=False)
-    assert s is False and note == "pending_dns"
+    assert s is True and note == "review"
 
 
-def test_refine_signed_downgrade_after_grace():
+def test_signature_does_not_erase_explicit_adverse_evidence():
     s, note = C._refine_suspicion(base_suspicious=True, hostname=None, within_grace=False, is_signed=True)
-    assert s is False and note == "signed_downgrade"
+    assert s is True and note == "review"
 
 
-def test_refine_signed_downgrade_even_when_resolved():
+def test_signature_and_ptr_do_not_erase_explicit_adverse_evidence():
     s, note = C._refine_suspicion(base_suspicious=True, hostname="host.example", within_grace=False, is_signed=True)
-    assert s is False and note == "signed_downgrade"
+    assert s is True and note == "review"
 
 
 def test_refine_still_review_when_unsigned_and_unresolved():
@@ -71,6 +70,7 @@ def test_is_signed_valid_none_path():
 
 
 def test_is_signed_valid_valid_and_cached(tmp_path, monkeypatch):
+    monkeypatch.setattr(C, "IS_WINDOWS", True)
     C._sig_cache.clear()
     exe = tmp_path / "signed.exe"
     exe.write_bytes(b"MZ...")
@@ -87,6 +87,7 @@ def test_is_signed_valid_valid_and_cached(tmp_path, monkeypatch):
 
 
 def test_is_signed_valid_unsigned(tmp_path, monkeypatch):
+    monkeypatch.setattr(C, "IS_WINDOWS", True)
     C._sig_cache.clear()
     exe = tmp_path / "unsigned.exe"
     exe.write_bytes(b"MZ...")
@@ -95,6 +96,7 @@ def test_is_signed_valid_unsigned(tmp_path, monkeypatch):
 
 
 def test_is_signed_valid_recheck_on_mtime_change(tmp_path, monkeypatch):
+    monkeypatch.setattr(C, "IS_WINDOWS", True)
     C._sig_cache.clear()
     exe = tmp_path / "app.exe"
     exe.write_bytes(b"one")

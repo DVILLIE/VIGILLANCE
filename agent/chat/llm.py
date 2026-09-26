@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import ipaddress
 import urllib.error
 import urllib.request
 from typing import Any
@@ -41,14 +43,22 @@ def redact_messages(
     Never mutates the input (the un-redacted messages are still used for the
     on-device Ollama call and for chat history).
     """
-    if not secrets:
+    if secrets is None:
         return messages
     out: list[dict[str, str]] = []
     for msg in messages:
         content = msg.get("content", "")
-        for secret in secrets:
+        for secret in sorted(set(secrets), key=len, reverse=True):
             if secret:
-                content = content.replace(secret, "[redacted]")
+                content = re.sub(re.escape(secret), "[redacted]", content, flags=re.IGNORECASE)
+        # Older/user-supplied addresses may never have been in the latest stats.
+        def redact_ip(match):
+            try:
+                ipaddress.ip_address(match.group(0))
+                return "[redacted]"
+            except ValueError:
+                return match.group(0)
+        content = re.sub(r"(?<![\w:])(?:\d{1,3}\.){3}\d{1,3}(?![\w:])|(?<![\w:])(?:[\da-fA-F]{0,4}:){2,}[\da-fA-F:.]{0,15}(?:%[\w]+)?", redact_ip, content)
         out.append({**msg, "content": content})
     return out
 

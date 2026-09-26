@@ -29,6 +29,12 @@ class NetworkPanel(ctk.CTkFrame):
             self._labels[key] = lbl
 
         self._labels["vpn"].configure(text_color=T.TEXT_DIM)
+        self._observation = ctk.CTkLabel(self, text="Observations pending", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM)
+        self._observation.pack(anchor="w", padx=8, pady=(4, 8))
+
+    def set_observation_state(self, state: str, sampled_at: str | None) -> None:
+        stamp = f" · sampled {sampled_at[:19]} UTC" if sampled_at else ""
+        self._observation.configure(text=f"{state.upper()}{stamp}")
 
     def update_snapshot(self, snap: NetworkSnapshot | None) -> None:
         if snap is None:
@@ -38,16 +44,16 @@ class NetworkPanel(ctk.CTkFrame):
 
         local = ", ".join(snap.local_ips[:3]) if snap.local_ips else "—"
         self._labels["local"].configure(text=local)
-        self._labels["public"].configure(text=snap.public_ip or "—")
+        self._labels["public"].configure(text=snap.public_ip or ("Unavailable" if snap.public_ip_lookup_enabled else "Lookup disabled"))
 
         if snap.vpn_active:
             self._labels["vpn"].configure(
-                text=f"ACTIVE ({snap.vpn_adapter or 'detected'})",
-                text_color=T.SUCCESS,
+                text=f"Adapter up ({snap.vpn_adapter or 'VPN-like'}); route unverified",
+                text_color=T.WARNING,
             )
-            self._labels["vpn_ip"].configure(text=snap.vpn_ip or snap.public_ip or "—")
+            self._labels["vpn_ip"].configure(text=snap.vpn_ip or "—")
         else:
-            self._labels["vpn"].configure(text="NOT DETECTED", text_color=T.TEXT_DIM)
+            self._labels["vpn"].configure(text="No VPN-like adapter detected; route unverified", text_color=T.TEXT_DIM)
             self._labels["vpn_ip"].configure(text="—")
 
         dns = ", ".join(snap.dns_servers[:4]) if snap.dns_servers else "—"

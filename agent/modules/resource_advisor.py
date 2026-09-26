@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import math
+import ntpath
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -47,6 +49,9 @@ class ProcessFootprint:
     memory_mb: float
     is_foreground: bool = False
     closability: float = 0.0  # higher = better candidate to close
+    create_time: float | None = None
+    exe: str | None = None
+    protected_reason: str | None = None
 
 
 @dataclass
@@ -67,6 +72,8 @@ class AppGroup:
     risk: str  # safe | caution | danger_active | protected
     primary_pid: int
     primary_name: str
+    identities: list[dict[str, Any]] = field(default_factory=list)
+    observed_at: float = field(default_factory=time.time)
 
 
 # Families: closing any member can affect the family "owner"
@@ -137,6 +144,9 @@ def _pids_with_visible_windows() -> set[int]:
 
         user32 = ctypes.windll.user32  # type: ignore[attr-defined]
         WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        user32.IsWindowVisible.argtypes = [wintypes.HWND]
+        user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+        user32.EnumWindows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
 
         def _cb(hwnd, _lparam):
             if user32.IsWindowVisible(hwnd):
@@ -219,6 +229,7 @@ def _build_app_group(
     fg_name: str | None,
     running: set[str],
     never_close: frozenset[str] = frozenset(),
+    visible_pids: set[int] | None = None,
 ) -> AppGroup:
     lower = name.lower()
     fam = _family_for(lower) or {
@@ -227,7 +238,7 @@ def _build_app_group(
         "friendly": name,
     }
     members = {m.lower() for m in fam.get("members", {lower})}
-    is_never_close = lower in never_close or bool(members & never_close)
+    is_never_close = lower in never_close or bool(members & never_close) or any(p.protected_reason for p in footprints)
     is_shell = lower in SHELLS or bool(members & SHELLS)
     # Include only members that are actually in our footprint set for this merge key
     group_fps = [p for p in footprints if p.name.lower() in members or p.name.lower() == lower]
@@ -237,11 +248,11 @@ def _build_app_group(
     names = sorted({p.name for p in group_fps})
     pids = [p.pid for p in group_fps]
     mem = sum(p.memory_mb for p in group_fps)
-    cpu = max((p.cpu_percent for p in group_fps), default=0.0)
+    cpu = sum(p.cpu_percent for p in group_fps)
     primary = max(group_fps, key=lambda p: p.memory_mb)
 
     fg_lower = (fg_name or "").lower()
-    visible = _pids_with_visible_windows()
+    visible = _pids_with_visible_windows() if visible_pids is None else visible_pids
     has_window = any(pid in visible for pid in pids)
 
     is_active = bool(fg_lower) and (
@@ -278,22 +289,20 @@ def _build_app_group(
         risk = "protected"
         role = "protected"
         advice = (
-            f"{fam.get('friendly', name)} is on your protect list (never_close) — "
+            f"{fam.get('friendly', name)} is protected directly or through its parent application — "
             f"observed for awareness, not offered for closing."
         )
         voice = ""
     elif is_active:
-        risk = "danger_active"
-        role = "main"
+        risk = "protected"
+        role = "protected"
         advice = (
             f"You are currently working in {fam.get('friendly', name)}. "
-            f"Closing it will quit your active work"
-            + (f" and {len(pids)} related process(es)" if len(pids) > 1 else "")
-            + "."
+            "It is protected from Quick Close while active."
         )
         voice = (
             f"Warning. You are currently using {fam.get('friendly', name)}. "
-            f"Do you really want to close the application you are working on?"
+            "Quick Close keeps this active work running."
         )
     elif related_to:
         risk = "caution"
@@ -332,13 +341,13 @@ def _build_app_group(
         role = "background"
         count = len(pids)
         advice = (
-            f"Safe to close — no worries. "
+            f"No foreground window observed. "
             f"{fam.get('friendly', name)} is in the background"
             + (f" ({count} processes)" if count > 1 else "")
-            + f", about {_format_mb(mem)} RAM."
+            + f", about {_format_mb(mem)} RAM. Background work may still be active."
         )
         voice = (
-            f"Safe to close. {fam.get('friendly', name)} is a background app. No worries."
+            f"{fam.get('friendly', name)} appears to be in the background. Closing it may interrupt work."
         )
 
     return AppGroup(
@@ -356,6 +365,8 @@ def _build_app_group(
         risk=risk,
         primary_pid=primary.pid,
         primary_name=primary.name,
+        identities=[{"pid": p.pid, "create_time": p.create_time, "name": p.name, "exe": p.exe}
+                    for p in group_fps],
     )
 
 
@@ -365,7 +376,8 @@ def get_app_groups(
     """Smart Task-Manager-style groups for Quick Close."""
     fg_pid, fg_name = get_foreground_process()
     processes = _collect_processes(fg_pid, never_close)
-    running = _running_names()
+    running = {p.name.lower() for p in processes}
+    visible = _pids_with_visible_windows()
 
     # Collapse by family key
     buckets: dict[str, list[ProcessFootprint]] = {}
@@ -377,12 +389,14 @@ def get_app_groups(
         buckets.setdefault(key, []).append(p)
 
     groups: list[AppGroup] = []
-    for key, fps in buckets.items():
+    # Bound slow parent/window inspection to the largest candidate families.
+    candidates = sorted(buckets.items(), key=lambda item: -sum(p.memory_mb for p in item[1]))[:30]
+    for key, fps in candidates:
         # Skip tiny noise
         if sum(p.memory_mb for p in fps) < 30 and max(p.cpu_percent for p in fps) < 2:
             continue
         sample_name = max(fps, key=lambda x: x.memory_mb).name
-        g = _build_app_group(sample_name, fps, fg_name, running, never_close)
+        g = _build_app_group(sample_name, fps, fg_name, running, never_close, visible)
         if g.is_active_work and not include_active:
             continue
         # Still show active so user can be warned; prefer non-tiny
@@ -435,10 +449,8 @@ _advisor_active = False
 
 
 def _memory_mb(proc: psutil.Process) -> float:
-    try:
-        return proc.memory_info().rss / (1024 * 1024)
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        return 0.0
+    # An unreadable process is excluded by the caller; it has no measured zero footprint.
+    return proc.memory_info().rss / (1024 * 1024)
 
 
 def _score_closability(
@@ -464,15 +476,26 @@ def _collect_processes(
     foreground_pid: int | None, never_close: frozenset[str] = frozenset()
 ) -> list[ProcessFootprint]:
     footprints: list[ProcessFootprint] = []
-    for proc in psutil.process_iter(["pid", "name", "cpu_percent"]):
+    workload_names = set(never_close)
+    if foreground_pid is not None:
+        try:
+            workload_names.add(psutil.Process(foreground_pid).name().casefold())
+        except psutil.Error:
+            pass
+    deadline = time.monotonic() + 1.0
+    for count, proc in enumerate(psutil.process_iter(["pid", "name", "cpu_percent", "create_time", "exe"])):
+        if count >= 2048 or time.monotonic() >= deadline:
+            break
         try:
             pid = proc.info["pid"]
             name = proc.info["name"] or "unknown"
-            cpu = proc.cpu_percent(interval=0) or 0.0
+            # process_iter already sampled cpu_percent; a second call resets its interval.
+            cpu = proc.info.get("cpu_percent") or 0.0
             mem = _memory_mb(proc)
             if cpu < 0.5 and mem < 50:
                 continue
             is_fg = foreground_pid is not None and pid == foreground_pid
+            protected_parent = _protected_ancestry(proc, workload_names)
             footprints.append(
                 ProcessFootprint(
                     pid=pid,
@@ -480,7 +503,10 @@ def _collect_processes(
                     cpu_percent=cpu,
                     memory_mb=mem,
                     is_foreground=is_fg,
-                    closability=_score_closability(name, is_fg, cpu, mem, never_close),
+                    closability=0 if protected_parent else _score_closability(name, is_fg, cpu, mem, never_close),
+                    create_time=proc.info.get("create_time"),
+                    exe=proc.info.get("exe"),
+                    protected_reason="Protected application ancestor or unavailable ancestry" if protected_parent else None,
                 )
             )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -497,10 +523,10 @@ def _format_mb(mb: float) -> str:
 def _build_cpu_advice(
     cpu_usage: float, top_cpu: ProcessFootprint, offenders: list[ProcessFootprint]
 ) -> ResourceAdvice:
-    """Contention narrative: a non-foreground process is driving sustained CPU."""
+    """Describe sampled utilization without inferring a causal driver."""
     headline = (
         f"Sustained CPU {cpu_usage:.0f}% — {top_cpu.name} ({top_cpu.cpu_percent:.0f}%) "
-        f"is the driver, not your active app"
+        f"has the largest observed process CPU sample"
     )
     if offenders:
         names = ", ".join(f"{p.name} ({p.cpu_percent:.0f}%)" for p in offenders)
@@ -521,7 +547,7 @@ def _build_ram_advice(snap: MemorySnapshot, offenders: list[ProcessFootprint]) -
         names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in offenders)
         suggestion = f"Background apps you could close to relieve it: {names}"
     else:
-        suggestion = "No safe background apps to reduce — your foreground work is the main user."
+        suggestion = "No eligible background candidates were observed. Review active work and memory demand."
     return ResourceAdvice("RAM", commit if commit is not None else 0.0, headline, suggestion, offenders)
 
 
@@ -569,13 +595,13 @@ class ResourceAdvisor:
         top_cpu = max(processes, key=lambda p: p.cpu_percent, default=None)
         # Protect intentional workload: fg PID + same-name + APP_FAMILIES members,
         # plus the user's never_close list (same predicate the panel uses).
-        top_protected = top_cpu is not None and _is_protected(
+        top_protected = top_cpu is not None and (top_cpu.protected_reason is not None or _is_protected(
             top_cpu.name,
             is_fg_pid=top_cpu.is_foreground,
             fg_name=fg_name,
             never_close=self._never_close,
-        )
-        cpu_contention = cpu_sustained and top_cpu is not None and not top_protected
+        ))
+        cpu_contention = cpu_sustained and top_cpu is not None and top_cpu.cpu_percent > 0 and not top_protected
         offenders = sorted(
             [
                 p
@@ -637,7 +663,7 @@ class ResourceAdvisor:
             )
         if cpu_contention and top_cpu is not None:
             reasons.append(
-                f"Sustained CPU {cpu_now:.0f}% — {top_cpu.name} is the driver, not your active app"
+                f"Sustained CPU {cpu_now:.0f}% — {top_cpu.name} has the largest observed process CPU sample"
             )
         names = ", ".join(f"{p.name} ({_format_mb(p.memory_mb)})" for p in offenders)
         self.cortex.issue(
@@ -646,7 +672,7 @@ class ResourceAdvisor:
             confidence=0.7,
             evidence_summary=reasons
             + [
-                f"Safe-to-reduce background apps: {names}",
+                f"Background candidates for review: {names}; they may still have unsaved or active work",
                 "Level-2 recommendation — no automatic action; your foreground app is protected",
             ],
             authorization=Authorization.AUTOMATIC_POLICY,
@@ -693,7 +719,7 @@ def _alive(procs: list[psutil.Process]) -> list[psutil.Process]:
     return out
 
 
-def _post_wm_close(pids: set[int]) -> bool:
+def _post_wm_close(pids: set[int], validate=None) -> bool:
     """Best-effort graceful close: PostMessage WM_CLOSE to visible windows of pids.
 
     Needs pywin32; returns True if at least one WM_CLOSE was posted. This lets an
@@ -714,7 +740,7 @@ def _post_wm_close(pids: set[int]) -> bool:
             if not win32gui.IsWindowVisible(hwnd):
                 return True
             _tid, wpid = win32process.GetWindowThreadProcessId(hwnd)
-            if wpid in pids:
+            if wpid in pids and (validate is None or validate(wpid)):
                 win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
                 posted = True
         except Exception:
@@ -728,12 +754,61 @@ def _post_wm_close(pids: set[int]) -> bool:
     return posted
 
 
+def _identity(proc: psutil.Process) -> dict[str, Any]:
+    """Creation time and observed name are mandatory; inaccessible path is explicit."""
+    created = float(proc.create_time())
+    name = proc.name()
+    if not math.isfinite(created) or created <= 0 or not name:
+        raise ValueError("process identity unavailable")
+    try:
+        exe = proc.exe() or None
+    except psutil.AccessDenied:
+        exe = None
+    return {"pid": proc.pid, "create_time": created, "name": name, "exe": exe}
+
+
+def _identity_matches(proc: psutil.Process, expected: dict, protected: set[str]) -> bool:
+    """Recheck immediately at each mutation boundary, including WM_CLOSE callbacks."""
+    try:
+        # psutil caches some attributes on Process objects. Resolve a fresh handle
+        # before comparing the reviewed creation time at each action boundary.
+        current = psutil.Process(proc.pid)
+        live = _identity(current)
+        return (
+            live["name"].casefold() not in protected
+            and live["create_time"] == float(expected["create_time"])
+            and live["name"].casefold() == str(expected["name"]).casefold()
+            and (not expected.get("exe") or (
+                live.get("exe") and ntpath.normcase(live["exe"]) == ntpath.normcase(expected["exe"])
+            ))
+            and current.is_running()
+        )
+    except (psutil.Error, ValueError, TypeError, KeyError):
+        return False
+
+
+def _protected_ancestry(proc: psutil.Process, protected_names: set[str]) -> bool:
+    """User-protected apps also protect their helpers, including differently named descendants."""
+    if not protected_names:
+        return False
+    try:
+        for count, parent in enumerate(proc.parents()):
+            if count >= 64 or parent.name().casefold() in protected_names:
+                return True
+        return False
+    except psutil.Error:
+        return True  # unavailable relationship cannot authorize a close
+
+
 def close_pids(
     pids: list[int],
     names: list[str] | None = None,
     *,
     force: bool = False,
     grace_seconds: float = 3.0,
+    identities: list[dict[str, Any]] | None = None,
+    never_close: frozenset[str] = frozenset(),
+    observed_at: float | None = None,
 ) -> tuple[bool, str]:
     """Close an explicit process family (the PID set recorded at advice time).
 
@@ -755,6 +830,25 @@ def close_pids(
         return False, "Malformed PID list"
     if not pid_list:
         return False, "No target PIDs"
+    if len(pid_list) > 512:
+        return False, "Refused: too many targets; refresh the process list"
+    try:
+        expired = observed_at is not None and not 0 <= time.time() - float(observed_at) <= 120
+    except (TypeError, ValueError):
+        expired = True
+    if expired:
+        return False, "Refused: process observation expired; refresh and confirm again"
+    protected = SYSTEM_PROTECTED | {str(n).casefold() for n in never_close}
+    foreground_pid, foreground_name = get_foreground_process()
+    family = _family_for(foreground_name or "") or {}
+    workload_names = {str(n).casefold() for n in never_close} | {str(n).casefold() for n in family.get("members", ())}
+    if foreground_name:
+        workload_names.add(foreground_name.casefold())
+    protected |= workload_names
+    try:
+        expected = {int(item["pid"]): item for item in (identities or [])}
+    except (TypeError, ValueError, KeyError):
+        return False, "Refused: malformed process identities"
 
     # Resolve targets; refuse outright if a target itself is protected.
     targets: list[psutil.Process] = []
@@ -766,8 +860,10 @@ def close_pids(
             continue
         except psutil.AccessDenied:
             return False, f"Refused: PID {pid} not accessible — run as Administrator"
-        if pname in SYSTEM_PROTECTED:
+        if pname in protected or pid == foreground_pid or _protected_ancestry(proc, workload_names):
             return False, f"Refused: PID {pid} ({pname}) is protected (system / DVielle)."
+        if observed_at is None or pid not in expected or not _identity_matches(proc, expected[pid], protected):
+            return False, f"Refused: PID {pid} identity is missing or changed; refresh and confirm again"
         targets.append(proc)
 
     if not targets:
@@ -777,19 +873,31 @@ def close_pids(
     ordered: list[psutil.Process] = []
     seen: set[int] = set()
     skipped: list[str] = []
+    deadline = time.monotonic() + 1.0
     for proc in targets:
         try:
-            for child in proc.children(recursive=True):
+            queue = list(proc.children(recursive=False))
+            while queue:
+                if len(seen) + len(queue) > 512 or time.monotonic() > deadline:
+                    return False, "Refused: process tree exceeds inspection budget; refresh and retry"
+                child = queue.pop(0)
+                if child.pid in seen:
+                    continue
                 try:
-                    cname = (child.name() or "").lower()
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    cname = ""
-                if cname in SYSTEM_PROTECTED:
+                    child_identity = _identity(child)
+                    cname = child_identity["name"].casefold()
+                except (psutil.Error, ValueError):
+                    skipped.append("unverifiable")
+                    continue
+                if cname in protected or child.pid == foreground_pid or _protected_ancestry(child, workload_names):
                     skipped.append(cname)
                     continue
-                if child.pid not in seen:
-                    ordered.append(child)
-                    seen.add(child.pid)
+                expected.setdefault(child.pid, child_identity)
+                if not _identity_matches(child, expected[child.pid], protected):
+                    return False, f"Refused: child PID {child.pid} identity changed"
+                ordered.append(child)
+                seen.add(child.pid)
+                queue.extend(child.children(recursive=False))
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
         if proc.pid not in seen:
@@ -799,7 +907,20 @@ def close_pids(
     prot_note = f" (kept {len(skipped)} protected)" if skipped else ""
 
     # 1) Graceful WM_CLOSE — give the app a chance to save.
-    posted = _post_wm_close(seen)
+    by_pid = {p.pid: p for p in ordered}
+
+    def validate(pid: int) -> bool:
+        fg_pid, fg_name = get_foreground_process()
+        live_family = _family_for(fg_name or "") or {}
+        live_workload = workload_names | {str(n).casefold() for n in live_family.get("members", ())}
+        if fg_name:
+            live_workload.add(fg_name.casefold())
+        live_protected = protected | live_workload
+        return pid != fg_pid and _identity_matches(by_pid[pid], expected[pid], live_protected) and not _protected_ancestry(by_pid[pid], live_workload)
+
+    if not all(validate(pid) for pid in seen):
+        return False, "Refused: a process identity or protection status changed before close"
+    posted = _post_wm_close(seen, validate)
     if posted:
         try:
             psutil.wait_procs(ordered, timeout=grace_seconds)
@@ -812,7 +933,7 @@ def close_pids(
 
     if not force:
         why = (
-            "graceful close needs pywin32; "
+            "no matching window accepted graceful close; "
             if not posted
             else f"{len(remaining)} process(es) did not exit; "
         )
@@ -822,6 +943,9 @@ def close_pids(
     denied = 0
     for proc in remaining:
         try:
+            if not validate(proc.pid):
+                denied += 1
+                continue
             proc.terminate()
         except psutil.NoSuchProcess:
             pass
@@ -848,6 +972,7 @@ def close_app_group(group: AppGroup, *, force: bool = False) -> tuple[bool, str]
     USER_APPROVED CLOSE_PROCESS Decision; it stays PID-scoped and protected-safe
     for any direct caller. ``force=True`` escalates to TerminateProcess.
     """
-    ok, msg = close_pids(group.pids, group.process_names, force=force)
+    ok, msg = close_pids(group.pids, group.process_names, force=force,
+                         identities=group.identities, observed_at=group.observed_at)
     prefix = "Closed" if ok else "Close incomplete"
     return ok, f"{prefix} {group.display_name}: {msg}"

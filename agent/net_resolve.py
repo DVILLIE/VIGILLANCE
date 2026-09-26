@@ -10,42 +10,53 @@ revalidate keeps values steady across pulses.
 
 from __future__ import annotations
 
+import ipaddress
 import socket
 import threading
 import time
 
 _TTL = 3600.0      # keep a resolved name for an hour
 _NEG_TTL = 600.0   # remember a miss for 10 min before retrying
-_TIMEOUT = 1.5     # per-lookup socket timeout (on the worker thread only)
+_TIMEOUT = 1.5     # maximum caller wait; OS resolver calls cannot be cancelled
 _MAX_INFLIGHT = 8  # cap concurrent background resolves
+_MAX_CACHE = 1024
 
 _lock = threading.Lock()
 _cache: dict[str, tuple[str | None, float]] = {}  # ip -> (host|None, expiry_monotonic)
 _inflight: set[str] = set()
+_completed: dict[str, threading.Event] = {}
+
+
+def _cache_result_locked(ip: str, host: str | None) -> None:
+    now = time.monotonic()
+    for key, (_, expiry) in list(_cache.items()):
+        if expiry <= now:
+            _cache.pop(key, None)
+    _cache.pop(ip, None)
+    while len(_cache) >= _MAX_CACHE:
+        _cache.pop(next(iter(_cache)))
+    _cache[ip] = (host, now + (_TTL if host else _NEG_TTL))
 
 
 def _worker(ip: str) -> None:
     host: str | None = None
-    old = socket.getdefaulttimeout()
     try:
-        socket.setdefaulttimeout(_TIMEOUT)
         host, _, _ = socket.gethostbyaddr(ip)
     except Exception:
         host = None
-    finally:
-        try:
-            socket.setdefaulttimeout(old)
-        except Exception:
-            pass
-    ttl = _TTL if host else _NEG_TTL
     with _lock:
-        _cache[ip] = (host, time.monotonic() + ttl)
+        _cache_result_locked(ip, host)
         _inflight.discard(ip)
+        done = _completed.pop(ip, None)
+        if done:
+            done.set()
 
 
 def lookup(ip: str) -> str | None:
     """Cached hostname or None, immediately. Resolves in the background on miss/stale."""
-    if not ip:
+    try:
+        ip = str(ipaddress.ip_address(ip))
+    except ValueError:
         return None
     now = time.monotonic()
     with _lock:
@@ -55,11 +66,19 @@ def lookup(ip: str) -> str | None:
             return entry[0]
         if ip not in _inflight and len(_inflight) < _MAX_INFLIGHT:
             _inflight.add(ip)
+            _completed[ip] = threading.Event()
             spawn = True
         else:
             spawn = False
     if spawn:
-        threading.Thread(target=_worker, args=(ip,), name="dv-rdns", daemon=True).start()
+        try:
+            threading.Thread(target=_worker, args=(ip,), name="dv-rdns", daemon=True).start()
+        except RuntimeError:
+            with _lock:
+                _inflight.discard(ip)
+                done = _completed.pop(ip, None)
+                if done:
+                    done.set()
     return entry[0] if entry else None  # serve stale while revalidating
 
 
@@ -68,17 +87,19 @@ def resolve_blocking(ip: str, timeout: float = _TIMEOUT) -> str | None:
 
     NOT for the nerve loop — use lookup() there.
     """
-    if not ip:
-        return None
-    old = socket.getdefaulttimeout()
+    # Share the bounded worker pool. A slow OS resolver can occupy a slot, but
+    # cannot alter socket behavior in unrelated collectors or stall this caller.
     try:
-        socket.setdefaulttimeout(timeout)
-        host, _, _ = socket.gethostbyaddr(ip)
-        return host
-    except Exception:
+        ip = str(ipaddress.ip_address(ip))
+    except ValueError:
         return None
-    finally:
-        try:
-            socket.setdefaulttimeout(old)
-        except Exception:
-            pass
+    value = lookup(ip)
+    if value:
+        return value
+    with _lock:
+        done = _completed.get(ip)
+    if done:
+        done.wait(max(0.0, min(float(timeout), 5.0)))
+    with _lock:
+        entry = _cache.get(ip)
+        return entry[0] if entry else None

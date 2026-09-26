@@ -7,8 +7,8 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Product identity | System intelligence + resource governance + privacy + defensive security — **not** AV-first | User workload (esp. AI) must stay responsive |
-| Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.5.0+) |
-| F1 runtime | CapabilityReport + Digital Twin v0 + Adaptive Nerve + evidence schema | Docs→code; per-collector cadence |
+| Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.6.0) |
+| F1 runtime | CapabilityReport + shared Twin + independent Nerve collectors + evidence schema | Single owner, workload-aware deferral and retry recovery; see `AUTONOMY.md` |
 | P0 safety contract | Collectors observe; Cortex decides; Action Executor mutates with Decision ID | Fail-closed; no module Level ≥2 bypass |
 | Automatic RAM trim | **DISABLED** (EmptyWorkingSet / EmptyStandbyList) | Microsoft: testing/tuning; use pressure analysis |
 | 4776 handling | Source Workstation = hostname only; never IP block | Microsoft Learn Event 4776 |
@@ -16,14 +16,14 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Windows edition | 10/11 Home & Pro | Same agent; Home registry/`auditpol`; Pro may use GPO |
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |
 | Install path | **`C:\DVILLIE`** only | Single story |
-| Runtime | Headless `agent.main` + optional GUI | Silent background; adaptive scheduler is next |
+| Runtime | Headless `agent.main` + attached optional GUI | One OS lock per data directory; shared atomic snapshot |
 | Cadence authority | **Future Architecture § Adaptive Nerve only** | No duplicate cadence docs; per-collector, not global “2–5s full scan” |
 | Review discipline | Master § Architecture Review Rules | CURRENT / REGRESSION / HISTORICAL labels; audit named refs |
 | Module renames | Semantics before filenames | Keep `microsoft_guard.py` until Privacy Control Plane exists |
-| Default posture | Monitor-first / Observe–Explain | Auto-block/trim off until baseline + flags + confidence |
+| Default posture | Autonomous Observe–Explain–Recommend | Baseline and legacy flags never authorize destructive collectors; user actions require fresh identity and confirmation |
 | Memory | **Pressure**, not “RAM % used” | Windows cache/standby is often healthy |
 | Network | Purpose classification + user policy | Not “block Microsoft” |
-| Privacy | Control plane: observe → recommend → authorize → verify | Home telemetry floor honesty |
+| Privacy | Control plane: observe → recommend → authorize → verify | Home and Pro Required floor; a registry policy is not proof of effective traffic blocking |
 | Security | Local attack-surface / defensive assessment | Not offensive ethical hacking toolkit |
 | Defender | Work **with** Defender; **no** install-time path exclusion | Verified resolved on current main (no ExclusionPath) |
 | Alerts | Evidence-backed logs + optional toasts | Explainability required |

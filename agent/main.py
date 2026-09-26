@@ -1,10 +1,4 @@
-"""DVielle headless entry point — thin CLI over the shared Adaptive Nerve runtime.
-
-Runtime construction (store, twin, policy, capability probe, collector cadence)
-lives in agent.runtime.build_runtime, shared with the Mission Console controller
-so both run the identical nerve loop. run_once is re-exported for compatibility.
-"""
-
+"""Resident headless agent with exclusive ownership and graceful lifecycle."""
 from __future__ import annotations
 
 import argparse
@@ -14,43 +8,56 @@ import sys
 import time
 from pathlib import Path
 
-from agent.runtime import build_runtime, run_once  # noqa: F401 (run_once re-exported)
+from agent.ownership import RuntimeAlreadyRunning, request_shutdown
+from agent.runtime import build_runtime, run_once, load_runtime_config, _resolve_data_dir  # noqa: F401
 
-_running = True
-logger = logging.getLogger("dvielle")
-
-
-def _handle_signal(signum, frame) -> None:
-    global _running
-    _running = False
+logger = logging.getLogger('dvielle')
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="DVielle — Deep Vigilance Agent")
-    parser.add_argument("--once", action="store_true", help="Run one pulse cycle and exit")
-    parser.add_argument("--config-dir", type=Path, default=None, help="Override config directory")
+    parser = argparse.ArgumentParser(description='DVielle monitoring agent')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--once', action='store_true', help='One observe-only diagnostic pass')
+    group.add_argument('--stop', action='store_true', help='Request graceful shutdown of the current owner')
+    parser.add_argument('--config-dir', type=Path, default=None)
     args = parser.parse_args(argv)
+    try:
+        if args.stop:
+            config, _, _ = load_runtime_config(args.config_dir)
+            return 0 if request_shutdown(_resolve_data_dir(config)) else 1
+        rt = build_runtime(config_dir=args.config_dir)
+    except RuntimeAlreadyRunning:
+        print('DVielle is already running; no duplicate collector was started.')
+        return 0 if not args.once else 2
+    except Exception as exc:
+        print(f'DVielle startup failed: {exc}', file=sys.stderr)
+        return 1
 
-    rt = build_runtime(config_dir=args.config_dir)
+    from dvielle.gui.notify_policy import set_notification_mode
+    set_notification_mode('headless')
+    running = True
 
-    signal.signal(signal.SIGINT, _handle_signal)
-    signal.signal(signal.SIGTERM, _handle_signal)
+    def stop(signum, frame):
+        nonlocal running
+        running = False
 
-    if args.once:
-        rt.run_pulse_once()
-        return 0
-
-    rt.prime()  # prime heartbeat immediately
-    while _running:
-        try:
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+    try:
+        if args.once:
+            return 1 if rt.run_pulse_once() else 0
+        rt.prime()
+        while running and not rt.stop_requested():
             rt.tick()
-        except Exception:
-            logger.exception("Nerve tick failed")
-        time.sleep(rt.sleep_hint())
+            time.sleep(rt.sleep_hint())
+        return 0
+    except Exception:
+        logger.exception('Runtime failed; exiting for scheduled restart')
+        return 1
+    finally:
+        if not rt.close(timeout=60):
+            logger.error('Collectors did not drain; owner lock held until process exit')
 
-    logger.info("DVielle stopped")
-    return 0
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

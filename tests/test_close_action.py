@@ -11,6 +11,7 @@ These lock the safety contract the GUI relies on:
 from __future__ import annotations
 
 import os
+import time
 
 import psutil
 import pytest
@@ -170,10 +171,12 @@ def test_close_pids_refuses_protected_target():
 
 
 class _FakeProc:
-    def __init__(self, pid, name, children=None):
+    def __init__(self, pid, name, children=None, parents=None, created=100.0):
         self.pid = pid
         self._name = name
         self._children = children or []
+        self._parents = parents or []
+        self.created = created
         self._alive = True
         self.terminated = False
 
@@ -182,6 +185,15 @@ class _FakeProc:
 
     def children(self, recursive=False):
         return list(self._children)
+
+    def parents(self):
+        return list(self._parents)
+
+    def create_time(self):
+        return self.created
+
+    def exe(self):
+        return "C:\\Apps\\" + self._name
 
     def is_running(self):
         return self._alive
@@ -209,9 +221,11 @@ def test_close_pids_skips_protected_children(monkeypatch):
 
     monkeypatch.setattr(ra.psutil, "Process", fake_process)
     monkeypatch.setattr(ra.psutil, "wait_procs", lambda procs, timeout=0: ([], []))
-    monkeypatch.setattr(ra, "_post_wm_close", lambda pids: False)
+    monkeypatch.setattr(ra, "_post_wm_close", lambda pids, validate=None: False)
+    monkeypatch.setattr(ra, "get_foreground_process", lambda: (9000, "foreground.exe"))
 
-    ok, msg = ra.close_pids([1000], ["myapp.exe"], force=True)
+    ok, msg = ra.close_pids([1000], ["myapp.exe"], force=True,
+                            identities=[ra._identity(parent)], observed_at=time.time())
     assert ok is True
     assert parent.terminated is True
     assert ok_child.terminated is True
@@ -226,9 +240,73 @@ def test_close_pids_graceful_no_force_does_not_terminate(monkeypatch):
         ra.psutil, "Process", lambda pid: proc if pid == 2000 else (_ for _ in ()).throw(psutil.NoSuchProcess(pid))
     )
     monkeypatch.setattr(ra.psutil, "wait_procs", lambda procs, timeout=0: ([], []))
-    monkeypatch.setattr(ra, "_post_wm_close", lambda pids: False)
+    monkeypatch.setattr(ra, "_post_wm_close", lambda pids, validate=None: False)
+    monkeypatch.setattr(ra, "get_foreground_process", lambda: (9000, "foreground.exe"))
 
-    ok, msg = ra.close_pids([2000], ["editor.exe"], force=False)
+    ok, msg = ra.close_pids([2000], ["editor.exe"], force=False,
+                            identities=[ra._identity(proc)], observed_at=time.time())
     assert ok is False
     assert proc.terminated is False  # nothing killed without an explicit force confirm
     assert "force close" in msg.lower()
+
+
+def _wire_processes(monkeypatch, registry):
+    def resolve(pid):
+        if pid not in registry:
+            raise psutil.NoSuchProcess(pid)
+        return registry[pid]
+    monkeypatch.setattr(ra.psutil, "Process", resolve)
+    monkeypatch.setattr(ra.psutil, "wait_procs", lambda *args, **kwargs: ([], []))
+    monkeypatch.setattr(ra, "get_foreground_process", lambda: (9000, "foreground.exe"))
+    monkeypatch.setattr(ra, "_post_wm_close", lambda *args: False)
+
+
+@pytest.mark.parametrize("identity,stamp", [(None, 0), (None, None), ("old", "now"), ("valid", 0)])
+def test_close_rejects_missing_changed_or_expired_identity(monkeypatch, identity, stamp):
+    proc = _FakeProc(3000, "editor.exe", created=200.0)
+    _wire_processes(monkeypatch, {proc.pid: proc})
+    expected = ra._identity(proc)
+    if identity == "old":
+        expected["create_time"] = 100.0
+    ok, reason = ra.close_pids([proc.pid], force=True,
+        identities=[expected] if identity else None,
+        observed_at=time.time() if stamp == "now" else stamp)
+    assert not ok
+    assert not proc.terminated
+    assert "identity" in reason or "expired" in reason
+
+
+def test_close_protects_differently_named_descendant_of_never_close(monkeypatch):
+    protected = _FakeProc(4000, "important.exe")
+    child = _FakeProc(4001, "helper.exe", parents=[protected])
+    _wire_processes(monkeypatch, {4000: protected, 4001: child})
+    ok, reason = ra.close_pids([child.pid], force=True, identities=[ra._identity(child)],
+        observed_at=time.time(), never_close=frozenset({"important.exe"}))
+    assert not ok and "protected" in reason
+    assert not child.terminated
+
+
+def test_force_revalidates_pid_after_graceful_attempt(monkeypatch):
+    original = _FakeProc(5000, "worker.exe", created=100.0)
+    replacement = _FakeProc(5000, "worker.exe", created=200.0)
+    registry = {5000: original}
+    _wire_processes(monkeypatch, registry)
+    def graceful(*args):
+        registry[5000] = replacement
+        return False
+    monkeypatch.setattr(ra, "_post_wm_close", graceful)
+    ok, _ = ra.close_pids([5000], force=True, identities=[ra._identity(original)], observed_at=time.time())
+    assert not ok
+    assert not original.terminated and not replacement.terminated
+
+
+def test_force_rechecks_foreground_family_after_graceful_attempt(monkeypatch):
+    target = _FakeProc(6000, "whatsapp.host.exe")
+    _wire_processes(monkeypatch, {6000: target})
+    def graceful(*args):
+        monkeypatch.setattr(ra, "get_foreground_process", lambda: (6001, "whatsapp.exe"))
+        return False
+    monkeypatch.setattr(ra, "_post_wm_close", graceful)
+    ok, _ = ra.close_pids([6000], force=True, identities=[ra._identity(target)], observed_at=time.time())
+    assert not ok
+    assert not target.terminated

@@ -26,7 +26,7 @@ def test_web_only_for_non_stats() -> None:
 
 
 def test_assistant_local_stats() -> None:
-    bot = ChatAssistant()
+    bot = ChatAssistant(enabled=True)
     stats = {
         "agent_started": True,
         "agent_cycles": 3,

@@ -5,7 +5,6 @@ from __future__ import annotations
 import ipaddress
 import logging
 import os
-import platform
 import subprocess
 import sys
 import threading
@@ -17,7 +16,7 @@ import yaml
 
 from dvielle import APP_NAME, DATA_DIR_NAME, WINDOWS_DATA_DIR, WINDOWS_INSTALL_DIR
 
-IS_WINDOWS = platform.system() == "Windows"
+IS_WINDOWS = sys.platform == "win32"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -72,7 +71,9 @@ def setup_logging(data_dir: Path, level: str = "INFO", max_mb: int = 10, backup_
     log_dir.mkdir(parents=True, exist_ok=True)
     logger = logging.getLogger("dvielle")
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
-    logger.handlers.clear()
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
+        handler.close()
 
     fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     file_handler = RotatingFileHandler(
@@ -222,7 +223,9 @@ def run_hardened(
         result["proc"] = proc
         try:
             out, _ = proc.communicate(timeout=timeout)
-            result["out"], result["timed_out"] = out, False
+            # Native exit status matters: partial output from a failed command
+            # must not be interpreted as a successful Windows observation.
+            result["out"], result["timed_out"] = out if proc.returncode == 0 else None, False
         except subprocess.TimeoutExpired:
             _tree_kill(proc)
             try:
@@ -269,6 +272,9 @@ def get_foreground_process() -> tuple[int | None, str | None]:
         from ctypes import wintypes
 
         user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+        user32.GetForegroundWindow.restype = wintypes.HWND
+        user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+        user32.GetWindowThreadProcessId.restype = wintypes.DWORD
         hwnd = user32.GetForegroundWindow()
         if not hwnd:
             return None, None

@@ -1,12 +1,10 @@
-"""Disk health monitor — space, SMART status, optional safe cleanup."""
+"""Disk health observations and cleanup recommendations. Never deletes files."""
 
 from __future__ import annotations
 
 import logging
-import os
-import shutil
+import math
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import psutil
@@ -31,56 +29,23 @@ class DiskStatus:
 def _smart_status() -> str | None:
     if not IS_WINDOWS:
         return None
-    stdout, _ = run_hardened(["wmic", "diskdrive", "get", "status"], timeout=15)
-    if stdout is None:
+    stdout, timed_out = run_hardened(["wmic", "diskdrive", "get", "status"], timeout=15)
+    if stdout is None or timed_out:
         return None
     lines = [l.strip() for l in stdout.splitlines() if l.strip() and l.strip().lower() != "status"]
     return ", ".join(lines) if lines else None
 
 
-def _safe_cleanup_paths() -> list[Path]:
-    paths: list[Path] = []
-    temp = os.environ.get("TEMP") or os.environ.get("TMP")
-    if temp:
-        paths.append(Path(temp))
-    if IS_WINDOWS:
-        paths.append(Path("C:/Windows/Temp"))
-    return [p for p in paths if p.exists()]
-
-
-def _cleanup_temp(max_age_days: int = 7) -> float:
-    """Remove temp files older than max_age_days. Returns MB freed (estimate)."""
-    import time
-
-    freed = 0
-    cutoff = time.time() - (max_age_days * 86400)
-    for base in _safe_cleanup_paths():
-        for root, dirs, files in os.walk(base, topdown=False):
-            for name in files:
-                fp = Path(root) / name
-                try:
-                    if fp.stat().st_mtime < cutoff:
-                        size = fp.stat().st_size
-                        fp.unlink()
-                        freed += size
-                except OSError:
-                    continue
-            for name in dirs:
-                dp = Path(root) / name
-                try:
-                    dp.rmdir()
-                except OSError:
-                    continue
-    return freed / (1024 * 1024)
-
-
 class DiskMonitor:
     def __init__(self, store: AgentStore, config: dict[str, Any]) -> None:
         self.store = store
+        self.collection_error: str | None = None
         self.low_threshold = float(config.get("thresholds", {}).get("disk_low_percent", 15))
 
     def run(self, enable_cleanup: bool = False) -> list[DiskStatus]:
         results: list[DiskStatus] = []
+        self.collection_error = None
+        unreadable: list[str] = []
         smart = _smart_status()
 
         for part in psutil.disk_partitions(all=False):
@@ -89,24 +54,18 @@ class DiskMonitor:
             try:
                 usage = psutil.disk_usage(part.mountpoint)
             except (PermissionError, OSError):
+                unreadable.append(part.mountpoint)
                 continue
 
-            free_pct = (usage.free / usage.total) * 100 if usage.total else 0
+            if (not all(math.isfinite(float(value)) for value in (usage.total, usage.free, usage.percent))
+                    or usage.total <= 0 or not 0 <= usage.free <= usage.total or not 0 <= usage.percent <= 100):
+                unreadable.append(part.mountpoint)
+                continue
+            free_pct = (usage.free / usage.total) * 100
             percent_used = usage.percent
             free_gb = usage.free / (1024**3)
             total_gb = usage.total / (1024**3)
             low_space = free_pct < self.low_threshold
-
-            cleaned_mb = 0.0
-            if enable_cleanup and low_space:
-                cleaned_mb = _cleanup_temp()
-                if cleaned_mb > 0:
-                    self.store.log_event(
-                        "disk",
-                        "INFO",
-                        f"Cleaned {cleaned_mb:.1f} MB temp on {part.mountpoint}",
-                        None,
-                    )
 
             status = DiskStatus(
                 mount=part.mountpoint,
@@ -115,7 +74,6 @@ class DiskMonitor:
                 total_gb=total_gb,
                 low_space=low_space,
                 smart_status=smart,
-                cleaned_mb=cleaned_mb,
             )
             results.append(status)
 
@@ -124,8 +82,12 @@ class DiskMonitor:
                     "disk",
                     "WARNING",
                     f"Low disk space on {part.mountpoint}: {free_gb:.1f} GB free ({free_pct:.1f}%)",
-                    {"smart": smart},
+                    {"smart": smart, "suggested_action": "Review Windows Storage cleanup",
+                     "cleanup_requested": bool(enable_cleanup), "files_deleted": 0,
+                     "action_policy": "observation only; deletion requires a reviewed action"},
                 )
                 logger.warning("Low disk on %s: %.1f GB free", part.mountpoint, free_gb)
 
+        if unreadable:
+            self.collection_error = "Disk usage unavailable for: " + ", ".join(unreadable)
         return results

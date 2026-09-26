@@ -37,15 +37,15 @@ if ($mp) {
     Write-Output "RT:$($mp.RealTimeProtectionEnabled)"
 }
 """
-    stdout, _ = run_powershell(ps, timeout=20)
-    if stdout is None:
+    stdout, timed_out = run_powershell(ps, timeout=20)
+    if stdout is None or timed_out:
         return None, None
     am, rt = None, None
     for line in stdout.splitlines():
         if line.startswith("AM:"):
-            am = line.split(":", 1)[1].strip().lower() == "true"
+            am = {"true": True, "false": False}.get(line.split(":", 1)[1].strip().lower())
         elif line.startswith("RT:"):
-            rt = line.split(":", 1)[1].strip().lower() == "true"
+            rt = {"true": True, "false": False}.get(line.split(":", 1)[1].strip().lower())
     return am, rt
 
 
@@ -58,15 +58,18 @@ foreach ($p in $profiles) {
     Write-Output "$($p.Name):$($p.Enabled)"
 }
 """
-    stdout, _ = run_powershell(ps, timeout=20)
-    if stdout is None:
+    stdout, timed_out = run_powershell(ps, timeout=20)
+    if stdout is None or timed_out:
         return None, {}
     profiles: dict[str, bool] = {}
     for line in stdout.splitlines():
         if ":" in line:
             name, enabled = line.split(":", 1)
-            profiles[name.strip()] = enabled.strip().lower() == "true"
-    all_on = all(profiles.values()) if profiles else None
+            value = {"true": True, "false": False}.get(enabled.strip().lower())
+            if value is not None and name.strip().lower() in {"domain", "private", "public"}:
+                profiles[name.strip().lower()] = value
+    # A known disabled profile is adverse evidence even when another is unreadable.
+    all_on = False if False in profiles.values() else (True if len(profiles) == 3 else None)
     return all_on, profiles
 
 

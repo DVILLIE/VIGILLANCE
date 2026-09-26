@@ -10,12 +10,15 @@ It only inspects process names/paths and network peers (psutil).
 from __future__ import annotations
 
 import logging
+import ntpath
 import re
 from dataclasses import dataclass
 from typing import Any
 
 import psutil
 
+from agent import net_resolve
+from agent.net_identity import host_matches_any
 from agent.store.db import AgentStore
 from agent.utils import IS_WINDOWS
 
@@ -33,17 +36,19 @@ BROWSER_EXES = {
     "waterfox.exe",
 }
 
-# Legitimate install path fragments (lowercase)
-BROWSER_PATH_HINTS = (
-    r"\google\chrome\\",
-    r"\microsoft\edge\\",
-    r"\mozilla firefox\\",
-    r"\bravesoftware\\",
-    r"\opera\\",
-    r"\vivaldi\\",
-    r"\chromium\\",
-    r"\internet explorer\\",
-    r"\program files",
+# Canonical install-location patterns are observations, never executable trust.
+_BROWSER_INSTALL = re.compile(
+    r"^(?:[a-z]:\\program files(?: \(x86\))?\\|"
+    r"[a-z]:\\users\\[^\\]+\\appdata\\local\\)"
+    r"(?:google\\chrome\\application\\chrome\.exe|"
+    r"microsoft\\edge\\application\\msedge\.exe|"
+    r"mozilla firefox\\firefox\.exe|"
+    r"bravesoftware\\brave-browser\\application\\brave\.exe|"
+    r"(?:programs\\)?opera(?:\\[0-9.]+)?\\opera\.exe|"
+    r"vivaldi\\application\\vivaldi\.exe|"
+    r"chromium\\application\\chromium\.exe|"
+    r"internet explorer\\iexplore\.exe|waterfox\\waterfox\.exe)$",
+    re.I,
 )
 
 # Name / path heuristics for stealers, clippers, injectors, adware (defensive)
@@ -54,7 +59,7 @@ SUSPICIOUS_NAME_RE = re.compile(
     re.I,
 )
 
-# Common ad / tracker hosts (substring) — non-browser talking to these while browsing is odd
+# Exact DNS-boundary hints; reverse DNS does not prove adware or peer identity.
 AD_HOST_HINTS = (
     "doubleclick.net",
     "googlesyndication.com",
@@ -90,7 +95,7 @@ def _exe_path(proc: psutil.Process) -> str:
 def _is_legit_browser_path(path: str) -> bool:
     if not path:
         return False
-    return any(h in path for h in BROWSER_PATH_HINTS)
+    return bool(_BROWSER_INSTALL.fullmatch(ntpath.normcase(ntpath.normpath(path))))
 
 
 def _browsers_running() -> list[tuple[int, str, str]]:
@@ -111,6 +116,7 @@ class BrowserGuard:
 
     def __init__(self, store: AgentStore, config: dict[str, Any]) -> None:
         self.store = store
+        self.collection_error: str | None = None
         self.config = config
         bg = config.get("browser_guard", {})
         self.enabled = bg.get("enabled", True)
@@ -120,27 +126,33 @@ class BrowserGuard:
         if not self.enabled or not IS_WINDOWS:
             return []
 
-        browsers = _browsers_running()
+        self.collection_error = None
+        try:
+            browsers = _browsers_running()
+            processes = list(psutil.process_iter(["pid", "name"]))
+        except (psutil.Error, OSError) as exc:
+            self.collection_error = f"Process enumeration unavailable: {type(exc).__name__}"
+            return []
         browsing = bool(browsers)
         threats: list[BrowserThreat] = []
 
-        # Fake browsers (name matches chrome/edge but lives in Temp / odd path)
         for pid, name, path in browsers:
-            if path and not _is_legit_browser_path(path):
-                if "\\temp\\" in path or "\\downloads\\" in path or path.endswith(name):
-                    threats.append(
-                        BrowserThreat(
-                            kind="fake_browser",
-                            severity="CRITICAL",
-                            process_name=name,
-                            pid=pid,
-                            message=f"Suspicious browser lookalike: {name} (pid {pid})",
-                            detail=f"Path not a normal install location: {path or 'unknown'}",
-                        )
+            if not _is_legit_browser_path(path):
+                normalized = ntpath.normcase(ntpath.normpath(path)) if path else ""
+                transient = "\\temp\\" in normalized or "\\downloads\\" in normalized
+                threats.append(
+                    BrowserThreat(
+                        kind="browser_location_review" if transient else "browser_location_unverified",
+                        severity="WARNING" if transient else "INFO",
+                        process_name=name, pid=pid,
+                        message=f"Browser install location {'needs review' if transient else 'unverified'}: {name} (pid {pid})",
+                        detail=f"Observed path: {path or 'unavailable'}. "
+                        "Portable/custom installs are possible; location alone cannot identify a fake browser.",
                     )
+                )
 
         # Process name heuristics (always; louder when browsing)
-        for proc in psutil.process_iter(["pid", "name"]):
+        for proc in processes:
             try:
                 name = proc.info.get("name") or ""
                 pid = proc.info.get("pid")
@@ -150,14 +162,14 @@ class BrowserGuard:
                     continue
                 if name.lower() in BROWSER_EXES and _is_legit_browser_path(path):
                     continue
-                sev = "CRITICAL" if browsing else "WARNING"
+                sev = "WARNING"
                 threats.append(
                     BrowserThreat(
                         kind="suspicious_process",
                         severity=sev,
                         process_name=name,
                         pid=int(pid) if pid is not None else None,
-                        message=f"Possible stealer/adware process: {name}",
+                        message=f"Process name/path heuristic needs review: {name}",
                         detail=f"Matched defensive heuristic while browsing={browsing}. Path={path or 'n/a'}",
                     )
                 )
@@ -176,6 +188,8 @@ class BrowserGuard:
             key = f"{t.kind}|{t.process_name}|{t.pid}|{t.message}"
             if key in self._seen:
                 continue
+            if len(self._seen) >= 2048:
+                self._seen.clear()
             self._seen.add(key)
             out.append(t)
             self.store.log_event(
@@ -184,14 +198,15 @@ class BrowserGuard:
                 t.message,
                 {"kind": t.kind, "pid": t.pid, "detail": t.detail, "browsing": browsing},
             )
-            logger.warning("%s — %s", t.message, t.detail)
+            logger.log(logging.WARNING if t.severity == "WARNING" else logging.INFO,
+                       "%s — %s", t.message, t.detail)
 
         if browsing and not out:
             # Quiet heartbeat for Attacks window (INFO, once per run is fine via store)
             self.store.log_event(
                 "browser_guard",
                 "INFO",
-                f"Browser watch OK — {len(browsers)} browser process(es); no stealer/adware heuristics hit",
+                f"Browser observation: {len(browsers)} browser process(es); no new name/path heuristic observations",
                 {"browsers": [b[1] for b in browsers[:8]]},
             )
 
@@ -201,7 +216,8 @@ class BrowserGuard:
         found: list[BrowserThreat] = []
         try:
             conns = psutil.net_connections(kind="inet")
-        except (psutil.AccessDenied, PermissionError):
+        except (psutil.Error, OSError) as exc:
+            self.collection_error = f"Browser sidecar collection unavailable: {type(exc).__name__}"
             return found
 
         for c in conns:
@@ -220,26 +236,19 @@ class BrowserGuard:
             # Check process cmdline for ad SDK? skip. Match remote via getnameinfo optional.
             remote = f"{c.raddr.ip}:{c.raddr.port}"
             host_hint = self._quick_host_hint(c.raddr.ip)
-            if host_hint and any(a in host_hint for a in AD_HOST_HINTS):
+            if host_matches_any(host_hint, list(AD_HOST_HINTS)):
                 found.append(
                     BrowserThreat(
                         kind="ad_sidecar",
-                        severity="WARNING",
+                        severity="INFO",
                         process_name=name,
                         pid=c.pid,
-                        message=f"Non-browser process contacting ad network: {name}",
-                        detail=f"{remote} ~ {host_hint}",
+                        message=f"Non-browser peer has ad-network PTR hint: {name}",
+                        detail=f"{remote} ~ {host_hint}; unverified reverse-DNS hint, not proof of adware",
                     )
                 )
         return found
 
     @staticmethod
     def _quick_host_hint(ip: str) -> str | None:
-        import socket
-
-        try:
-            socket.setdefaulttimeout(0.4)
-            host, _, _ = socket.gethostbyaddr(ip)
-            return host.lower()
-        except OSError:
-            return None
+        return net_resolve.lookup(ip)

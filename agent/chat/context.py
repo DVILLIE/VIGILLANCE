@@ -2,40 +2,23 @@
 
 from __future__ import annotations
 
-import sys
 from typing import Any
-
-import psutil
-
-from agent.modules.network_info import collect_network_snapshot
+import math
 
 
 def gather_stats_context(agent_started: bool = False, cycle_count: int = 0) -> dict[str, Any]:
-    mem = psutil.virtual_memory()
-    try:
-        disk = psutil.disk_usage("C:\\" if sys.platform == "win32" else "/")
-    except Exception:
-        disk = psutil.disk_usage("/")
+    """Without an owner-supplied snapshot, chat has no current observations.
 
-    net = collect_network_snapshot()
-    cpu = psutil.cpu_percent(interval=0.1)
-
+    Opening chat must not create another network or security collector.
+    """
     return {
-        "agent_started": agent_started,
+        "agent_started": False,
         "agent_cycles": cycle_count,
-        "cpu_percent": round(cpu, 1),
-        "ram_percent": round(mem.percent, 1),
-        "ram_available_gb": round(mem.available / (1024**3), 2),
-        "disk_percent_used": round(disk.percent, 1),
-        "disk_free_gb": round(disk.free / (1024**3), 2),
-        "hostname": net.hostname,
-        "local_ips": net.local_ips,
-        "public_ip": net.public_ip,
-        "vpn_active": net.vpn_active,
-        "vpn_name": net.vpn_adapter,
-        "vpn_ip": net.vpn_ip,
-        "dns_servers": net.dns_servers,
-        "gateway": net.gateway,
+        "observation_status": "Current shared observations were not supplied",
+        "cpu_percent": None, "ram_percent": None, "ram_available_gb": None,
+        "commit_percent": None, "disk_percent_used": None, "disk_free_gb": None,
+        "hostname": None, "local_ips": [], "public_ip": None, "vpn_active": None,
+        "vpn_name": None, "vpn_ip": None, "dns_servers": [], "gateway": None,
     }
 
 
@@ -64,23 +47,31 @@ def sensitive_values(stats: dict[str, Any]) -> list[str]:
     return sorted(set(values), key=len, reverse=True)
 
 
+def number(value: Any, digits: int = 0) -> str:
+    return f"{value:.{digits}f}" if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else "unavailable"
+
+
+def vpn_observation(stats: dict[str, Any]) -> str:
+    if stats.get("vpn_active") is True:
+        return f"VPN-like adapter is up ({stats.get('vpn_name') or 'name unavailable'}), adapter IP {stats.get('vpn_ip') or 'unavailable'}. Traffic routing and encryption are unverified."
+    if stats.get("vpn_active") is False:
+        return "No VPN-like adapter detected. This does not establish whether traffic uses a VPN or a direct connection."
+    return "VPN adapter observation is unavailable or stale. Traffic routing and encryption are unverified."
+
+
 def format_stats_block(stats: dict[str, Any]) -> str:
-    vpn_line = (
-        f"VPN ON ({stats.get('vpn_name')}) tunnel IP {stats.get('vpn_ip')}"
-        if stats.get("vpn_active")
-        else "VPN OFF — direct internet connection"
-    )
-    agent = "running" if stats.get("agent_started") else "standby (stats only)"
+    agent = "running with a current heartbeat" if stats.get("agent_started") else "not currently verified as running"
     return (
-        "LIVE STATS:\n"
+        "OBSERVED STATS (unavailable means unknown, never zero):\n"
         f"- Vigilance agent: {agent} ({stats.get('agent_cycles', 0)} cycles)\n"
-        f"- CPU: {stats.get('cpu_percent')}%\n"
-        f"- RAM: {stats.get('ram_percent')}% ({stats.get('ram_available_gb')} GB free)\n"
-        f"- Disk: {stats.get('disk_percent_used')}% used ({stats.get('disk_free_gb')} GB free)\n"
-        f"- Host: {stats.get('hostname')}\n"
+        f"- Coverage: {stats.get('observation_status', 'Not supplied')}\n"
+        f"- CPU percent: {number(stats.get('cpu_percent'))}\n"
+        f"- RAM percent: {number(stats.get('ram_percent'))}; available GB: {number(stats.get('ram_available_gb'), 1)}; commit percent: {number(stats.get('commit_percent'))}\n"
+        f"- Disk used percent: {number(stats.get('disk_percent_used'))}; free GB: {number(stats.get('disk_free_gb'), 1)}\n"
+        f"- Host: {stats.get('hostname') or 'unavailable'}\n"
         f"- Local IP(s): {', '.join(stats.get('local_ips') or ['unknown'])}\n"
         f"- Public IP: {stats.get('public_ip') or 'unknown'}\n"
-        f"- {vpn_line}\n"
+        f"- {vpn_observation(stats)}\n"
         f"- DNS: {', '.join(stats.get('dns_servers') or ['unknown'])}\n"
         f"- Gateway: {stats.get('gateway') or 'unknown'}"
     )
