@@ -6,7 +6,7 @@ agent:
   display_name: DVielle — DEEP VIGILLANCE
   interval_seconds: 60          # pulse default (network/process correlation)
   process_priority: below_normal # idle | below_normal | normal
-  baseline_days: 7              # learning period before auto-actions allowed
+  baseline_days: 7              # reserved history horizon; never enables mutations
   data_dir: null                # null = auto (C:\DVILLIE\data)
 
 # Adaptive Nerve — per-collector cadence (see docs/VIGILLANCE_FUTURE_ARCHITECTURE.md)
@@ -15,6 +15,36 @@ nerve:
   heartbeat_seconds: 5
   pulse_seconds: 60
   idle_deep_seconds: 900
+  max_workers: 2               # bounded, with a worker reserved for core monitoring
+  collectors:
+    attacks: 30
+    security: 120
+    connections: 60
+    browser_guard: 120
+    resource_advisor: 60
+    ram: 60
+    disk: 300
+    privacy_guard: 300
+    microsoft_guard: 300
+    network_info: 300
+
+# Agent CPU is normalized to total logical CPU capacity. Sustained excess defers
+# optional collection; this is a scheduling budget, not an OS-enforced quota.
+budget:
+  max_cpu_percent: 1.0
+  max_rss_mb: 150
+
+workload:
+  busy_cpu_percent: 80
+  idle_after_seconds: 120
+  # Names only guide conservative scheduling, never grant security trust.
+  protected_foreground_processes:
+    - ollama.exe
+    - Cursor.exe
+    - claude.exe
+
+network:
+  allow_public_ip_lookup: false # opt in to an external public-IP service
 
 modes:
   monitor_only: true            # observe/recommend; Level ≥2 requires Cortex Decision ID
@@ -33,9 +63,33 @@ thresholds:
   failed_logon_block_after: 5
   failed_logon_window_minutes: 15
 
+# Audit #2.2 — Attacks Console honesty + store self-budget
+attacks:
+  review_window_hours: 24       # FLAGGED peer-dedup horizon
+  summary_window_days: 14       # attack_summary historical counts (labeled)
+
+# Bounded scheduled retention. Decisions, action audits, and block policy persist.
+retention:
+  connections_days: 7
+  events_days: 14
+  health_snapshots_days: 14
+  failed_logons_days: 30
+  work_log_days: 14
+  privacy_checks_days: 14
+  twin_max_mb: 5               # current history plus one rotated backup
+
 resource_advisor:
   enabled: true
   toast_cooldown_seconds: 300
+  # Apps here are NEVER offered for closing and NEVER counted as pulse offenders,
+  # even when they are the heaviest process. Foreground apps + their family are
+  # already protected automatically; this is for background tools you want kept
+  # alive regardless (agents, editors, long-running jobs). Case-insensitive, .exe
+  # names. Suggestions: powershell.exe, pwsh.exe, python.exe, node.exe, ollama.exe,
+  # Docker Desktop.exe, wsl.exe.
+  never_close:
+    - claude.exe
+    - Cursor.exe
 
 # Privacy adapter — remediation flags are OBSERVE→RECOMMEND only until Cortex+Executor (P0)
 microsoft_guard:
@@ -76,3 +130,10 @@ chat:
   enabled: false
   ollama_model: llama3.2
   voice_web_only: true
+  # Privacy (audit C2): chat is on-device (local Ollama) by default.
+  allow_cloud_llm: false          # true + GROQ_API_KEY set → may use Groq cloud when local Ollama is unavailable
+  allow_cloud_raw_context: false  # true → send UNREDACTED machine/network identity to the cloud (not recommended)
+  allow_cloud_speech: false
+  speech_backend: disabled      # disabled | local (optional PocketSphinx) | google (requires opt-in)
+  allow_web_search: false
+  ollama_timeout_seconds: 5       # fail fast to the local explainer instead of hanging

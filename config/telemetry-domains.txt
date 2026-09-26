@@ -2,7 +2,7 @@
 # Used by privacy_guard and optional hosts hardening script
 telemetry.microsoft.com
 vortex.data.microsoft.com
-settings-win.data.microsoft.com
+# settings-win.data.microsoft.com must remain reachable (diagnostics control endpoint).
 watson.telemetry.microsoft.com
 oca.telemetry.microsoft.com
 sqm.telemetry.microsoft.com

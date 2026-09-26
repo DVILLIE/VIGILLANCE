@@ -25,8 +25,8 @@ def test_cloudflare_cdn_not_attack() -> None:
     assert "cloudflare" in text.lower()
 
 
-def test_unknown_public_is_review() -> None:
+def test_unknown_public_is_observation_not_threat() -> None:
     kind, text, threat = classify_remote("93.184.216.34", None, "192.168.1.1", ["192.168.1.50"])
     assert kind == "unknown_internet"
-    assert threat is True
-    assert "not a typical home router" in text.lower()
+    assert threat is False
+    assert "not evidence of malicious" in text.lower()

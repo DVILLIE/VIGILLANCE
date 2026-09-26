@@ -69,6 +69,8 @@ class AuthToken:
     finding_id: str
     handler: str
     nonce: str
+    auto: bool = False
+    subject: str = ""
 
 
 class PolicyDenied(Exception):

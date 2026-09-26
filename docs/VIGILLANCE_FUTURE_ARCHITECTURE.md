@@ -5,6 +5,8 @@
 **Constraint:** Must run on **any modern Windows 10/11 PC** (Home & Pro), with **graceful degradation** when rights or SKUs limit APIs  
 **Companion docs:** `VIGILLANCE_MASTER_ARCHITECTURE.md` (binding thesis) · `DESIGN.md` (visual system)
 
+**Implementation boundary (2026-09-13):** This is a target design. Version 1.6 implements independent collectors, a shared Twin, conservative workload hypotheses, retry backoff and scheduling budgets. It does not implement every engine, ETW event fabric, learned intent, verified purpose or generalized automatic remediation described below. See [AUTONOMY.md](AUTONOMY.md).
+
 ---
 
 ## Roundtable transcript (condensed)
@@ -195,13 +197,15 @@ On-device small model **only** to narrate twin state — never required for core
 ```text
 pythonw -m agent.main          ← Nerve + Cortex (headless, logon task)
 pythonw -m dvielle             ← Mission Console (optional)
-data/twin.jsonl + agent.db     ← Twin snapshots + ledger
-config/policy.yaml             ← user policies (ALLOW/AUDIT/…)
+data/twin.json + twin.jsonl    ← atomic current state + bounded history
+data/agent.db                 ← evidence and decision ledger
+config/config.yaml            ← implemented cadence, budget and opt-ins
+config/policy.yaml            ← planned purpose-policy model; not implemented
 ```
 
 Later (optional native accel, not required day one): tiny Rust/C++ helper for ETW when present; Python remains the portable brain.
 
-**Hard self-budget (targets):**
+**Resource goals (scheduling controls implemented; OS quota and field measurements pending):**
 
 - Idle: &lt;1% CPU average, &lt;150 MB RSS steady-state goal (stretch), batched DB writes  
 - Under AI/gaming profile: event-driven + fast heartbeat only; pulse extras and idle-deep deferred  

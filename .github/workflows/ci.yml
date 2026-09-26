@@ -17,19 +17,35 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[windows]"
-          pip install pytest ruff
+          python -m pip install -e ".[windows,chat,dev]"
+      - name: Installation smoke (no host collection)
+        run: python scripts/smoke_test.py
       - name: Ruff (selected)
-        run: ruff check agent tests --select E9,F63,F7,F82
+        run: ruff check agent dvielle tests scripts/smoke_test.py scripts/verify_runtime.py --select E9,F63,F7,F82
       - name: Pytest
         run: python -m pytest -q --tb=short
-      - name: PowerShell syntax — installer
+      - name: PowerShell syntax
         shell: pwsh
         run: |
-          $errs = $null
-          $null = [System.Management.Automation.Language.Parser]::ParseFile(
-            "$env:GITHUB_WORKSPACE/installer/install-dvielle.ps1",
-            [ref]$null,
-            [ref]$errs
-          )
-          if ($errs) { $errs | ForEach-Object { $_.ToString() }; exit 1 }
+          foreach ($file in Get-ChildItem installer,scripts -Filter *.ps1 -Recurse) {
+            $errs = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              $file.FullName, [ref]$null, [ref]$errs
+            )
+            if ($errs) { $errs | ForEach-Object { $_.ToString() }; exit 1 }
+          }
+  browser:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: demo/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

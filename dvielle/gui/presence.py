@@ -9,28 +9,12 @@ Design refs (verified patterns, adapted to our tokens):
 from __future__ import annotations
 
 import math
-import random
 import tkinter as tk
-from itertools import cycle
 
 import customtkinter as ctk
 
 from dvielle.gui import theme as T
-
-# Verbs that make the console feel like Nerve is working (not fake threats)
-_NERVE_LINES = (
-    "NERVE · heartbeat · pressure counters",
-    "TWIN · memory vector refresh",
-    "SCAN · process forest sample",
-    "TRAFFIC · purpose classify",
-    "SURFACE · defender posture skim",
-    "SELF · budget check · footprint OK",
-    "CORTEX · correlate contention",
-    "IDLE-DEEP · deferred until quiet",
-    "VISION · capability gaps honest",
-    "WHY · evidence chain ready",
-)
-
+from dvielle.gui.observations import collector_state
 
 class LivingRadar(ctk.CTkFrame):
     """Slow radar DV core — continuous presence without frantic spin."""
@@ -41,6 +25,7 @@ class LivingRadar(ctk.CTkFrame):
         self._angle = 0.0
         self._pulse = 0.0
         self._sweep = 0.0
+        self._running = False
         self.canvas = tk.Canvas(
             self,
             width=size,
@@ -87,34 +72,39 @@ class LivingRadar(ctk.CTkFrame):
             start=self._angle, extent=28,
             style=tk.ARC, outline=T.ACCENT, width=2,
         )
-        # Blip
-        br = math.radians(self._sweep + 20)
-        bx = cx + (r * 0.62) * math.cos(br)
-        by = cy - (r * 0.62) * math.sin(br)
-        self.canvas.create_oval(bx - 3, by - 3, bx + 3, by + 3, fill=T.ACCENT_GLOW, outline="")
         self.canvas.create_text(
-            cx, cy, text="DV", fill=T.ACCENT_GLOW, font=("Segoe UI", 16, "bold"),
+            cx, cy, text="DV" if self._running else "WAIT", fill=T.ACCENT_GLOW if self._running else T.TEXT_DIM, font=("Segoe UI", 16, "bold"),
         )
 
+    def set_running(self, running: bool) -> None:
+        if self._running != bool(running):
+            self._running = bool(running)
+            self._redraw_radar()
+
     def _tick(self) -> None:
+        try:
+            if not self.winfo_viewable() or not self._running:
+                self.after(500, self._tick)
+                return
+        except Exception:
+            pass
         self._sweep = (self._sweep + 2.2) % 360
         self._angle = (self._angle - 1.1) % 360
         self._pulse += 0.12
         self._redraw_radar()
-        self.after(40, self._tick)
+        self.after(120, self._tick)
 
 
 class ActivityTicker(ctk.CTkFrame):
-    """Scrolling nerve activity — feels always busy, stays truthful."""
+    """The latest measured collector summary, without invented activity."""
 
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, height=36, **kwargs)
         self.pack_propagate(False)
-        self._lines = cycle(_NERVE_LINES)
         self._phase = 0
         self._label = ctk.CTkLabel(
             self,
-            text=next(self._lines),
+            text="Waiting for monitoring observations",
             font=T.FONT_MONO,
             text_color=T.ACCENT,
             anchor="w",
@@ -122,29 +112,21 @@ class ActivityTicker(ctk.CTkFrame):
         self._label.pack(fill="x", padx=12, pady=6)
         self._dot = ctk.CTkLabel(self, text="▸", font=T.FONT_MONO, text_color=T.ACCENT_GLOW)
         self._dot.place(relx=0.97, rely=0.5, anchor="e")
-        self._advance()
 
     def push(self, line: str) -> None:
         self._label.configure(text=line[:90], text_color=T.ACCENT_GLOW)
-        self.after(1200, lambda: self._label.configure(text_color=T.ACCENT))
-
-    def _advance(self) -> None:
-        self._phase = (self._phase + 1) % 2
-        self._dot.configure(text_color=T.ACCENT_GLOW if self._phase else T.ACCENT_DIM)
-        if self._phase == 0:
-            self._label.configure(text=next(self._lines))
-        self.after(1800, self._advance)
 
 
 class NerveRail(ctk.CTkFrame):
-    """Horizontal collector LEDs that chase — heartbeat / pulse / deep."""
+    """Collector indicators driven only by the shared observation states."""
 
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, fg_color="transparent", height=28, **kwargs)
         self.pack_propagate(False)
         self._idx = 0
         self._cells: list[ctk.CTkLabel] = []
-        names = ("HB", "PULSE", "NET", "PRIV", "SEC", "TWIN", "WHY")
+        names = ("HB", "PULSE", "NET", "PRIV", "SEC", "AUTH", "DEEP")
+        self._collector_names = ("heartbeat", "pulse", "connections", "privacy_guard", "security", "attacks", "capability")
         for name in names:
             cell = ctk.CTkLabel(
                 self,
@@ -158,18 +140,12 @@ class NerveRail(ctk.CTkFrame):
             )
             cell.pack(side="left", padx=3)
             self._cells.append(cell)
-        self._chase()
 
-    def _chase(self) -> None:
-        for i, cell in enumerate(self._cells):
-            if i == self._idx:
-                cell.configure(text_color=T.BG_DARK, fg_color=T.ACCENT)
-            elif i == (self._idx - 1) % len(self._cells):
-                cell.configure(text_color=T.ACCENT_GLOW, fg_color=T.BG_PANEL_ALT)
-            else:
-                cell.configure(text_color=T.TEXT_DIM, fg_color=T.BG_PANEL_ALT)
-        self._idx = (self._idx + 1) % len(self._cells)
-        self.after(420, self._chase)
+    def set_states(self, data: dict | None) -> None:
+        colors = {"ok": T.SUCCESS, "running": T.ACCENT, "error": T.DANGER,
+                  "deferred": T.WARNING, "partial": T.WARNING, "stale": T.WARNING}
+        for cell, name in zip(self._cells, self._collector_names):
+            cell.configure(text_color=colors.get(collector_state(data, name), T.TEXT_DIM), fg_color=T.BG_PANEL_ALT)
 
 
 class PressureGauge(ctk.CTkFrame):
@@ -178,7 +154,7 @@ class PressureGauge(ctk.CTkFrame):
     def __init__(self, master, title: str, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, **kwargs)
         self.title = title
-        self._value = 0.0
+        self._value: float | None = None
         self._display = 0.0
         self._size = 108
         self.canvas = tk.Canvas(
@@ -192,8 +168,12 @@ class PressureGauge(ctk.CTkFrame):
         self._redraw_gauge()
         self._ease()
 
-    def set_value(self, percent: float) -> None:
-        self._value = max(0.0, min(100.0, percent))
+    def set_value(self, percent: float | None) -> None:
+        self._value = max(0.0, min(100.0, percent)) if isinstance(percent, (int, float)) and not isinstance(percent, bool) and math.isfinite(percent) else None
+        self.val_lbl.configure(text="—" if self._value is None else f"{self._value:.0f}", text_color=T.TEXT_DIM if self._value is None else self._color_for(self._value))
+        if self._value is None:
+            self._display = 0.0
+            self._redraw_gauge()
 
     def _color_for(self, p: float) -> str:
         if p >= 90:
@@ -212,7 +192,7 @@ class PressureGauge(ctk.CTkFrame):
             cx - r, cy - r, cx + r, cy + r,
             start=200, extent=-220, style=tk.ARC, outline=T.BORDER, width=8,
         )
-        extent = -220 * (self._display / 100.0)
+        extent = -220 * (self._display / 100.0) if self._value is not None else 0
         color = self._color_for(self._display)
         self.canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
@@ -220,13 +200,21 @@ class PressureGauge(ctk.CTkFrame):
         )
 
     def _ease(self) -> None:
+        try:
+            if not self.winfo_viewable():
+                self.after(500, self._ease)
+                return
+        except Exception:
+            pass
         # Ease toward target so meters feel alive
+        if self._value is None:
+            self.after(500, self._ease)
+            return
         delta = self._value - self._display
         if abs(delta) > 0.15:
             self._display += delta * 0.18
-            self.val_lbl.configure(text=f"{self._display:.0f}", text_color=self._color_for(self._display))
             self._redraw_gauge()
-        self.after(50, self._ease)
+        self.after(150, self._ease)
 
 
 class ScanFeed(ctk.CTkFrame):
@@ -253,10 +241,19 @@ class ScanFeed(ctk.CTkFrame):
     def append(self, line: str) -> None:
         self.text.configure(state="normal")
         self.text.insert("end", line + "\n")
+        lines = int(self.text.index("end-1c").split(".")[0])
+        if lines > 600:
+            self.text.delete("1.0", f"{lines - 600}.0")
         self.text.see("end")
         self.text.configure(state="disabled")
 
     def _animate_scan(self) -> None:
+        try:
+            if not self.winfo_viewable():
+                self.after(500, self._animate_scan)
+                return
+        except Exception:
+            pass
         self._y += 0.012 * self._dir
         if self._y > 0.92:
             self._dir = -1
@@ -268,34 +265,26 @@ class ScanFeed(ctk.CTkFrame):
 
 
 class MatrixRow(ctk.CTkFrame):
-    """Protection matrix row with cycling SCAN → LIVE states."""
+    """Protection-matrix row bound to a REAL signal via set_state().
 
-    _STATES = ("IDLE", "SCAN", "LIVE", "SYNC")
+    No fake cycling: the state is only ever what the caller sets from the twin /
+    capability report / collector status (audit C3 honesty). Defaults to an
+    honest 'unknown' until data arrives.
+    """
 
-    def __init__(self, master, name: str, delay_ms: int = 0, **kwargs) -> None:
+    def __init__(self, master, name: str, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, **kwargs)
         self.name = name
-        self._i = random.randint(0, len(self._STATES) - 1)
         ctk.CTkLabel(self, text=name, font=T.FONT_BODY, text_color=T.TEXT).pack(
             side="left", padx=10, pady=8
         )
         self.state_lbl = ctk.CTkLabel(
-            self, text=self._STATES[self._i], font=T.FONT_MONO, text_color=T.ACCENT_DIM,
+            self, text="—", font=T.FONT_MONO, text_color=T.TEXT_DIM,
         )
         self.state_lbl.pack(side="right", padx=10, pady=8)
-        self.after(delay_ms + 800, self._cycle)
 
-    def _cycle(self) -> None:
-        self._i = (self._i + 1) % len(self._STATES)
-        st = self._STATES[self._i]
-        color = {
-            "IDLE": T.TEXT_DIM,
-            "SCAN": T.WARNING,
-            "LIVE": T.SUCCESS,
-            "SYNC": T.ACCENT_GLOW,
-        }[st]
-        self.state_lbl.configure(text=st, text_color=color)
-        self.after(1600 + random.randint(0, 900), self._cycle)
+    def set_state(self, text: str, color: str) -> None:
+        self.state_lbl.configure(text=text, text_color=color)
 
 
 class ClockMono(ctk.CTkLabel):

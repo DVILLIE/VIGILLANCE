@@ -15,7 +15,7 @@ _DNS_LABEL = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", re.I)
 def normalize_hostname(value: str | None) -> str | None:
     if not value:
         return None
-    h = value.strip().lower().rstrip(".")
+    h = value.strip().lower().removesuffix(".")
     if not h or " " in h:
         return None
     # IP literals are not hostnames for domain allowlists
@@ -26,7 +26,7 @@ def normalize_hostname(value: str | None) -> str | None:
         pass
     # Basic DNS shape (allow multi-label)
     labels = h.split(".")
-    if any(not _DNS_LABEL.match(lab) for lab in labels if lab):
+    if any(not _DNS_LABEL.match(lab) for lab in labels):
         return None
     if len(h) > 253:
         return None

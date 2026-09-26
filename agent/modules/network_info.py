@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import logging
-import re
 import socket
-import subprocess
 import urllib.request
+import ipaddress
 from dataclasses import dataclass, field
 
 import psutil
 
 from agent.store.db import AgentStore
-from agent.utils import IS_WINDOWS
+from agent.utils import IS_WINDOWS, run_powershell
 
 logger = logging.getLogger("dvielle.network")
 
@@ -34,6 +33,8 @@ class NetworkSnapshot:
     vpn_ip: str | None = None
     dns_servers: list[str] = field(default_factory=list)
     gateway: str | None = None
+    vpn_route_verified: bool | None = None
+    public_ip_lookup_enabled: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -45,6 +46,8 @@ class NetworkSnapshot:
             "vpn_ip": self.vpn_ip,
             "dns_servers": self.dns_servers,
             "gateway": self.gateway,
+            "vpn_route_verified": self.vpn_route_verified,
+            "public_ip_lookup_enabled": self.public_ip_lookup_enabled,
         }
 
 
@@ -59,8 +62,11 @@ def _collect_local_ips() -> tuple[list[str], str | None, str | None, str | None]
     vpn_adapter = None
     vpn_ip = None
 
+    stats = psutil.net_if_stats()
     for iface, addrs in psutil.net_if_addrs().items():
         if iface.lower().startswith("loopback") or iface == "lo":
+            continue
+        if iface not in stats or not stats[iface].isup:
             continue
         for addr in addrs:
             if addr.family != socket.AF_INET:
@@ -75,18 +81,15 @@ def _collect_local_ips() -> tuple[list[str], str | None, str | None, str | None]
 
     gateway = None
     try:
-        gws = psutil.net_if_stats()
         # default route via net_connections not ideal; parse route on Windows
         if IS_WINDOWS:
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).NextHop"],
-                capture_output=True, text=True, timeout=10,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
+            stdout, _ = run_powershell(
+                "(Get-NetRoute -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).NextHop",
+                timeout=10,
             )
-            gw = result.stdout.strip()
-            if gw and re.match(r"[\d.]+", gw):
-                gateway = gw
+            gw = (stdout or "").strip()
+            if gw:
+                gateway = str(ipaddress.ip_address(gw))
     except Exception:
         pass
 
@@ -102,9 +105,8 @@ def _fetch_public_ip(timeout: float = 5.0) -> str | None:
     for url in urls:
         try:
             with urllib.request.urlopen(url, timeout=timeout) as resp:
-                ip = resp.read().decode().strip()
-                if re.match(r"^[\d.a-fA-F:]+$", ip):
-                    return ip
+                ip = resp.read(128).decode().strip()
+                return str(ipaddress.ip_address(ip))
         except Exception:
             continue
     return None
@@ -125,22 +127,18 @@ Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
   Select-Object -Unique
 """
     try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
-            capture_output=True, text=True, timeout=15,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
-        )
-        servers = [s.strip() for s in result.stdout.splitlines() if s.strip()]
+        stdout, _ = run_powershell(ps, timeout=15)
+        servers = [s.strip() for s in (stdout or "").splitlines() if s.strip()]
         return list(dict.fromkeys(servers))
     except Exception:
         return []
 
 
-def collect_network_snapshot() -> NetworkSnapshot:
+def collect_network_snapshot(*, allow_public_ip: bool = False) -> NetworkSnapshot:
     hostname = socket.gethostname()
     local_ips, vpn_adapter, vpn_ip, gateway = _collect_local_ips()
     dns_servers = _fetch_dns_servers()
-    public_ip = _fetch_public_ip()
+    public_ip = _fetch_public_ip() if allow_public_ip else None
 
     vpn_active = vpn_adapter is not None and vpn_ip is not None
 
@@ -163,22 +161,24 @@ def collect_network_snapshot() -> NetworkSnapshot:
         vpn_ip=vpn_ip,
         dns_servers=dns_servers,
         gateway=gateway,
+        public_ip_lookup_enabled=allow_public_ip,
     )
 
 
 class NetworkMonitor:
-    def __init__(self, store: AgentStore) -> None:
+    def __init__(self, store: AgentStore, config: dict | None = None) -> None:
         self.store = store
         self._last: NetworkSnapshot | None = None
+        self.allow_public_ip = (config or {}).get("network", {}).get("allow_public_ip_lookup", False) is True
 
     def run(self) -> NetworkSnapshot:
-        snap = collect_network_snapshot()
+        snap = collect_network_snapshot(allow_public_ip=self.allow_public_ip)
         self._last = snap
 
         self.store.log_event(
             "network",
             "INFO",
-            f"Network scan: public={snap.public_ip} vpn={snap.vpn_active} dns={len(snap.dns_servers)}",
+            f"Network observation: public={snap.public_ip} VPN-like adapter={snap.vpn_active} dns={len(snap.dns_servers)}",
             snap.to_dict(),
         )
 

@@ -47,17 +47,20 @@ class PolicyGate:
         self.auto_enabled = auto_enabled
         self._issued: set[tuple[str, str, str]] = set()
 
-    def issue(self, finding_id: str, handler: str, *, auto: bool) -> AuthToken:
+    def issue(self, finding_id: str, handler: str, *, auto: bool, subject: str = "") -> AuthToken:
         if handler_is_denied(handler):
             raise PolicyDenied("that action is on the denylist")
+        subject = str(subject or "")
         if auto:
             if not self.auto_enabled:
                 raise PolicyDenied("auto-protect is off")
             if handler not in AUTO_HANDLERS:
                 raise PolicyDenied("that action is not in the published auto-protect set")
+            if not subject.strip():
+                raise PolicyDenied("auto-protect requires an exact subject")
         elif handler not in USER_HANDLERS:
             raise PolicyDenied("that action is not an approved handler")
-        token = AuthToken(finding_id, handler, uuid.uuid4().hex)
+        token = AuthToken(finding_id, handler, uuid.uuid4().hex, auto=auto, subject=subject)
         self._issued.add((token.finding_id, token.handler, token.nonce))
         return token
 

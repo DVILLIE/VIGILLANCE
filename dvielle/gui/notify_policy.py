@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
-_minimized_to_tray = False
+_mode = "headless"
+
+
+def set_notification_mode(mode: str) -> None:
+    """Headless and tray owners deliver critical alerts; visible console uses its feed."""
+    if mode not in {"headless", "visible", "tray"}:
+        raise ValueError(f"Unknown notification mode: {mode}")
+    global _mode
+    _mode = mode
 
 
 def set_minimized_to_tray(value: bool) -> None:
-    global _minimized_to_tray
-    _minimized_to_tray = value
+    set_notification_mode("tray" if value else "visible")
 
 
 def is_minimized_to_tray() -> bool:
-    return _minimized_to_tray
+    return _mode == "tray"
 
 
 def should_popup(severity: str = "INFO") -> bool:
     """When minimized: only CRITICAL popups. When visible: no popups (feed only)."""
-    if _minimized_to_tray:
-        return severity.upper() == "CRITICAL"
-    return False
+    return _mode in {"headless", "tray"} and severity.upper() == "CRITICAL"
