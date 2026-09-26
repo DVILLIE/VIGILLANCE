@@ -131,8 +131,13 @@ def run_once(
         health["ram_percent"] = ram.percent
         health["ram_available_mb"] = ram.available_mb
 
+    advice_list = []
+    disks = []
+    sec = None
+
     if modules.get("resource_advisor", True):
-        for advice in ResourceAdvisor(store, config).run():
+        advice_list = ResourceAdvisor(store, config).run()
+        for advice in advice_list:
             if enable_toasts:
                 show_toast(
                     f"DVielle — {advice.resource}",
@@ -190,6 +195,17 @@ def run_once(
 
     if health:
         store.log_health_snapshot(health)
+
+    from agent.engine.service import collect_startup_items, ingest_monitors
+
+    ingest_monitors(
+        store,
+        security=sec,
+        advice=advice_list,
+        disks=disks,
+        startup_items=collect_startup_items(),
+        collect_live=True,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

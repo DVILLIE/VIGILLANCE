@@ -122,6 +122,19 @@ class AgentStore:
 
                 CREATE INDEX IF NOT EXISTS idx_work_log_ts ON work_log(ts);
 
+                CREATE TABLE IF NOT EXISTS findings (
+                    id TEXT PRIMARY KEY,
+                    pillar TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    subject_identity TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_findings_subject
+                    ON findings(pillar, subject_identity, kind, status);
+
                 CREATE TABLE IF NOT EXISTS agent_cursors (
                     key TEXT PRIMARY KEY,
                     value INTEGER NOT NULL,
@@ -448,3 +461,60 @@ class AgentStore:
             "browser_threat_events": int(browser_warn["n"] if browser_warn else 0),
             "attack_events": int(attack_warn["n"] if attack_warn else 0),
         }
+
+    def save_finding(self, finding: dict[str, Any]) -> None:
+        payload = json.dumps(finding, sort_keys=True)
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO findings (id, pillar, kind, subject_identity, status, payload, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    status=excluded.status,
+                    payload=excluded.payload,
+                    updated_at=excluded.updated_at,
+                    subject_identity=excluded.subject_identity
+                """,
+                (
+                    finding["id"],
+                    finding["pillar"],
+                    finding["kind"],
+                    finding["subject_identity"],
+                    finding["resolution_status"],
+                    payload,
+                    finding["updated_at"],
+                ),
+            )
+
+    def get_finding(self, finding_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute("SELECT payload FROM findings WHERE id = ?", (finding_id,)).fetchone()
+        if row is None:
+            return None
+        return json.loads(row["payload"])
+
+    def find_active_finding(self, pillar: str, subject: str, kind: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT payload FROM findings
+                WHERE pillar = ? AND subject_identity = ? AND kind = ?
+                  AND status IN ('found', 'in_progress', 'monitoring')
+                ORDER BY updated_at DESC LIMIT 1
+                """,
+                (pillar, subject, kind),
+            ).fetchone()
+        if row is None:
+            return None
+        return json.loads(row["payload"])
+
+    def list_open_findings(self) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT payload FROM findings
+                WHERE status IN ('found', 'in_progress', 'monitoring')
+                ORDER BY updated_at
+                """
+            ).fetchall()
+        return [json.loads(row["payload"]) for row in rows]
