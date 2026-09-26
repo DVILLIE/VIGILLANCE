@@ -12,6 +12,7 @@ from agent.engine.observations import (
     from_speed_sample,
     startup_observations,
 )
+from agent.engine.watch import observation_from_camera, observation_from_egress
 from agent.learn.memory import SafetyBaseline
 from agent.modules.resource_advisor import SYSTEM_PROTECTED
 from agent.store.db import AgentStore
@@ -21,10 +22,29 @@ def engine_for(store: AgentStore, **kwargs) -> ResolutionEngine:
     return ResolutionEngine(store, **kwargs)
 
 
-def ingest_monitors(store: AgentStore, *, security=None, advice=None, disks=None, startup_items=None) -> list[dict]:
-    """Feed one cycle into the engine. Does not close apps or delete files by itself."""
+def ingest_monitors(
+    store: AgentStore,
+    *,
+    security=None,
+    advice=None,
+    disks=None,
+    startup_items=None,
+    egress_facts=None,
+    camera_facts=None,
+    collect_live: bool = False,
+) -> list[dict]:
+    """Feed one cycle into the engine. Does not close apps, block networks, or delete files by itself."""
     engine = engine_for(store)
     results: list[dict] = []
+    if collect_live:
+        if egress_facts is None:
+            from agent.modules.egress_watch import collect_egress_facts
+
+            egress_facts = collect_egress_facts()
+        if camera_facts is None:
+            from agent.modules.camera_guard import collect_camera_holders
+
+            camera_facts = collect_camera_holders()
     if security is not None:
         for obs in from_security(security):
             results.append(engine.evaluate(obs))
@@ -37,6 +57,14 @@ def ingest_monitors(store: AgentStore, *, security=None, advice=None, disks=None
     if startup_items is not None:
         baseline = SafetyBaseline(engine.memory.learn_dir / "baseline_safety.txt")
         for obs in startup_observations(startup_items, baseline, engine.memory, engine.now()):
+            results.append(engine.evaluate(obs))
+    for fact in egress_facts or []:
+        obs = observation_from_egress(fact)
+        if obs is not None:
+            results.append(engine.evaluate(obs))
+    for fact in camera_facts or []:
+        obs = observation_from_camera(fact)
+        if obs is not None:
             results.append(engine.evaluate(obs))
     return results
 

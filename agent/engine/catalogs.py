@@ -150,6 +150,99 @@ def storage_options() -> list[Option]:
     ]
 
 
+def privacy_options() -> list[Option]:
+    return [
+        _learn(
+            "keep_on",
+            "Allow this app's internet (keep on)",
+            "Remember this app as allowed. Next time it is actually open and talking, DVielle stays quiet.",
+            "allow",
+            "monitoring",
+        ),
+        _mutate(
+            "block_network",
+            "Block this app's network",
+            "Add a per-app outbound block only after an identity check. If that cannot be done, nothing is blocked.",
+            "privacy.block_network",
+        ),
+        _guide(
+            "open_settings",
+            "Open privacy / firewall settings",
+            "Point you at privacy and firewall settings. DVielle does not claim traffic stopped.",
+            "privacy.open_settings",
+        ),
+        _not_now(),
+        _never("Never for this", "Stop nagging about this app's internet. A quiet log line remains."),
+        _why(),
+    ]
+
+
+def ai_options() -> list[Option]:
+    return [
+        _learn(
+            "keep_on",
+            "Allow this AI app (keep on)",
+            "Remember this AI app as allowed while it is actually open. A different app still asks.",
+            "allow",
+            "monitoring",
+        ),
+        _mutate(
+            "block_network",
+            "Block this AI app's internet",
+            "Add a per-app outbound block only after an identity check. This does not prove a model was trained.",
+            "ai.block_network",
+        ),
+        _guide(
+            "open_settings",
+            "Open improve-the-model / privacy settings",
+            "Open a settings link when one is reachable. DVielle does not change the model setting itself.",
+            "ai.open_settings",
+        ),
+        _not_now(),
+        _never("Never for this", "Stop nagging about this AI app. A quiet log line remains."),
+        _why(),
+    ]
+
+
+def camera_options() -> list[Option]:
+    return [
+        _learn(
+            "keep_on",
+            "Allow this app (keep on)",
+            "Remember this app as allowed to use the camera when it is actually open.",
+            "allow",
+            "monitoring",
+        ),
+        _mutate(
+            "stop_camera",
+            "Stop this app's camera use",
+            "Close this app only if its identity still matches. The whole camera is not switched off.",
+            "camera.stop_use",
+        ),
+        _guide(
+            "revoke_app",
+            "Turn off camera access for this app",
+            "Open this app's camera privacy settings when the system allows. DVielle does not disable every camera.",
+            "camera.open_app_settings",
+        ),
+        _guide(
+            "cover_reminder",
+            "Remind me to cover the lens",
+            "Show a cover or shutter reminder. Nothing is switched off and no picture is stored.",
+            "camera.cover_reminder",
+        ),
+        _guide(
+            "system_off",
+            "Turn camera off in system settings",
+            "Open system camera privacy settings. DVielle does not flip that switch by itself.",
+            "camera.open_system_settings",
+        ),
+        _not_now(),
+        _never("Never warn for this app", "Stop nagging about this app's camera use. A quiet log line remains."),
+        _why(),
+    ]
+
+
 def _stub(pillar_label: str) -> list[Option]:
     return [
         _learn("allow", f"Allow — keep on ({pillar_label})", "Remember this subject as allowed.", "allow", "monitoring"),
@@ -165,10 +258,10 @@ CATALOGS = {
     ("safety", "new_startup"): safety_startup_options,
     ("speed", "resource_hog"): speed_options,
     ("storage", "safe_temp"): storage_options,
-    ("privacy", "unexpected_egress"): lambda: _stub("privacy"),
-    ("ai_data", "unexpected_upload"): lambda: _stub("AI"),
+    ("privacy", "unexpected_egress"): privacy_options,
+    ("ai_data", "unexpected_upload"): ai_options,
     ("footprint", "exposure"): lambda: _stub("footprint"),
-    ("camera", "camera_use"): lambda: _stub("camera"),
+    ("camera", "camera_use"): camera_options,
 }
 
 

@@ -17,6 +17,14 @@ USER_HANDLERS = frozenset(
         "storage.free_safe_temp",
         "storage.preview",
         "storage.empty_recycle",
+        "privacy.block_network",
+        "privacy.open_settings",
+        "ai.block_network",
+        "ai.open_settings",
+        "camera.stop_use",
+        "camera.open_app_settings",
+        "camera.open_system_settings",
+        "camera.cover_reminder",
     }
 )
 AUTO_HANDLERS = frozenset({"safety.turn_protection_on", "storage.free_safe_temp"})

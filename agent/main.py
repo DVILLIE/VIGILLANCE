@@ -185,6 +185,7 @@ def run_once(
         advice=advice_list,
         disks=disks,
         startup_items=collect_startup_items(),
+        collect_live=True,
     )
 
 

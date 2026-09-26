@@ -7,12 +7,15 @@ from pathlib import Path
 from typing import Callable
 
 from agent.engine.models import AuthToken, PolicyDenied
+from agent.engine.net_block import block_app_network
 from agent.engine.policy import PolicyGate, handler_is_denied
 from agent.engine.temp_clean import free, scan
 from agent.modules.resource_advisor import SYSTEM_PROTECTED, close_process
 
 Lookup = Callable[[int], tuple[str, str] | None]
 Closer = Callable[[int, str], tuple[bool, str]]
+Blocker = Callable[[str, str], tuple[bool, str]]
+Opener = Callable[[str], tuple[bool, str]]
 
 
 @dataclass
@@ -24,6 +27,8 @@ class HandlerContext:
     trash_root: Path | None = None
     locked_paths: set[str] = field(default_factory=set)
     os_family: str = ""
+    block_app: Blocker | None = None
+    open_os: Opener | None = None
 
 
 class HandlerRegistry:
@@ -54,6 +59,14 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("storage.preview", preview_temp)
     registry.register("storage.free_safe_temp", free_temp)
     registry.register("storage.empty_recycle", empty_recycle)
+    registry.register("privacy.block_network", block_network)
+    registry.register("privacy.open_settings", open_privacy_settings)
+    registry.register("ai.block_network", block_network)
+    registry.register("ai.open_settings", open_ai_settings)
+    registry.register("camera.stop_use", smart_close)
+    registry.register("camera.open_app_settings", open_camera_app_settings)
+    registry.register("camera.open_system_settings", open_camera_system_settings)
+    registry.register("camera.cover_reminder", cover_reminder)
 
 
 def _result(performed: bool, message: str, *, reversible: str = "no") -> dict:
@@ -186,3 +199,78 @@ def default_lookup(pid: int) -> tuple[str, str] | None:
 
 def default_close(pid: int, name: str) -> tuple[bool, str]:
     return close_process(pid, name)
+
+
+def block_network(finding: dict, ctx: HandlerContext) -> dict:
+    ok, message, _pid, name = _identity(finding, ctx)
+    if not ok:
+        text = message if "not stopped" in message.lower() else message.rstrip(".") + ". Traffic was not stopped."
+        return _result(False, text)
+    path = str((finding.get("signals") or {}).get("path") or "")
+    if ctx.block_app is not None:
+        performed, detail = ctx.block_app(name, path)
+    else:
+        performed, detail = block_app_network(name, path)
+    if performed and "does not prove" not in detail.lower():
+        detail = detail.rstrip(".") + ". This does not prove every connection already stopped."
+    if not performed and "not stopped" not in detail.lower():
+        detail = detail.rstrip(".") + ". Traffic was not stopped."
+    return _result(performed, detail, reversible="yes" if performed else "no")
+
+
+def _settings_message(target: str, *, launched: bool) -> str:
+    if target == "ai":
+        if launched:
+            return (
+                "Asked the system to open privacy settings. "
+                "That is not this app's own improve-the-model page. "
+                "DVielle did not change a model setting and did not prove any upload stopped."
+            )
+        return (
+            "No improve-the-model settings link is reachable from here. "
+            "DVielle did not change a model setting and did not prove any upload stopped."
+        )
+    if target.startswith("camera"):
+        if launched:
+            return (
+                "Asked the system to open camera privacy settings. "
+                "DVielle did not turn the camera off and stored no picture."
+            )
+        return "Could not open camera privacy settings. The camera was not turned off and no picture was stored."
+    if launched:
+        return "Asked the system to open privacy and firewall settings. DVielle did not prove traffic stopped."
+    return "Could not open privacy and firewall settings from here. DVielle did not prove traffic stopped."
+
+
+def _open_target(ctx: HandlerContext, target: str) -> dict:
+    launched = False
+    if ctx.open_os is not None:
+        try:
+            launched, _detail = ctx.open_os(target)
+        except OSError:
+            launched = False
+    return _result(False, _settings_message(target, launched=bool(launched)))
+
+
+def open_privacy_settings(finding: dict, ctx: HandlerContext) -> dict:
+    return _open_target(ctx, "privacy")
+
+
+def open_ai_settings(finding: dict, ctx: HandlerContext) -> dict:
+    return _open_target(ctx, "ai")
+
+
+def open_camera_app_settings(finding: dict, ctx: HandlerContext) -> dict:
+    return _open_target(ctx, "camera_app")
+
+
+def open_camera_system_settings(finding: dict, ctx: HandlerContext) -> dict:
+    return _open_target(ctx, "camera_system")
+
+
+def cover_reminder(finding: dict, ctx: HandlerContext) -> dict:
+    return _result(
+        False,
+        "A physical cover or shutter is still the surest way to make sure nobody sees you. "
+        "DVielle did not turn the camera off and stored no picture.",
+    )
