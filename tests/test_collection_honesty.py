@@ -13,16 +13,35 @@ from agent.store.db import AgentStore
 
 
 def test_microsoft_access_denial_is_unavailable(tmp_path, monkeypatch):
+    """Access denial stays partial. Host processes must not inject TelemetryAlerts."""
     monkeypatch.setattr("agent.modules.microsoft_guard.IS_WINDOWS", True)
 
     def denied(**_kwargs):
         raise psutil.AccessDenied(pid=0)
 
+    scanned = {"processes": 0}
+
+    def no_live_processes(*_args, **_kwargs):
+        # PhoneExperienceHost.exe and the rest of TELEMETRY_PROCESSES stay off this test.
+        scanned["processes"] += 1
+        return iter(())
+
     monkeypatch.setattr("agent.modules.microsoft_guard.psutil.net_connections", denied)
+    monkeypatch.setattr("agent.modules.microsoft_guard.psutil.process_iter", no_live_processes)
     guard = MicrosoftGuard(AgentStore(tmp_path / "agent.db"), {}, tmp_path / "domains.txt", tmp_path, [])
     assert guard.run() == []
+    assert scanned["processes"] == 1
     assert guard.collection_error
     assert "unavailable" in guard.collection_error
+
+    # Real guard, same stubs. Losing collection_error or the runtime raise fails here.
+    callbacks = _collector_callbacks(
+        AgentStore(tmp_path / "runtime.db"), {}, {}, tmp_path / "domains.txt", tmp_path,
+        {"enable_toasts": False}, None, None,
+    )
+    with pytest.raises(CollectionIncomplete, match="unavailable"):
+        callbacks["microsoft_guard"]()
+    assert scanned["processes"] == 2
 
 
 def test_runtime_publishes_microsoft_denial_as_partial(tmp_path, monkeypatch):
