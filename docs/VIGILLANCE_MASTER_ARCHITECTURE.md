@@ -156,7 +156,7 @@ Binding for audits, PRs, and engineering passes:
 |-------|--------|-------|
 | `scripts/harden-once.ps1` | **REDESIGN** | Remains optional Level-4 surgery with restore point. Never day-one auto. Honesty on Home telemetry floor. |
 | `scripts/block-telemetry-firewall.ps1` | **RESTRICT** | Expert/allowlisted only; Update-safe lists must stay. |
-| `scripts/block-ip.ps1` | **KEEP** | Level-4/5 only after policy. |
+| `scripts/block-ip.ps1` | **DEMOTED** | Not a product protection surface and not called by DualGate. Exit 0 only after the live rule is verified to block the requested address. |
 | `installer/install-dvielle.ps1` Defender `ExclusionPath` | **REMOVE** | Weakens trust boundary; security product must not carve itself out of Defender by default. |
 | Headless scheduled task | **KEEP** | Correct runtime shape. |
 

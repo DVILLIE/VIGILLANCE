@@ -1,6 +1,6 @@
 # DVielle — DEEP VIGILANCE
 
-DVielle is a Windows-primary local guardian. Linux and macOS run in limited mode. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 1.7 unifies keep-on options with a fail-closed Cortex gate: every firewall change, temp delete, startup disable, smart close, and IP block needs both an options-card choice (or published auto-protect for that exact subject) and a typed Cortex action.
+DVielle is a Windows-primary local guardian. Linux and macOS run in limited mode. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 1.7.1 keeps the 1.7.0 dual gate and fails closed when a mutate decision is not saved, when a collection probe fails, or when an install would run elevated code from a writable directory. The resident scheduled task stays Limited. A Highest task is an explicit installer option only after the install directory is locked down, and elevated unattended use is not recommended until that lockdown is proven on the target Windows PC.
 
 The native console attaches to the background agent. Its values and activity come from measured state; unavailable or stale evidence is shown explicitly. Monitoring runs autonomously. Closing an application still requires a fresh process identity and explicit confirmation; automatic file cleanup, firewall changes and RAM trimming are disabled.
 
