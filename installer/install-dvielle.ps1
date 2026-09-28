@@ -2,7 +2,14 @@
 <# Install with the vetted Python 3.12 runtime. This script changes the system only when run explicitly. #>
 param(
     [string]$SourceRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$InstallDir = 'C:\DVILLIE'
+    [string]$InstallDir = 'C:\DVILLIE',
+    # Limited is TASK_RUNLEVEL_LUA (least privileges). Highest is TASK_RUNLEVEL_HIGHEST.
+    # https://learn.microsoft.com/en-us/windows/win32/taskschd/principal-runlevel
+    # https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/new-scheduledtaskprincipal
+    # Default stays Limited. Highest is explicit and is not recommended for unattended
+    # use until Protect-DvielleInstallForElevation has been proven on that Windows PC.
+    [ValidateSet('Limited', 'Highest')]
+    [string]$RunLevel = 'Limited'
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
@@ -91,15 +98,26 @@ foreach ($subcategory in @('{0CCE9215-69AE-11D9-BED3-505054503030}', '{0CCE923F-
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
 $settings = New-ScheduledTaskSettingsSet -Disable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
 $settings.ExecutionTimeLimit = 'PT0S'
-# Resident task runs Limited. Highest is not the default.
-# Elevation is only the explicit installer/uninstall path in elevate.ps1 (RunAs).
-$principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
+# Resident task RunLevel defaults to Limited (least privileges / LUA).
+# elevate.ps1 RunAs only elevates this installer process. It does not set the
+# resident task to Highest. A Highest task runs the caller's elevated token
+# (TASK_RUNLEVEL_HIGHEST). Code under that task must not be writable by
+# Authenticated Users or Users. If lockdown fails, do not create or enable it.
+# https://learn.microsoft.com/en-us/windows/win32/taskschd/principal-runlevel
+# https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks
+if ($RunLevel -eq 'Highest') {
+    if (-not (Protect-DvielleInstallForElevation -Root $InstallDir)) {
+        throw 'Refusing to create or enable a Highest scheduled task because install-directory ACL lockdown failed.'
+    }
+}
+$principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel $RunLevel
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
 $action = New-ScheduledTaskAction -Execute $pythonw -Argument '-m agent.main' -WorkingDirectory $InstallDir
 Register-ScheduledTask -TaskName 'DVielle' -TaskPath '\' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'DVielle resident monitor' -Force | Out-Null
 $registered = Get-ScheduledTask -TaskName 'DVielle' -TaskPath '\'
 if ($registered.Settings.ExecutionTimeLimit -ne 'PT0S' -or $registered.Settings.MultipleInstances -ne 'IgnoreNew' -or
     $registered.Settings.RestartCount -ne 3 -or
+    [string]$registered.Principal.RunLevel -ne $RunLevel -or
     -not (Test-DvielleTaskOwner $registered $InstallDir)) {
     Disable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
     throw 'Registered task settings did not match the resident-agent safety requirements; task disabled.'
@@ -137,12 +155,25 @@ Set-ItemProperty -Path $regPath -Name UninstallString -Value ('"' + (Join-Path $
 # Scheduler owns the only launch; no extra unmanaged Start-Process instance.
 Push-Location $InstallDir
 try {
+    if ($RunLevel -eq 'Highest' -and -not (Test-DvielleElevatedTree -Root $InstallDir)) {
+        Unregister-ScheduledTask -TaskName 'DVielle' -TaskPath '\' -Confirm:$false
+        throw 'Refusing to enable a Highest scheduled task because ACL verification failed after registration.'
+    }
     Enable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
     Start-ScheduledTask -TaskName 'DVielle' -TaskPath '\'
     Invoke-DvielleNative $python @('scripts\verify_runtime.py', '--config-dir', (Join-Path $InstallDir 'config'), '--timeout', '30')
 } catch {
-    Disable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' | Out-Null
-    Write-Warning 'The resident heartbeat could not be verified. Startup is disabled; inspect data\logs before retrying.'
+    # ACL refusal already unregistered the task. Disable only if it still exists,
+    # and do not relabel that refusal as a heartbeat failure. $ErrorActionPreference
+    # is Stop, so Disable on a missing task would replace the original error.
+    $reason = [string]$_.Exception.Message
+    $existing = Get-ScheduledTask -TaskName 'DVielle' -TaskPath '\' -ErrorAction SilentlyContinue
+    if ($existing) {
+        Disable-ScheduledTask -TaskName 'DVielle' -TaskPath '\' -ErrorAction SilentlyContinue | Out-Null
+    }
+    if ($reason -notlike 'Refusing to *Highest*') {
+        Write-Warning 'The resident heartbeat could not be verified. Startup is disabled; inspect data\logs before retrying.'
+    }
     throw
 } finally { Pop-Location }
 Write-Host 'Installation checks passed and a current resident heartbeat was verified. Open the desktop shortcut for the console.' -ForegroundColor Green
