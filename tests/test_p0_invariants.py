@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sqlite3
 
 import pytest
 
@@ -167,7 +168,7 @@ def test_low_confidence_l3_refused() -> None:
 
 
 def test_executor_accepts_valid_decision_via_registry(store: AgentStore) -> None:
-    cortex = PolicyCortex()
+    cortex = PolicyCortex(store=store)
     d = _restrict_decision(cortex)
     assert d is not None
     ex = ActionExecutor(store)
@@ -192,7 +193,7 @@ def test_executor_accepts_valid_decision_via_registry(store: AgentStore) -> None
 
 
 def test_executor_rejects_without_registered_handler(store: AgentStore) -> None:
-    cortex = PolicyCortex()
+    cortex = PolicyCortex(store=store)
     d = _restrict_decision(cortex)
     assert d is not None
     ex = ActionExecutor(store)
@@ -217,7 +218,7 @@ def test_executor_rejects_arbitrary_action_string() -> None:
 
 
 def test_replay_survives_new_executor_instance(store: AgentStore) -> None:
-    cortex = PolicyCortex()
+    cortex = PolicyCortex(store=store)
     d = _restrict_decision(cortex)
     assert d is not None
 
@@ -267,7 +268,7 @@ def test_cannot_register_non_mutating_handler(store: AgentStore) -> None:
 
 
 def test_user_approved_block_ip_issues(store: AgentStore) -> None:
-    cortex = PolicyCortex()
+    cortex = PolicyCortex(store=store)
     d = cortex.issue(
         action=ActionKind.BLOCK_IP,
         action_level=LEVEL_ADMIN,
@@ -292,6 +293,43 @@ def test_user_approved_block_ip_issues(store: AgentStore) -> None:
     ok, _ = ex.execute(d)
     assert ok is True
     assert seen == ["203.0.113.50"]
+
+
+def test_handler_cannot_run_without_saved_decision(store: AgentStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(_decision: dict) -> None:
+        raise sqlite3.OperationalError("readonly")
+
+    monkeypatch.setattr(store, "log_decision", boom)
+    issued = _restrict_decision(PolicyCortex(store=store))
+    assert issued is None
+    called = {"n": 0}
+
+    def mut(_req: ActionRequest) -> tuple[bool, str]:
+        called["n"] += 1
+        return True, "should_not_run"
+
+    from agent.policy.cortex import Decision
+
+    forged = Decision(
+        decision_id="never-saved",
+        finding_id=None,
+        action=ActionKind.RESTRICT_NETWORK.value,
+        action_level=LEVEL_REVERSIBLE,
+        confidence=0.95,
+        evidence_summary=["evidence"],
+        authorization=Authorization.AUTOMATIC_POLICY.value,
+        policy_ref="test",
+        target="dosvc",
+        reversible=True,
+        rollback_plan="undo",
+        initiator="test",
+    )
+    ex = ActionExecutor(store)
+    ex.register(ActionKind.RESTRICT_NETWORK, mut)
+    ok, msg = ex.execute(forged)
+    assert ok is False
+    assert called["n"] == 0
+    assert "durable decision record missing" in msg
 
 
 def test_cursor_advances_only_via_store(store: AgentStore) -> None:

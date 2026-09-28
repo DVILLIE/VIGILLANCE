@@ -101,24 +101,53 @@ class Decision:
 class PolicyCortex:
     """Issues Decision IDs. Does not mutate Windows itself.
 
-    When constructed with a store, every issued Level>=2 Decision is persisted to
-    the durable ``decisions`` table so the WHY surface can render the evidence
-    chain. Persistence never gates issuance (a store error must not lose the
-    decision object the caller relies on).
+    When constructed with a store, every issued Level>=2 Decision is written to
+    the durable ``decisions`` table. Level 2 persistence is best-effort so a
+    ledger error does not drop an in-memory recommendation. Level>=3 (mutate)
+    is fail-closed: if the row is not saved, ``issue`` returns None and
+    ``ActionExecutor`` will not run a handler.
     """
 
     def __init__(self, store: AgentStore | None = None) -> None:
         self.store = store
 
-    def _persist(self, decision: Decision | None) -> None:
-        if decision is None or self.store is None:
+    def _record_matches(self, decision: Decision) -> bool:
+        if self.store is None:
+            return False
+        saved = self.store.decision_record(decision.decision_id)
+        if saved is None:
+            return False
+        evidence = saved["evidence"]
+        return (
+            saved["action"] == decision.action
+            and int(saved["action_level"]) == decision.action_level
+            and (saved["target"] or "") == (decision.target or "")
+            and evidence not in (None, "", "[]")
+        )
+
+    def _persist_recommendation(self, decision: Decision) -> None:
+        """Best-effort ledger write for Level 2. Does not gate the returned object."""
+        if self.store is None or decision.action_level < LEVEL_RECOMMEND:
             return
-        if decision.action_level < LEVEL_RECOMMEND:
-            return  # L0/L1 observe/explain are not recommendations
         try:
             self.store.log_decision(decision.to_dict())
-        except Exception:  # noqa: BLE001 — persistence must never break issuance
+        except Exception:  # noqa: BLE001 — L2 issuance stays available in memory
+            logger.exception("Failed to persist recommendation %s", decision.decision_id)
+
+    def _persist_mutating(self, decision: Decision) -> bool:
+        """True only when the decisions row matches this mutate decision."""
+        if self.store is None:
+            logger.warning("Cortex refused mutate: no durable store for %s", decision.decision_id)
+            return False
+        try:
+            self.store.log_decision(decision.to_dict())
+        except Exception:  # noqa: BLE001 — fail closed; do not continue into a handler
             logger.exception("Failed to persist decision %s", decision.decision_id)
+            return False
+        if not self._record_matches(decision):
+            logger.warning("Cortex refused mutate: saved row does not match %s", decision.decision_id)
+            return False
+        return True
 
     def issue(
         self,
@@ -231,7 +260,11 @@ class PolicyCortex:
             rollback_plan=rollback_plan,
             details=details,
         )
-        self._persist(decision)
+        if decision.action_level >= LEVEL_REVERSIBLE:
+            if not self._persist_mutating(decision):
+                return None
+        else:
+            self._persist_recommendation(decision)
         return decision
 
     def _mk(
@@ -337,6 +370,12 @@ class ActionExecutor:
             self._audit_reject(decision, "no_registered_handler")
             return False, f"REJECTED: no registered handler for {kind.value}"
 
+        # Durable evidence before claim and before the handler. A swallowed
+        # persist must not reach mutation.
+        if not self._decision_saved(decision):
+            self._audit_reject(decision, "decision_not_persisted")
+            return False, "REJECTED: durable decision record missing"
+
         claimed = self.store.claim_decision_id(
             decision.decision_id,
             {
@@ -396,6 +435,18 @@ class ActionExecutor:
             }
         )
         return ok, result
+
+    def _decision_saved(self, decision: Decision) -> bool:
+        saved = self.store.decision_record(decision.decision_id)
+        if saved is None:
+            return False
+        evidence = saved["evidence"]
+        return (
+            saved["action"] == decision.action
+            and int(saved["action_level"]) == int(decision.action_level)
+            and (saved["target"] or "") == (decision.target or "")
+            and evidence not in (None, "", "[]")
+        )
 
     def _audit_reject(self, decision: Decision | None, reason: str) -> None:
         self.store.log_action_audit(
