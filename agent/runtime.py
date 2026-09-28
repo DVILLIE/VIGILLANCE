@@ -29,7 +29,7 @@ from agent.ownership import RuntimeLease, RuntimeIntentionallyStopped, read_json
 from agent.policy import PolicyGate
 from agent.store.db import AgentStore
 from agent.twin import SelfBudget, TwinStore
-from agent.utils import (DEFAULT_DATA_DIR, INSTALL_ROOT, load_yaml, resolve_config_paths,
+from agent.utils import (load_yaml, resolve_config_paths, resolve_data_dir,
                          set_process_priority, setup_logging, show_toast)
 from agent.win_memory import memory_under_pressure
 from agent.workload import WorkloadTracker
@@ -43,17 +43,8 @@ def _utc() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _resolve_data_dir(config: dict) -> Path:
-    custom = config.get('agent', {}).get('data_dir')
-    return Path(custom).expanduser().resolve() if custom else DEFAULT_DATA_DIR.resolve()
-
-
 def load_runtime_config(config_dir: Path | None = None) -> tuple[dict, dict, Path]:
-    if config_dir is None:
-        config_path, whitelist_path, telemetry_path = resolve_config_paths(DEFAULT_DATA_DIR)
-    else:
-        config_path = config_dir / 'config.yaml'
-        whitelist_path, telemetry_path = config_dir / 'whitelists.yaml', config_dir / 'telemetry-domains.txt'
+    config_path, whitelist_path, telemetry_path = resolve_config_paths(config_dir)
     if not config_path.exists():
         raise FileNotFoundError(f'Missing agent config: {config_path}')
     config, whitelists = load_yaml(config_path), load_yaml(whitelist_path)
@@ -69,6 +60,17 @@ def load_runtime_config(config_dir: Path | None = None) -> tuple[dict, dict, Pat
         raise ValueError('network.allow_public_ip_lookup must be a YAML true/false boolean')
     default_intervals(config)
     return config, whitelists, telemetry_path
+
+
+def runtime_paths(config_dir: Path | None = None) -> tuple[dict, dict, Path, Path, Path]:
+    """One install identity for start, verify, stop, config, and data.
+
+    ``config_dir`` None means the tree that contains this code (``PROJECT_ROOT``).
+    A selected config directory wins over any other install that happens to exist.
+    """
+    config, whitelists, telemetry_path = load_runtime_config(config_dir)
+    install_root = telemetry_path.resolve().parent.parent
+    return config, whitelists, telemetry_path, install_root, resolve_data_dir(config, install_root)
 
 
 def _ingest_keep_on(store, observed: dict) -> None:
@@ -143,7 +145,10 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
 
     def advisor():
         p = provider('resource_advisor', lambda: ResourceAdvisor(store, config, cortex=cortex))
-        advice = list(p.run())
+        # Heartbeat already primed psutil on its own thread. A fresh advisor thread's
+        # cpu_percent(interval=0) is an unprimed 0.0, so reuse the timestamped sample.
+        system = (twin.as_dict().get('system') or {}) if twin else None
+        advice = list(p.run(system=system))
         observed["advice"] = advice
         for a in advice:
             toast(f'{a.headline}. {a.suggestion}')
@@ -193,12 +198,16 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
         p = provider('microsoft_guard', lambda: MicrosoftGuard(store, config, telemetry_file,
                     scripts_dir, whitelists.get('never_block_domains', []), cortex=cortex))
         p.run(monitor_only=True)
+        if getattr(p, 'collection_error', None):
+            raise CollectionIncomplete(p.collection_error)
 
     def network():
         p = provider('network_info', lambda: NetworkMonitor(store, config))
         snap = p.run()
         if twin:
             twin.patch(network={**snap.to_dict(), 'sampled_at': _utc()})
+        if getattr(p, 'collection_error', None):
+            raise CollectionIncomplete(p.collection_error)
 
     return dict(zip(COLLECTOR_NAMES, (connections, attacks, browser, ram, advisor,
                                      disk, security, privacy, network, microsoft)))
@@ -297,8 +306,7 @@ class Runtime:
 
 def build_runtime(config_dir: Path | None = None, *, on_pulse: Callable[[], None] | None = None,
                   previous_owner_token: str | None = None) -> Runtime:
-    config, whitelists, telemetry_path = load_runtime_config(config_dir)
-    data_dir = _resolve_data_dir(config)
+    config, whitelists, telemetry_path, install_root, data_dir = runtime_paths(config_dir)
     lease = RuntimeLease(data_dir)
     lease.acquire()  # before stores, collectors, logs, or priority changes
     try:
@@ -307,13 +315,13 @@ def build_runtime(config_dir: Path | None = None, *, on_pulse: Callable[[], None
             if (isinstance(previous, dict) and previous.get('owner_token') == previous_owner_token
                     and previous.get('state') in {'stopping', 'stopped'}):
                 raise RuntimeIntentionallyStopped('The previous owner stopped intentionally')
-        return _build_owned(config, whitelists, telemetry_path, data_dir, lease, on_pulse)
+        return _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lease, on_pulse)
     except BaseException:
         lease.release()
         raise
 
 
-def _build_owned(config, whitelists, telemetry_path, data_dir, lease, on_pulse):
+def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lease, on_pulse):
     log_cfg = config.get('logging', {})
     setup_logging(data_dir, level=log_cfg.get('level', 'INFO'),
                   max_mb=int(log_cfg.get('max_file_mb', 10)), backup_count=int(log_cfg.get('backup_count', 3)))
@@ -394,7 +402,7 @@ def _build_owned(config, whitelists, telemetry_path, data_dir, lease, on_pulse):
         twin.publish()
 
     observed: dict = {}
-    callbacks = _collector_callbacks(store, config, whitelists, telemetry_path, INSTALL_ROOT / 'scripts',
+    callbacks = _collector_callbacks(store, config, whitelists, telemetry_path, install_root / 'scripts',
                                       config.get('modes', {}), twin, policy, observed)
 
     def pulse():
@@ -436,8 +444,14 @@ def _build_owned(config, whitelists, telemetry_path, data_dir, lease, on_pulse):
         enabled = config.get('modules', {}).get(name, True)
         if name == 'microsoft_guard':
             enabled = enabled and config.get('modes', {}).get('enable_microsoft_guard', True)
+        # resource_advisor stays eligible during host pressure. It is background,
+        # not critical, and its cadence is floored in NervePlane so it cannot
+        # take the worker reserved for security collectors or spin the runtime.
+        pressure_response = name == 'resource_advisor'
         nerve.register(CollectorSpec(name, Cadence.PULSE, cadence, enabled=enabled, run=callback,
-                        background=True, critical=critical, defer_under_maximum_workload=not critical))
+                        background=True, critical=critical,
+                        defer_under_maximum_workload=not critical and not pressure_response,
+                        pressure_response=pressure_response))
         twin.collector_status(name, status='pending' if enabled else 'disabled', interval_seconds=cadence)
     # Summary is held-state persistence, not a global collection pass.
     nerve.register(CollectorSpec('pulse', Cadence.PULSE, intervals['pulse'], run=pulse, background=True))

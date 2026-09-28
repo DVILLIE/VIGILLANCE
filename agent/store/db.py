@@ -367,6 +367,20 @@ class AgentStore:
                 ),
             )
 
+    def decision_record(self, decision_id: str) -> sqlite3.Row | None:
+        """The durable decisions-ledger row, or None when it was not saved."""
+        if not decision_id:
+            return None
+        with self._conn() as conn:
+            return conn.execute(
+                """
+                SELECT decision_id, action, action_level, target, evidence
+                FROM decisions
+                WHERE decision_id = ?
+                """,
+                (decision_id,),
+            ).fetchone()
+
     def recent_decisions(self, limit: int = 50) -> list[sqlite3.Row]:
         with self._conn() as conn:
             return list(

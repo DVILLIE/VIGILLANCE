@@ -13,14 +13,14 @@ import psutil
 from agent.chat.assistant import ChatAssistant
 from agent.controller import AgentController
 from agent.modules.network_info import NetworkSnapshot
-from agent.runtime import load_runtime_config, _resolve_data_dir
+from agent.runtime import runtime_paths
 from agent.modules.resource_advisor import (
     AppGroup,
     get_app_groups,
     never_close_from_config,
 )
 from agent.store.db import AgentStore
-from agent.utils import DEFAULT_DATA_DIR, PROJECT_ROOT, load_yaml
+from agent.utils import PROJECT_ROOT, load_yaml
 from dvielle import APP_NAME, TAGLINE, VERSION
 from dvielle.brand import apply_tk_window_icon, brand_png, configure_windows_app_identity
 from dvielle.gui import theme as T
@@ -57,8 +57,7 @@ class DVielleApp:
             raise RuntimeError("customtkinter required")
 
         self.config_dir = config_dir or (PROJECT_ROOT / "config")
-        self._config, _, _ = load_runtime_config(self.config_dir)
-        self.data_dir = _resolve_data_dir(self._config)
+        self._config, _, _, _, self.data_dir = runtime_paths(self.config_dir)
         self._ui_events = queue.SimpleQueue()
         self._process_scan_running = False
         set_minimized_to_tray(False)
@@ -466,6 +465,15 @@ class DVielleApp:
         self._apply_window_icon(self._why_win)
         self._store.log_work("WHY", "Opened Why / evidence viewer")
 
+    def _observation_snapshot(self) -> dict | None:
+        twin = self.controller.twin if self._agent_started else None
+        if twin is None:
+            return None
+        try:
+            return twin.as_dict()
+        except Exception:
+            return None
+
     def _open_attacks(self) -> None:
         if self._attacks_win is not None:
             try:
@@ -487,6 +495,7 @@ class DVielleApp:
             self._store,
             review_window_hours=float(attacks_cfg.get("review_window_hours", 24)),
             summary_window_days=float(attacks_cfg.get("summary_window_days", 14)),
+            coverage=lambda: collector_state(self._observation_snapshot(), "attacks"),
         )
         self._apply_window_icon(self._attacks_win)
         self._store.log_work("ATTACKS", "Opened Attacks Console")

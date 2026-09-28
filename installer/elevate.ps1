@@ -8,6 +8,9 @@ if (Test-DvielleAdmin) {
     try { & $script; exit 0 } catch { Write-Error $_ -ErrorAction Continue; exit 1 }
 }
 # An explicitly launched installer is interactive; preserve its actual elevated exit code.
+# RunAs elevates this installer process only. The resident task stays Limited unless
+# install-dvielle.ps1 is invoked with -RunLevel Highest, and that path refuses to
+# create the task unless the install directory ACL lockdown succeeds.
 $arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $script + '"'
 try {
     $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -Verb RunAs -Wait -PassThru

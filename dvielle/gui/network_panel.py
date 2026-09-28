@@ -56,6 +56,15 @@ class NetworkPanel(ctk.CTkFrame):
             self._labels["vpn"].configure(text="No VPN-like adapter detected; route unverified", text_color=T.TEXT_DIM)
             self._labels["vpn_ip"].configure(text="—")
 
-        dns = ", ".join(snap.dns_servers[:4]) if snap.dns_servers else "—"
+        dns_state = getattr(snap, "dns_observation", "ok")
+        gateway_state = getattr(snap, "gateway_observation", "ok")
+        if dns_state != "ok":
+            dns = dns_state
+        else:
+            dns = ", ".join(snap.dns_servers[:4]) if snap.dns_servers else "none observed"
+        if gateway_state != "ok":
+            gateway = gateway_state
+        else:
+            gateway = snap.gateway or "none observed"
         self._labels["dns"].configure(text=dns)
-        self._labels["gateway"].configure(text=snap.gateway or "—")
+        self._labels["gateway"].configure(text=gateway)

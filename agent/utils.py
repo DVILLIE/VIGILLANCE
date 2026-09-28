@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ipaddress
 import logging
-import os
 import subprocess
 import sys
 import threading
@@ -14,33 +13,13 @@ from typing import Any, Iterable
 
 import yaml
 
-from dvielle import APP_NAME, DATA_DIR_NAME, WINDOWS_DATA_DIR, WINDOWS_INSTALL_DIR
-
 IS_WINDOWS = sys.platform == "win32"
 
+# Identity is the tree that supplied this code, or the config directory the
+# caller selected. C:\DVILLIE is only the installer default, never a silent fallback.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-def _default_data_dir() -> Path:
-    if IS_WINDOWS:
-        # Installed layout: C:\DVILLIE\data
-        if Path(WINDOWS_DATA_DIR).exists() or Path(WINDOWS_INSTALL_DIR).exists():
-            return Path(WINDOWS_DATA_DIR)
-        base = Path(os.environ.get("PROGRAMDATA", "C:/ProgramData"))
-        dvielle = base / DATA_DIR_NAME
-        # Legacy ProgramData path from pre-rebrand installs
-        legacy = base / "FortoroAgent"
-        if legacy.exists() and not dvielle.exists():
-            return legacy
-        return Path(WINDOWS_DATA_DIR)
-    return PROJECT_ROOT / "data"
-
-def _default_project_root() -> Path:
-    if IS_WINDOWS and Path(WINDOWS_INSTALL_DIR).exists():
-        return Path(WINDOWS_INSTALL_DIR)
-    return PROJECT_ROOT
-
-DEFAULT_DATA_DIR = _default_data_dir()
-INSTALL_ROOT = _default_project_root()
+DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
+INSTALL_ROOT = PROJECT_ROOT
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -50,20 +29,44 @@ def load_yaml(path: Path) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
-def resolve_config_paths(data_dir: Path | None = None) -> tuple[Path, Path, Path]:
-    base = data_dir or DEFAULT_DATA_DIR
-    install_config = INSTALL_ROOT / "config" / "config.yaml"
-    if install_config.exists():
-        config_dir = INSTALL_ROOT / "config"
-    elif (base / "config" / "config.yaml").exists():
-        config_dir = base / "config"
-    else:
-        config_dir = PROJECT_ROOT / "config"
+def _is_inside(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def resolve_config_paths(config_dir: Path | None = None) -> tuple[Path, Path, Path]:
+    """Config files for one install. Never prefers another tree because it exists."""
+    directory = Path(config_dir) if config_dir is not None else (PROJECT_ROOT / "config")
     return (
-        config_dir / "config.yaml",
-        config_dir / "whitelists.yaml",
-        config_dir / "telemetry-domains.txt",
+        directory / "config.yaml",
+        directory / "whitelists.yaml",
+        directory / "telemetry-domains.txt",
     )
+
+
+def resolve_data_dir(config: dict[str, Any], install_root: Path) -> Path:
+    """Data directory for the selected install root.
+
+    An explicit ``agent.data_dir`` is used only when it stays inside that root.
+    A path in another install is refused. Null means ``<install_root>/data``.
+    """
+    root = Path(install_root).resolve()
+    agent_cfg = config.get("agent") if isinstance(config, dict) else None
+    custom = agent_cfg.get("data_dir") if isinstance(agent_cfg, dict) else None
+    if custom:
+        candidate = Path(str(custom)).expanduser()
+        if not candidate.is_absolute():
+            candidate = root / candidate
+        candidate = candidate.resolve()
+        if not _is_inside(candidate, root):
+            raise ValueError(
+                f"data_dir {candidate} is outside the selected install root {root}"
+            )
+        return candidate
+    return (root / "data").resolve()
 
 
 def setup_logging(data_dir: Path, level: str = "INFO", max_mb: int = 10, backup_count: int = 3) -> logging.Logger:

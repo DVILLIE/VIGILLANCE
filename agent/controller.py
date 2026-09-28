@@ -11,7 +11,7 @@ from typing import Any, Callable
 
 from agent.ownership import RuntimeAlreadyRunning, RuntimeIntentionallyStopped
 from agent.ownership import read_json
-from agent.runtime import build_runtime, load_runtime_config, _resolve_data_dir
+from agent.runtime import build_runtime, runtime_paths
 from agent.store.db import AgentStore
 from agent.twin import TwinStore
 
@@ -97,8 +97,7 @@ class AgentController:
     def _loop(self) -> None:
         rt = None
         try:
-            config, _, _ = load_runtime_config(self.config_dir)
-            data_dir = _resolve_data_dir(config)
+            _, _, _, _, data_dir = runtime_paths(self.config_dir)
             attached_token = None
             while not self._stop.is_set():
                 if attached_token:

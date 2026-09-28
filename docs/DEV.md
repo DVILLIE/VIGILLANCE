@@ -53,7 +53,7 @@ python -m pytest tests/test_keep_on_engine.py tests/test_privacy_ai_camera.py te
 
 The same engine evaluates them. Live egress uses established public connections (`agent/modules/egress_watch.py`) and skips LAN, browsers, system processes, and Windows Update hosts. An AI fact needs a known AI hostname or a known AI app name plus a public connection. The live cycle tries at most eight reverse lookups; if a lookup fails, that IP is not labeled as an AI vendor. Camera holders on Linux are process links to `/dev/video*` (`agent/modules/camera_guard.py`). The device is not opened and no frame is stored. Windows and macOS camera in-use checks return “unknown” rather than a fake “camera off.”
 
-Blocking an app’s network and stopping camera use are options-only. Auto-protect does not do either. There is no per-app firewall helper on Linux, so the default block says traffic was not stopped. The inbound `scripts/block-ip.ps1` rule is not used for this.
+Blocking an app’s network and stopping camera use are options-only. Auto-protect does not do either. There is no per-app firewall helper on Linux, so the default block says traffic was not stopped. The inbound `scripts/block-ip.ps1` script is not used for this. It is an operator helper outside the product path: a matching rule name is not protection, and it exits 0 only after the firewall rule is verified to block that address.
 
 ## Footprint Resolution Center
 

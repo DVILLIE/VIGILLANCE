@@ -162,3 +162,152 @@ function Stop-DvielleOwnedRuntime {
         }
     }
 }
+
+# Highest scheduled tasks run with the caller's elevated token
+# (TASK_RUNLEVEL_HIGHEST). Only Administrators (S-1-5-32-544) and SYSTEM
+# (S-1-5-18) may write the install tree. Authenticated Users (S-1-5-11) and
+# Users (S-1-5-32-545) receive ReadAndExecute. Any other write ACE fails closed.
+# https://learn.microsoft.com/en-us/windows/win32/taskschd/principal-runlevel
+# https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks
+
+function New-DvielleElevationRule {
+    param(
+        [Parameter(Mandatory)][string]$Sid,
+        [Parameter(Mandatory)][string]$Rights,
+        [switch]$Directory
+    )
+    $id = New-Object System.Security.Principal.SecurityIdentifier $Sid
+    $access = [System.Security.AccessControl.FileSystemRights]$Rights
+    $type = [System.Security.AccessControl.AccessControlType]::Allow
+    if ($Directory) {
+        $inherit = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+        $none = [System.Security.AccessControl.PropagationFlags]::None
+        return New-Object System.Security.AccessControl.FileSystemAccessRule($id, $access, $inherit, $none, $type)
+    }
+    return New-Object System.Security.AccessControl.FileSystemAccessRule($id, $access, $type)
+}
+
+function Get-DvielleElevationAcl {
+    param([switch]$Directory)
+    if ($Directory) {
+        $acl = New-Object System.Security.AccessControl.DirectorySecurity
+    } else {
+        $acl = New-Object System.Security.AccessControl.FileSecurity
+    }
+    $acl.SetAccessRuleProtection($true, $false)
+    # Nested arrays flatten inside @(). Objects keep each SID with its rights.
+    $grants = @(
+        [pscustomobject]@{ Sid = 'S-1-5-32-544'; Rights = 'FullControl' }
+        [pscustomobject]@{ Sid = 'S-1-5-18'; Rights = 'FullControl' }
+        [pscustomobject]@{ Sid = 'S-1-5-11'; Rights = 'ReadAndExecute' }
+        [pscustomobject]@{ Sid = 'S-1-5-32-545'; Rights = 'ReadAndExecute' }
+    )
+    foreach ($grant in $grants) {
+        $acl.AddAccessRule((New-DvielleElevationRule -Sid $grant.Sid -Rights $grant.Rights -Directory:$Directory))
+    }
+    return $acl
+}
+
+function ConvertTo-DvielleSid {
+    param($Identity)
+    if ($null -eq $Identity) { return '' }
+    if ($Identity -is [System.Security.Principal.SecurityIdentifier]) { return $Identity.Value }
+    $text = [string]$Identity
+    if ($text -match '^S-1-') { return $text }
+    try {
+        $account = New-Object System.Security.Principal.NTAccount $text
+        return $account.Translate([System.Security.Principal.SecurityIdentifier]).Value
+    } catch {
+        return $text
+    }
+}
+
+function Test-DvielleAclDeniesUserWrite {
+    param($Acl)
+    if (-not $Acl) { return $false }
+    $writeBits = [System.Security.AccessControl.FileSystemRights]'Write, Modify, FullControl, Delete, ChangePermissions, TakeOwnership'
+    $admins = $false
+    $system = $false
+    foreach ($ace in @($Acl.Access)) {
+        if ($ace.AccessControlType -ne 'Allow') { continue }
+        $sid = ConvertTo-DvielleSid $ace.IdentityReference
+        $hasWrite = ([int]$ace.FileSystemRights -band [int]$writeBits) -ne 0
+        if ($sid -eq 'S-1-5-32-544') {
+            if ($hasWrite) { $admins = $true }
+        } elseif ($sid -eq 'S-1-5-18') {
+            if ($hasWrite) { $system = $true }
+        } elseif ($hasWrite) {
+            return $false
+        }
+    }
+    return ($admins -and $system)
+}
+
+function Test-DvielleElevatedTree {
+    param([Parameter(Mandatory)][string]$Root)
+    $root = Resolve-DvielleRoot $Root
+    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe')) {
+        $path = Join-Path $root $relative
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
+        if (-not (Test-DvielleAclDeniesUserWrite (Get-Acl -LiteralPath $path))) { return $false }
+    }
+    $site = Join-Path $root '.venv\Lib\site-packages'
+    if (Test-Path -LiteralPath $site) {
+        if (-not (Test-DvielleAclDeniesUserWrite (Get-Acl -LiteralPath $site))) { return $false }
+    }
+    return (Test-DvielleAclDeniesUserWrite (Get-Acl -LiteralPath $root))
+}
+
+function Protect-DvielleInstallForElevation {
+    param([Parameter(Mandatory)][string]$Root)
+    if (-not (Test-DvielleAdmin)) { return $false }
+    $root = Resolve-DvielleRoot $Root
+    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf)) { return $false }
+    }
+    $pending = New-Object System.Collections.Generic.Queue[string]
+    $pending.Enqueue($root)
+    while ($pending.Count -gt 0) {
+        $currentPath = $pending.Dequeue()
+        $current = Get-Item -LiteralPath $currentPath -Force -ErrorAction Stop
+        if ($current.Attributes -band [IO.FileAttributes]::ReparsePoint) { return $false }
+        try {
+            if ($current.PSIsContainer) {
+                Set-Acl -LiteralPath $current.FullName -AclObject (Get-DvielleElevationAcl -Directory)
+                foreach ($child in Get-ChildItem -LiteralPath $current.FullName -Force -ErrorAction Stop) {
+                    if ($child.Attributes -band [IO.FileAttributes]::ReparsePoint) { return $false }
+                    $pending.Enqueue($child.FullName)
+                }
+            } else {
+                Set-Acl -LiteralPath $current.FullName -AclObject (Get-DvielleElevationAcl)
+            }
+        } catch {
+            return $false
+        }
+        if (-not (Test-DvielleAclDeniesUserWrite (Get-Acl -LiteralPath $current.FullName))) { return $false }
+    }
+    return (Test-DvielleElevatedTree -Root $root)
+}
+
+function Test-DvielleBlockCoversAddress {
+    param($Rule, [Parameter(Mandatory)][string]$IpAddress)
+    if (-not $Rule) { return $false }
+    if ([string]$Rule.Action -ne 'Block' -or [string]$Rule.Direction -ne 'Inbound') { return $false }
+    if ([string]$Rule.Enabled -notin @('True', '1')) { return $false }
+    $addresses = @()
+    if ($Rule.PSObject.Properties.Name -contains 'RemoteAddress') {
+        $addresses = @($Rule.RemoteAddress)
+    } else {
+        $filter = $Rule | Get-NetFirewallAddressFilter -ErrorAction SilentlyContinue
+        if ($filter) { $addresses = @($filter.RemoteAddress) }
+    }
+    foreach ($candidate in $addresses) {
+        foreach ($part in ([string]$candidate -split ',')) {
+            $part = $part.Trim()
+            if ($part -ieq $IpAddress -or $part -ieq ($IpAddress + '/32') -or $part -ieq ($IpAddress + '/255.255.255.255')) {
+                return $true
+            }
+        }
+    }
+    return $false
+}

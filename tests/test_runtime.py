@@ -54,6 +54,9 @@ def test_build_runtime_registers_collectors_and_is_fail_closed(tmp_path, monkeyp
     assert specs["heartbeat"].background is False
     assert specs["attacks"].background and specs["attacks"].critical
     assert specs["connections"].defer_under_maximum_workload
+    assert specs["resource_advisor"].pressure_response
+    assert specs["resource_advisor"].background and not specs["resource_advisor"].critical
+    assert not specs["resource_advisor"].defer_under_maximum_workload
     assert specs["capability"].cadence.value == "idle_deep"
     # Autonomous gate stays fail-closed: no mutation handlers registered.
     assert rt.policy.executor.registry.registered() == frozenset()

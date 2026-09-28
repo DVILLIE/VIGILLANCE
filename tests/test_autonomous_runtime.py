@@ -65,6 +65,27 @@ def test_optional_work_cannot_occupy_reserved_security_worker():
         assert plane.close(2)
 
 
+def test_pressure_response_stays_eligible_and_bounded():
+    from agent.nerve import PRESSURE_RESPONSE_MIN_SECONDS
+
+    plane = NervePlane(workload_maximum=True, idle=False, budget_exceeded=False)
+    plane.register(CollectorSpec('security', Cadence.PULSE, 10, run=lambda: None,
+                                background=True, critical=True))
+    plane.register(CollectorSpec('advisor', Cadence.PULSE, 10, run=lambda: None,
+                                background=True, pressure_response=True))
+    names = [c.name for c in plane.due()]
+    assert names == ['security', 'advisor']
+    advisor = next(c for c in plane.collectors if c.name == 'advisor')
+    assert plane._interval(advisor) >= PRESSURE_RESPONSE_MIN_SECONDS
+    advisor.last_run_monotonic = 100.0
+    assert advisor not in plane.due(now=100.0 + 10)
+    assert advisor in plane.due(now=100.0 + PRESSURE_RESPONSE_MIN_SECONDS)
+    plane.budget_exceeded = True
+    assert [c.name for c in plane.due(now=100.0 + 1000)] == ['security']
+    with pytest.raises(ValueError):
+        plane.register(CollectorSpec('inline', Cadence.PULSE, 30, run=lambda: None, pressure_response=True))
+
+
 def test_workload_and_budget_defer_optional_not_core():
     plane = NervePlane(workload_maximum=True, idle=False)
     plane.register(CollectorSpec('security', Cadence.PULSE, 10, run=lambda: None, critical=True))

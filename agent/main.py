@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 from agent.ownership import RuntimeAlreadyRunning, request_shutdown
-from agent.runtime import build_runtime, run_once, load_runtime_config, _resolve_data_dir  # noqa: F401
+from agent.runtime import build_runtime, run_once, runtime_paths  # noqa: F401
 
 logger = logging.getLogger('dvielle')
 
@@ -23,8 +23,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.stop:
-            config, _, _ = load_runtime_config(args.config_dir)
-            return 0 if request_shutdown(_resolve_data_dir(config)) else 1
+            *_, data_dir = runtime_paths(args.config_dir)
+            return 0 if request_shutdown(data_dir) else 1
         rt = build_runtime(config_dir=args.config_dir)
     except RuntimeAlreadyRunning:
         print('DVielle is already running; no duplicate collector was started.')

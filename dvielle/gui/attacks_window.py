@@ -10,6 +10,7 @@ from agent.store.db import AgentStore
 from dvielle import APP_NAME
 from dvielle.brand import apply_tk_window_icon
 from dvielle.gui import theme as T
+from dvielle.gui.observations import failed_logon_copy
 
 _ATTACK_MODULES = ("attacks", "browser_guard", "connections", "security")
 
@@ -24,11 +25,13 @@ class AttacksWindow(ctk.CTkToplevel):
         *,
         review_window_hours: float = 24.0,
         summary_window_days: float = 14.0,
+        coverage=None,
     ) -> None:
         super().__init__(master)
         self.store = store
         self.review_window_hours = float(review_window_hours)
         self.summary_window_days = float(summary_window_days)
+        self._coverage = coverage or (lambda: "unavailable")
         self.title(f"{APP_NAME} — Attacks Console")
         self.geometry("1040x720")
         self.minsize(880, 600)
@@ -112,14 +115,19 @@ class AttacksWindow(ctk.CTkToplevel):
     def refresh(self) -> None:
         summary = self.store.attack_summary(window_days=self.summary_window_days)
         days = int(summary.get("summary_window_days") or self.summary_window_days)
+        try:
+            coverage = str(self._coverage() or "unavailable")
+        except Exception:
+            coverage = "unavailable"
         self.summary_lbl.configure(
             text=(
-                f"Last {days} days — "
+                f"Last {days} days stored — "
                 f"Failed logon attempts: {summary['failed_logon_attempts']}  |  "
                 f"Attack alerts: {summary['attack_events']}  |  "
                 f"Browser/stealer alerts: {summary['browser_threat_events']}  |  "
                 f"Blocked IPs: not shown (no gated writer)  |  "
-                f"Updated {datetime.now().strftime('%H:%M:%S')}"
+                f"Logon coverage: {coverage}  |  "
+                f"Display clock {datetime.now().strftime('%H:%M:%S')}"
             )
         )
 
@@ -140,22 +148,8 @@ class AttacksWindow(ctk.CTkToplevel):
             live = "\n".join(lines)
         self._set_box(self.live_box, live)
 
-        logons = self.store.recent_failed_logons(60)
-        if not logons:
-            logon_txt = (
-                "No failed logons recorded.\n"
-                "If you expect attacks, confirm audit policy is on (installer enables Logon failure).\n"
-                "Quiet is good — it means nobody is guessing your password right now."
-            )
-        else:
-            lines = ["SOURCE IP           COUNT  USER                 EVENT  WHEN", "-" * 72]
-            for r in logons:
-                lines.append(
-                    f"{str(r['source_ip'])[:18]:18}  {int(r['count']):5}  "
-                    f"{str(r['username'] or '-'):20}  {r['event_id']}  {str(r['ts'])[:19]}"
-                )
-            logon_txt = "\n".join(lines)
-        self._set_box(self.logon_box, logon_txt)
+        logons = [dict(row) for row in self.store.recent_failed_logons(60)]
+        self._set_box(self.logon_box, failed_logon_copy(logons, coverage))
 
         browser_rows = self.store.recent_events(modules=("browser_guard",), limit=80)
         if not browser_rows:

@@ -7,9 +7,10 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Product identity | System intelligence + resource governance + privacy + defensive security — **not** AV-first | User workload (esp. AI) must stay responsive |
-| Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.7.0) |
-| Dual mutate gate | Options-card token (or published auto-protect for that subject) **and** Cortex ActionKind + registered handler | Firewall, temp delete, startup disable, smart close, and BLOCK_IP fail closed if either half refuses. CLOSE_PROCESS is USER_APPROVED_ONLY. No second OS path. |
-| Scheduled task RunLevel | **Limited** | Highest is only the explicit installer/uninstall RunAs path in `installer/elevate.ps1`. The resident task does not run elevated by default. |
+| Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (1.7.1) |
+| Dual mutate gate | Options-card token (or published auto-protect for that subject) **and** Cortex ActionKind + registered handler | Firewall, temp delete, startup disable, smart close, and BLOCK_IP fail closed if either half refuses. CLOSE_PROCESS is USER_APPROVED_ONLY. A Level≥3 decision must be durably saved before any handler runs. No second OS path. |
+| Scheduled task RunLevel | **Limited** | `TASK_RUNLEVEL_LUA`. `-RunLevel Highest` (`TASK_RUNLEVEL_HIGHEST`) is explicit only, and only after the install tree is locked to Administrators and SYSTEM write. Elevated unattended use is not recommended until that lockdown is proven on the target PC. `elevate.ps1` elevates the installer process, not the resident task. |
+| Install identity | Selected `InstallDir` | Start, verify, stop, config, and data use that tree. No silent fallback to another install such as `C:\DVILLIE`. |
 | Defender exclusion | **No** `Add-MpPreference ExclusionPath` | Installer must not carve DVielle out of Defender. |
 | Platform honesty | Windows-primary; Linux/macOS limited-mode | Camera in-use on Windows is not available yet. Footprint collector returns no hits; remote rows are drill tickets. |
 | F1 runtime | CapabilityReport + shared Twin + independent Nerve collectors + evidence schema | Single owner, workload-aware deferral and retry recovery; see `AUTONOMY.md` |
@@ -19,7 +20,7 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Intelligence shape | Collection → correlate → score → confidence → recommend → act | Module toasts alone are insufficient |
 | Windows edition | 10/11 Home & Pro | Same agent; Home registry/`auditpol`; Pro may use GPO |
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |
-| Install path | **`C:\DVILLIE`** only | Single story |
+| Install path | Default **`C:\DVILLIE`** | A selected `-InstallDir` is that installation's only config and data root |
 | Runtime | Headless `agent.main` + attached optional GUI | One OS lock per data directory; shared atomic snapshot |
 | Cadence authority | **Future Architecture § Adaptive Nerve only** | No duplicate cadence docs; per-collector, not global “2–5s full scan” |
 | Review discipline | Master § Architecture Review Rules | CURRENT / REGRESSION / HISTORICAL labels; audit named refs |

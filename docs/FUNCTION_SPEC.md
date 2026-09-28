@@ -922,7 +922,19 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 
 ---
 
-*End of Function Spec v0.8.*
+## 34. Acceptance checks (1.7.1 — honesty and elevated-task lockdown)
+
+42. The resident scheduled task defaults to RunLevel **Limited** (`TASK_RUNLEVEL_LUA`). `TASK_RUNLEVEL_HIGHEST` is created only when `-RunLevel Highest` is passed and `Protect-DvielleInstallForElevation` has locked the install tree so only Administrators and SYSTEM can write. A failed lockdown does not create or enable that task. Elevated unattended operation is not recommended until that lockdown is proven on the target PC. See Microsoft Learn: [Principal.RunLevel](https://learn.microsoft.com/en-us/windows/win32/taskschd/principal-runlevel) and [Security Contexts for Running Tasks](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks).
+43. Start, verify, and stop share one selected install root. Config and data from another tree are not used as a silent fallback.
+44. Resource advice stays schedulable during host pressure, on a background worker, no faster than 30 seconds, and still yields when the agent's own budget is exceeded.
+45. CPU advice uses a timestamped heartbeat sample. An unprimed or failed sample is not treated as zero load.
+46. Access-denied connection scans and failed DNS or route probes stay partial or unavailable. Empty results are not published as a fresh healthy success.
+47. Attacks and Why copy do not reassure from empty or stale evidence, and do not label a stopped snapshot as current.
+48. Cloud redaction removes IPv4 and IPv6 addresses even when a port follows them.
+49. A mutation handler does not run unless the decision row was saved first.
+50. `scripts/block-ip.ps1` is not a product guarantee. It reports success only after the live rule is verified to block the requested address.
+
+*End of Function Spec — 1.7.1 honesty addendum.*
 
 
 
