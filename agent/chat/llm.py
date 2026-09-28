@@ -35,6 +35,39 @@ def ollama_available(model: str = "llama3.2") -> bool:
         return False
 
 
+_IPV4_ENDPOINT = re.compile(
+    r"(?<![\w:])((?:\d{1,3}\.){3}\d{1,3})(?::\d{1,5})?(?![\w:])"
+)
+_IPV6_BRACKET = re.compile(r"\[([0-9A-Fa-f:.]+)\](?::\d{1,5})?")
+_IPV6_BARE = re.compile(
+    r"(?<![\w:])((?:[0-9A-Fa-f]{0,4}:){2,}[0-9A-Fa-f:.]*)(?:%\w+)?(?::\d{1,5})?(?![\w:])"
+)
+
+
+def _valid_ip(text: str) -> bool:
+    try:
+        ipaddress.ip_address(text)
+        return True
+    except ValueError:
+        return False
+
+
+def _redact_ip_match(match: re.Match[str], group: int = 1) -> str:
+    """Replace a validated address and a trailing :port as one endpoint."""
+    ip = match.group(group)
+    if not ip or not _valid_ip(ip):
+        return match.group(0)
+    return "[redacted]"
+
+
+def redact_addresses(content: str) -> str:
+    """Redact IPv4 and IPv6, including when a :port follows the address."""
+    content = _IPV6_BRACKET.sub(lambda m: _redact_ip_match(m), content)
+    content = _IPV4_ENDPOINT.sub(lambda m: _redact_ip_match(m), content)
+    content = _IPV6_BARE.sub(lambda m: _redact_ip_match(m), content)
+    return content
+
+
 def redact_messages(
     messages: list[dict[str, str]], secrets: list[str] | None
 ) -> list[dict[str, str]]:
@@ -51,14 +84,8 @@ def redact_messages(
         for secret in sorted(set(secrets), key=len, reverse=True):
             if secret:
                 content = re.sub(re.escape(secret), "[redacted]", content, flags=re.IGNORECASE)
-        # Older/user-supplied addresses may never have been in the latest stats.
-        def redact_ip(match):
-            try:
-                ipaddress.ip_address(match.group(0))
-                return "[redacted]"
-            except ValueError:
-                return match.group(0)
-        content = re.sub(r"(?<![\w:])(?:\d{1,3}\.){3}\d{1,3}(?![\w:])|(?<![\w:])(?:[\da-fA-F]{0,4}:){2,}[\da-fA-F:.]{0,15}(?:%[\w]+)?", redact_ip, content)
+        # Addresses absent from the latest stats, including ip:port, still leave.
+        content = redact_addresses(content)
         out.append({**msg, "content": content})
     return out
 

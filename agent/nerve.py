@@ -11,6 +11,12 @@ from typing import Callable
 
 logger = logging.getLogger('dvielle.nerve')
 
+# Pressure-response collectors (resource_advisor) stay eligible while the host is
+# under memory or CPU pressure. They cannot run faster than this floor, they must
+# stay on a background worker, and they still defer when the agent's own budget
+# is exceeded so they cannot starve heartbeat or security collection.
+PRESSURE_RESPONSE_MIN_SECONDS = 30.0
+
 
 class CollectionIncomplete(RuntimeError):
     """Successful bounded observation with a coverage gap; no failure backoff."""
@@ -33,6 +39,7 @@ class CollectorSpec:
     run: Callable[[], None] | None = None
     last_run_monotonic: float = 0.0
     defer_under_maximum_workload: bool = False
+    pressure_response: bool = False
     background: bool = False
     critical: bool = False
     failures: int = 0
@@ -59,6 +66,8 @@ class NervePlane:
     def register(self, spec: CollectorSpec) -> None:
         if not math.isfinite(spec.interval_seconds) or spec.interval_seconds <= 0:
             raise ValueError('collector intervals must be finite and positive')
+        if spec.pressure_response and (not spec.background or spec.critical):
+            raise ValueError('pressure-response collectors must be background and non-critical')
         if any(c.name == spec.name for c in self.collectors):
             raise ValueError(f'duplicate collector {spec.name}')
         self.collectors.append(spec)
@@ -68,10 +77,17 @@ class NervePlane:
             return False
         if c.cadence == Cadence.IDLE_DEEP and (not self.idle or self.workload_maximum):
             return True
+        if c.pressure_response:
+            # Host pressure is why this collector exists. The agent's own budget
+            # still defers it so a pressure episode cannot occupy the runtime.
+            return self.budget_exceeded
         return self.budget_exceeded or (self.workload_maximum and c.defer_under_maximum_workload)
 
     def _interval(self, c: CollectorSpec) -> float:
-        return min(c.interval_seconds * (2 ** min(c.failures, 4)), max(c.interval_seconds, 900))
+        base = c.interval_seconds
+        if c.pressure_response:
+            base = max(base, PRESSURE_RESPONSE_MIN_SECONDS)
+        return min(base * (2 ** min(c.failures, 4)), max(base, 900))
 
     def due(self, now: float | None = None) -> list[CollectorSpec]:
         now = time.monotonic() if now is None else now

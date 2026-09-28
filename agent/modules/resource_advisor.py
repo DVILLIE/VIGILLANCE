@@ -441,6 +441,7 @@ class ResourceAdvice:
 
 
 _last_cpu_toast = 0.0
+_last_measured_cpu: float | None = None
 _last_ram_toast = 0.0
 # CPU contention must be SUSTAINED (Microsoft: momentary spikes create false bottlenecks).
 _cpu_high_streak = 0
@@ -551,6 +552,29 @@ def _build_ram_advice(snap: MemorySnapshot, offenders: list[ProcessFootprint]) -
     return ResourceAdvice("RAM", commit if commit is not None else 0.0, headline, suggestion, offenders)
 
 
+def host_cpu_percent(system: dict | None) -> float | None:
+    """Return the heartbeat's CPU percent, or None when that sample is unusable.
+
+    psutil.cpu_percent(interval=0 or None) returns a meaningless 0.0 the first
+    time it is called on a thread, and resource_advisor runs on a fresh worker
+    thread. That 0.0 is not idle. An exception is not idle either. Callers must
+    not clear a pressure streak from None.
+    https://psutil.readthedocs.io/en/stable/#psutil.cpu_percent
+    """
+    if not system or not system.get("cpu_sampled_at"):
+        return None
+    raw = system.get("cpu_percent")
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(value) or value < 0 or value > 100:
+        return None
+    return value
+
+
 class ResourceAdvisor:
     """Detect CPU/RAM pressure and suggest which background apps to close."""
 
@@ -570,24 +594,29 @@ class ResourceAdvisor:
         # panel and the pulse offender scoring, so the same names are never advised-close.
         self._never_close = never_close_from_config(config)
 
-    def run(self) -> list[ResourceAdvice]:
-        global _last_cpu_toast, _last_ram_toast, _cpu_high_streak, _advisor_active
+    def run(self, *, system: dict | None = None) -> list[ResourceAdvice]:
+        global _last_cpu_toast, _last_ram_toast, _cpu_high_streak, _advisor_active, _last_measured_cpu
         if not self.enabled:
             return []
 
-        # (c) Cheap pressure gate FIRST — no enumeration, no blocking CPU sample.
+        # Cheap pressure gate first. CPU comes from the heartbeat sample, never a
+        # fresh nonblocking cpu_percent on this worker thread.
         snap = sample_memory()
-        try:
-            cpu_now = psutil.cpu_percent(interval=0)  # non-blocking (no 0.5s block on the pulse)
-        except Exception:
-            cpu_now = 0.0
+        cpu_now = host_cpu_percent(system)
         mem_pressure = memory_under_pressure(snap)
-        _cpu_high_streak = _cpu_high_streak + 1 if cpu_now >= self.cpu_threshold else 0
-        cpu_sustained = _cpu_high_streak >= 2  # Microsoft: sustained, not a momentary spike
+        if cpu_now is None:
+            # Unprimed or failed sample: hold the streak. Do not treat it as zero load.
+            cpu_sustained = _cpu_high_streak >= 2
+        else:
+            _last_measured_cpu = cpu_now
+            _cpu_high_streak = _cpu_high_streak + 1 if cpu_now >= self.cpu_threshold else 0
+            cpu_sustained = _cpu_high_streak >= 2  # sustained, not a momentary spike
 
         if not (mem_pressure or cpu_sustained):
-            _advisor_active = False  # pressure cleared → re-arm episode dedup
+            if cpu_now is not None:
+                _advisor_active = False  # a real below-threshold sample clears the episode
             return []
+        shown_cpu = cpu_now if cpu_now is not None else _last_measured_cpu
 
         # Pressure exists → only NOW enumerate for offender scoring.
         fg_pid, fg_name = get_foreground_process()
@@ -601,7 +630,13 @@ class ResourceAdvisor:
             fg_name=fg_name,
             never_close=self._never_close,
         ))
-        cpu_contention = cpu_sustained and top_cpu is not None and top_cpu.cpu_percent > 0 and not top_protected
+        cpu_contention = (
+            cpu_sustained
+            and shown_cpu is not None
+            and top_cpu is not None
+            and top_cpu.cpu_percent > 0
+            and not top_protected
+        )
         offenders = sorted(
             [
                 p
@@ -626,12 +661,12 @@ class ResourceAdvisor:
             _last_ram_toast = now
             self._log_advice(advice)
         if cpu_contention and (now - _last_cpu_toast) >= self.cooldown:
-            advice = _build_cpu_advice(cpu_now, top_cpu, offenders)  # type: ignore[arg-type]
+            advice = _build_cpu_advice(shown_cpu, top_cpu, offenders)  # type: ignore[arg-type]
             advice_list.append(advice)
             _last_cpu_toast = now
             self._log_advice(advice)
 
-        self._maybe_recommend(mem_pressure, cpu_contention, snap, cpu_now, top_cpu, offenders)
+        self._maybe_recommend(mem_pressure, cpu_contention, snap, shown_cpu, top_cpu, offenders)
         return advice_list
 
     def _maybe_recommend(
@@ -639,7 +674,7 @@ class ResourceAdvisor:
         mem_pressure: bool,
         cpu_contention: bool,
         snap: MemorySnapshot,
-        cpu_now: float,
+        cpu_now: float | None,
         top_cpu: ProcessFootprint | None,
         offenders: list[ProcessFootprint],
     ) -> None:
@@ -661,7 +696,7 @@ class ResourceAdvisor:
                 f"Memory pressure: {avail_mb:.0f} MB available"
                 + (f", commit {snap.commit_percent:.0f}%" if snap.commit_percent is not None else "")
             )
-        if cpu_contention and top_cpu is not None:
+        if cpu_contention and top_cpu is not None and cpu_now is not None:
             reasons.append(
                 f"Sustained CPU {cpu_now:.0f}% — {top_cpu.name} has the largest observed process CPU sample"
             )

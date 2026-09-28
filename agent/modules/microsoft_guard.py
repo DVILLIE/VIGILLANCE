@@ -106,6 +106,7 @@ class MicrosoftGuard:
         self.domains = _load_domains(telemetry_file)
         self.never_block = {d.lower() for d in never_block_domains}
         self.cortex = cortex
+        self.collection_error: str | None = None
         cfg = config.get("microsoft_guard", {})
         self.strict_mode = cfg.get("strict_mode", True)
         self._legacy_wants_act = any(
@@ -118,7 +119,9 @@ class MicrosoftGuard:
         )
 
     def run(self, monitor_only: bool = False) -> list[TelemetryAlert]:
+        self.collection_error = None
         if not IS_WINDOWS:
+            self.collection_error = "Microsoft connection monitor is unavailable on this platform"
             return []
 
         alerts: list[TelemetryAlert] = []
@@ -170,7 +173,8 @@ class MicrosoftGuard:
         alerts: list[TelemetryAlert] = []
         try:
             connections = psutil.net_connections(kind="inet")
-        except (psutil.AccessDenied, PermissionError):
+        except (psutil.AccessDenied, PermissionError) as exc:
+            self.collection_error = f"Microsoft connection visibility unavailable: {type(exc).__name__}"
             return alerts
 
         for conn in connections:

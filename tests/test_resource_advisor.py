@@ -52,6 +52,7 @@ def _reset_globals():
     ra._advisor_active = False
     ra._last_ram_toast = 0.0
     ra._last_cpu_toast = 0.0
+    ra._last_measured_cpu = None
     yield
 
 
@@ -106,20 +107,28 @@ def test_score_closability_background_discord():
 
 # ---- run(): pressure gate + workload protection + L2 recommendation -------
 
+def _measured(cpu: float | None, *, primed: bool = True) -> dict:
+    body: dict = {"cpu_percent": cpu}
+    if primed:
+        body["cpu_sampled_at"] = "2026-09-28T18:00:00+00:00"
+    return body
+
+
 def _wire(monkeypatch, *, snap, cpu, processes, fg=(1234, "cursor.exe")):
     monkeypatch.setattr(ra, "sample_memory", lambda: snap)
-    monkeypatch.setattr(ra.psutil, "cpu_percent", lambda interval=0: cpu)
     monkeypatch.setattr(ra, "get_foreground_process", lambda: fg)
     monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid, never_close=frozenset(): processes)
+    return _measured(cpu)
 
 
 def test_no_pressure_returns_nothing_and_does_not_enumerate(store, monkeypatch):
     called = {"enum": False}
     monkeypatch.setattr(ra, "sample_memory", lambda: _snap(avail_gb=8.0, commit=40.0))
-    monkeypatch.setattr(ra.psutil, "cpu_percent", lambda interval=0: 5.0)
     monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid: called.__setitem__("enum", True) or [])
     cortex = _FakeCortex()
-    out = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run()
+    out = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run(
+        system=_measured(5.0)
+    )
     assert out == []
     assert called["enum"] is False  # efficiency gate: no enumeration without pressure
     assert cortex.issued == []
@@ -131,9 +140,9 @@ def test_memory_pressure_recommends_background_offenders(store, monkeypatch):
         ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
         ProcessFootprint(3, "steam.exe", 0.5, 400, closability=55),
     ]
-    _wire(monkeypatch, snap=_snap(avail_gb=0.3, commit=88.0), cpu=5.0, processes=procs)
+    system = _wire(monkeypatch, snap=_snap(avail_gb=0.3, commit=88.0), cpu=5.0, processes=procs)
     cortex = _FakeCortex()
-    ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run()
+    ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run(system=system)
     assert len(cortex.issued) == 1
     kw = cortex.issued[0]
     assert kw["target"] == "reduce_background_contention"
@@ -145,11 +154,11 @@ def test_memory_pressure_recommends_background_offenders(store, monkeypatch):
 def test_cpu_contention_requires_two_pulses_and_nonforeground(store, monkeypatch):
     # foreground is the CPU driver -> intentional load -> never CPU contention.
     procs = [ProcessFootprint(1234, "cursor.exe", 95, 2000, is_foreground=True)]
-    _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
+    system = _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
     cortex = _FakeCortex()
     adv = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex)
-    adv.run()  # streak=1
-    adv.run()  # streak=2 (sustained) but top consumer is foreground -> no contention
+    adv.run(system=system)  # streak=1
+    adv.run(system=system)  # streak=2 (sustained) but top consumer is foreground -> no contention
     assert cortex.issued == []  # intentional workload protected
 
 
@@ -158,12 +167,12 @@ def test_cpu_contention_background_driver_after_two_pulses(store, monkeypatch):
         ProcessFootprint(1234, "cursor.exe", 2, 2000, is_foreground=True),
         ProcessFootprint(9, "backup.exe", 95, 300, closability=50),  # background hog
     ]
-    _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
+    system = _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
     cortex = _FakeCortex()
     adv = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex)
-    adv.run()  # streak=1 -> no pressure yet -> nothing
+    adv.run(system=system)  # streak=1 -> no pressure yet -> nothing
     assert cortex.issued == []
-    adv.run()  # streak=2 -> sustained, background driver -> recommend
+    adv.run(system=system)  # streak=2 -> sustained, background driver -> recommend
     assert len(cortex.issued) == 1
     assert cortex.issued[0]["details"]["cpu_contention"] is True
 
@@ -175,7 +184,7 @@ def test_fg_family_helper_is_not_an_offender(store, monkeypatch):
         ProcessFootprint(1235, "chrome.exe", 80, 900, closability=60),  # family helper
         ProcessFootprint(9, "discord.exe", 1, 800, closability=55),
     ]
-    _wire(
+    system = _wire(
         monkeypatch,
         snap=_snap(avail_gb=0.3, commit=88.0),
         cpu=5.0,
@@ -183,7 +192,7 @@ def test_fg_family_helper_is_not_an_offender(store, monkeypatch):
         fg=(1234, "chrome.exe"),
     )
     cortex = _FakeCortex()
-    ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run()
+    ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex).run(system=system)
     assert len(cortex.issued) == 1
     offenders = cortex.issued[0]["details"]["offenders"]
     assert "chrome.exe" not in offenders
@@ -231,10 +240,10 @@ def test_never_close_protects_named_background_offender(store, monkeypatch):
         ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
         ProcessFootprint(3, "steam.exe", 0.5, 400, closability=55),
     ]
-    _wire(monkeypatch, snap=_snap(avail_gb=0.3, commit=88.0), cpu=5.0, processes=procs)
+    system = _wire(monkeypatch, snap=_snap(avail_gb=0.3, commit=88.0), cpu=5.0, processes=procs)
     cortex = _FakeCortex()
     cfg = {"resource_advisor": {"toast_cooldown_seconds": 0, "never_close": ["Steam.exe"]}}
-    ResourceAdvisor(store, cfg, cortex=cortex).run()
+    ResourceAdvisor(store, cfg, cortex=cortex).run(system=system)
     offenders = cortex.issued[0]["details"]["offenders"]
     assert "steam.exe" not in offenders
     assert "discord.exe" in offenders
@@ -270,3 +279,26 @@ def test_get_app_groups_ranks_protected_last(monkeypatch):
     assert len(protected) == 1  # never_close item is shown, not skipped
     assert "steam" in protected[0].display_name.lower()
     assert groups[-1].risk == "protected"  # protected sorts last (informational, not actionable)
+
+
+def test_unprimed_cpu_does_not_clear_pressure_or_read_as_zero(store, monkeypatch):
+    procs = [ProcessFootprint(9, "backup.exe", 90, 300, closability=50)]
+    system = _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
+    called = {"n": 0}
+
+    def forbid_fresh_sample(*_args, **_kwargs):
+        raise AssertionError("advisor must not take a fresh cpu_percent sample")
+
+    monkeypatch.setattr(ra.psutil, "cpu_percent", forbid_fresh_sample)
+    adv = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}})
+    adv.run(system=system)
+    adv.run(system=system)
+    assert ra._cpu_high_streak >= 2
+    ra._collect_processes = lambda fg_pid, never_close=frozenset(): called.__setitem__("n", called["n"] + 1) or procs
+    # No timestamp: the 0.0 in the dict is unprimed, not a measured idle sample.
+    adv.run(system={"cpu_percent": 0.0})
+    assert ra._cpu_high_streak >= 2
+    assert called["n"] == 1  # held streak still analyzes; zero was not "no pressure"
+    assert ra.host_cpu_percent({"cpu_percent": 0.0}) is None
+    assert ra.host_cpu_percent({"cpu_percent": None, "cpu_sampled_at": "2026-09-28T18:00:00+00:00"}) is None
+    assert ra.host_cpu_percent({"cpu_percent": "bad", "cpu_sampled_at": "2026-09-28T18:00:00+00:00"}) is None

@@ -16,6 +16,7 @@ from agent.twin import TwinStore
 from dvielle import APP_NAME
 from dvielle.brand import apply_tk_window_icon
 from dvielle.gui import theme as T
+from dvielle.gui.observations import why_measurement_line
 
 _LEVEL_NAME = {0: "OBSERVE", 1: "EXPLAIN", 2: "RECOMMEND", 3: "REVERSIBLE", 4: "ADMIN", 5: "EMERGENCY"}
 
@@ -76,19 +77,13 @@ class WhyWindow(ctk.CTkToplevel):
         for w in self.scroll.winfo_children():
             w.destroy()
 
+        data = None
         if self.twin is not None:
             try:
-                t = self.twin.as_dict()
-                mem = t.get("memory") or {}
-                sysd = t.get("system") or {}
-                self._twin_lbl.configure(
-                    text=(
-                        f"now:  commit {mem.get('commit_percent', '—')}%  ·  "
-                        f"{mem.get('avail_phys_mb', '—')} MB free  ·  cpu {sysd.get('cpu_percent', '—')}%"
-                    )
-                )
+                data = self.twin.as_dict()
             except Exception:
-                pass
+                data = None
+        self._twin_lbl.configure(text=why_measurement_line(data))
 
         try:
             rows = self.store.recent_decisions(100)

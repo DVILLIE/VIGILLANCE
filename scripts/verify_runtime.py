@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from agent.ownership import read_json  # noqa: E402
-from agent.runtime import _resolve_data_dir, load_runtime_config  # noqa: E402
+from agent.runtime import runtime_paths  # noqa: E402
 
 
 def resident_is_current(snapshot: dict | None) -> bool:
@@ -55,8 +55,8 @@ def main() -> int:
     args = parser.parse_args()
     if not math.isfinite(args.timeout) or not 0 <= args.timeout <= 120:
         parser.error("--timeout must be between 0 and 120 seconds")
-    config, _, _ = load_runtime_config(args.config_dir)
-    snapshot_path = _resolve_data_dir(config) / "twin.json"
+    _, _, _, _, data_dir = runtime_paths(args.config_dir)
+    snapshot_path = data_dir / "twin.json"
     deadline = time.monotonic() + args.timeout
     while True:
         if resident_is_current(read_json(snapshot_path)):

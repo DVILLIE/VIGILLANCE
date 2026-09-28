@@ -61,6 +61,18 @@ def test_redact_messages_scrubs_every_secret():
     assert "MY-LAPTOP" in msgs[0]["content"]
 
 
+def test_redact_ip_with_port_even_when_absent_from_stats():
+    msgs = [{"role": "user", "content": "connect 192.168.10.27:8080 and [2001:db8::1]:443"}]
+    out = redact_messages(msgs, [])
+    body = out[0]["content"]
+    assert "192.168.10.27" not in body
+    assert "2001:db8::1" not in body
+    assert ":8080" not in body
+    assert ":443" not in body
+    assert body == "connect [redacted] and [redacted]"
+    assert "192.168.10.27:8080" in msgs[0]["content"]
+
+
 def test_redact_messages_no_secrets_is_noop():
     msgs = [{"role": "user", "content": "hello"}]
     assert redact_messages(msgs, None) is msgs

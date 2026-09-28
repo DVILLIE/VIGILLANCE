@@ -59,6 +59,54 @@ def section_current(data: dict | None, name: str, stamp: str | None = None) -> b
     return collector_state(data, name) in {"ok", "running"}
 
 
+def failed_logon_copy(rows: list[dict[str, Any]] | None, coverage: str) -> str:
+    """Empty or stale auth history must not claim that nobody is guessing passwords."""
+    rows = list(rows or [])
+    if coverage != "ok":
+        header = (
+            f"Failed-logon coverage is {coverage}. "
+            "Password-guessing activity is not known from this view. "
+            "An empty list is not evidence of safety."
+        )
+        if not rows:
+            return header
+        lines = [header, "", "Retained rows (not a current reading):"]
+        lines.extend(_format_logon_rows(rows))
+        return "\n".join(lines)
+    if not rows:
+        return (
+            "No failed logons were stored in the covered window. "
+            "This is only the events DVielle recorded."
+        )
+    return "\n".join(_format_logon_rows(rows))
+
+
+def _format_logon_rows(rows: list[dict[str, Any]]) -> list[str]:
+    lines = ["SOURCE IP           COUNT  USER                 EVENT  WHEN", "-" * 72]
+    for row in rows:
+        lines.append(
+            f"{str(row.get('source_ip'))[:18]:18}  {int(row.get('count') or 0):5}  "
+            f"{str(row.get('username') or '-'):20}  {row.get('event_id')}  {str(row.get('ts'))[:19]}"
+        )
+    return lines
+
+
+def why_measurement_line(data: dict | None) -> str:
+    """Label retained vitals with freshness. Never call a stopped snapshot current."""
+    if not snapshot_fresh(data):
+        if not data:
+            return "Measurements unavailable. Nothing shown here is a current reading."
+        return "Measurements stale. Retained numbers are not a current reading."
+    mem = (data or {}).get("memory") or {}
+    system = (data or {}).get("system") or {}
+    return (
+        "Latest heartbeat:  "
+        f"commit {mem.get('commit_percent', '—')}%  ·  "
+        f"{mem.get('avail_phys_mb', '—')} MB free  ·  "
+        f"cpu {system.get('cpu_percent', '—')}%"
+    )
+
+
 def activity_summary(data: dict | None) -> str:
     if not snapshot_fresh(data):
         return "Monitoring observations unavailable or stale"
