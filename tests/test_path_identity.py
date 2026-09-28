@@ -8,10 +8,16 @@ from agent.runtime import runtime_paths
 from agent.utils import resolve_config_paths, resolve_data_dir
 
 
+def _yaml_scalar(value: str) -> str:
+    """Single-quoted POSIX path. Double-quoted ``C:\\Users`` is a YAML ``\\U`` escape."""
+    posix = Path(value).as_posix().replace("'", "''")
+    return f"'{posix}'"
+
+
 def _tree(root: Path, *, data_dir: str | None, marker: str) -> Path:
     config = root / "config"
     config.mkdir(parents=True)
-    data_line = "null" if data_dir is None else f'"{data_dir}"'
+    data_line = "null" if data_dir is None else _yaml_scalar(data_dir)
     (config / "config.yaml").write_text(
         "agent:\n"
         f"  data_dir: {data_line}\n"
