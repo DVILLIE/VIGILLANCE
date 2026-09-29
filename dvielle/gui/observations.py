@@ -185,6 +185,9 @@ def prevention_evidence_line(data: dict | None) -> str:
         else:
             parts.append("privileged auto-update not off")
         parts.append(f"live binary {update.get('live_binary_attestation') or 'UNCHECKED'}")
+    privacy_clause = privacy_evidence_clause(data)
+    if privacy_clause:
+        parts.append(privacy_clause)
     line = " · ".join(str(part) for part in parts)
     healthy = (
         state == "ok"
@@ -194,6 +197,45 @@ def prevention_evidence_line(data: dict | None) -> str:
     if not healthy:
         line += " · coverage incomplete"
     return line
+
+
+def privacy_evidence_clause(data: dict | None) -> str:
+    """Observed privacy settings versus unknown ones, plus intel availability.
+
+    A missing feed is the exact label ``intel: unavailable``. An empty match
+    list is not added unless a comparison actually ran.
+    """
+    privacy = (data or {}).get("privacy") if isinstance((data or {}).get("privacy"), dict) else {}
+    parts: list[str] = []
+    intel = privacy.get("intel") if isinstance(privacy.get("intel"), dict) else None
+    if intel is not None:
+        label = str(intel.get("intel") or "unavailable")
+        if label == "unavailable":
+            parts.append("intel: unavailable")
+        else:
+            kev_count = (intel.get("kev") or {}).get("count") if isinstance(intel.get("kev"), dict) else None
+            osv_count = (intel.get("osv") or {}).get("count") if isinstance(intel.get("osv"), dict) else None
+            kev_text = str(kev_count) if isinstance(kev_count, int) and not isinstance(kev_count, bool) else "unknown"
+            osv_text = str(osv_count) if isinstance(osv_count, int) and not isinstance(osv_count, bool) else "unknown"
+            matches = intel.get("matches") if isinstance(intel.get("matches"), dict) else {}
+            parts.append(f"intel: {label} kev {kev_text} osv {osv_text}")
+            parts.append(f"matches {matches.get('state') or 'unavailable'}")
+    assistant = privacy.get("assistant") if isinstance(privacy.get("assistant"), dict) else None
+    if assistant is not None:
+        observed = assistant.get("observed") if isinstance(assistant.get("observed"), list) else []
+        unknown = assistant.get("unknown") if isinstance(assistant.get("unknown"), list) else []
+        if observed:
+            bits = []
+            for row in observed:
+                if isinstance(row, dict):
+                    bits.append(f"{row.get('name')} {row.get('meaning') or row.get('value')}")
+            parts.append("observed " + ", ".join(bits))
+        else:
+            parts.append("observed none")
+        parts.append("unknown " + (", ".join(str(item) for item in unknown) if unknown else "none"))
+        if assistant.get("security_off"):
+            parts.append(f"Security=Off {assistant.get('security_off')}")
+    return " · ".join(parts)
 
 
 def activity_summary(data: dict | None) -> str:

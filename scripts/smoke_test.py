@@ -52,6 +52,8 @@ def main() -> int:
     check("sandbox", lambda: importlib.import_module("agent.modules.sandbox"))
     check("tuf", lambda: importlib.import_module("agent.update.tuf"))
     check("privilege_pipe", lambda: importlib.import_module("agent.privilege.pipe"))
+    check("intel", lambda: importlib.import_module("agent.intel"))
+    check("privacy_assistant", lambda: importlib.import_module("agent.modules.privacy_assistant"))
 
     def _gui_imports():
         try:

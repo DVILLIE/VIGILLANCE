@@ -1,7 +1,7 @@
-# DVielle Function Spec (v0.9.3 — P3 Sandbox profile and TUF verification)
+# DVielle Function Spec (v0.9.4 — P4 free intel and privacy assistant)
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
-**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0. The v0.8 keep-on loop remains in force.)  
+**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0; v0.9.4 records that P4 shipped in 2.2.0. The v0.8 keep-on loop remains in force.)  
 **Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
@@ -49,7 +49,17 @@ TUF verification follows specification 1.0.36. The client checks root, timestamp
 
 The privileged helper is still not a SYSTEM service. The tested pipe contract grants SYSTEM and one installed-user SID, refuses Everyone, and still refuses every operation other than `restrict_network`. The resident scheduled task stays RunLevel Limited.
 
-P4 remains: CISA KEV and OSV, and the privacy assistant that leaves Defender cloud reachable. abuse.ch stays out of the bundle.
+### Shipped honesty (2.2.0 — P4)
+
+2.2.0 reads CISA KEV and OSV from local files and can apply one supported privacy choice after the user approves it. It does not replace Defender, and it does not change the Limited resident task.
+
+If `kev.json` and `osv.json` are absent, the report is `intel: unavailable`. Invalid JSON or a catalog row without a real CVE id produces no hits. KEV stays CC0: the report says this is not a CISA or DHS endorsement and DVielle ships no CISA or DHS logo. OSV stays Apache-2.0, and the notice points at the osv-schema license. A match runs only when `inventory.json` lists a name and a version. A KEV product-name overlap is a candidate, not proof that installed copy is exploitable. An OSV hit needs the same ecosystem and name plus an exact `versions` entry or a numeric introduced/fixed range. A version that cannot be compared is not a hit. Fetch is off unless a caller enables it. OSV is queried only for inventory rows. abuse.ch stays off, is not bundled, and is fetched only when that switch is on and the caller supplies an Auth-Key. The response is not saved into the product.
+
+The privacy assistant prefers Required diagnostic data (AllowTelemetry 1). Home and Pro cannot claim Security=Off. Diagnostic data off (0) is offered only on Enterprise, Education, or Server, and the copy still says that is not proof Microsoft traffic stopped. Advertising id and tailored experiences are separate choices. A write counts only when a second read of that value matches. MAPS, Windows Update, and CRL names are not turned into firewall rules. If a request names them, or names Microsoft broadly, the consequence includes the existing `ValidateMapsConnection` result.
+
+Passkeys, Everyday/Sensitive modes, Claims/Assumptions page polish, and a named-pipe SYSTEM helper stay later. Privileged auto-update stays off.
+
+P4 remains closed for this version. P5 remains: passkey education and Everyday/Sensitive modes.
 
 ---
 
@@ -68,8 +78,8 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
 | 4 | Firewall assist | Propose Windows Firewall app rules per profile. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. Do not stop MpsSvc. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local and the resident task stays Limited. | 2.0.0 reads rules with `Get-NetFirewallRule` / profile state, proposes a block, and applies it only inside DualGate. Success is the second read. |
 | 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. Group Policy can override a `.wsb` file. Guest networking is UNKNOWN unless a probe reports it. | 2.1.0 writes Networking Disable and one ReadOnly folder, and starts only `WindowsSandbox.exe`. Home stays UNAVAILABLE. Unobserved guest networking stays LIMITED. |
-| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 1.9.0 stores the three recovery states in a deletable local marker. MAPS is still verified and is not blocked. Passkeys remain P5. |
-| 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. The 2.1.0 client does not download. | 2.1.0 verifies a local repository and keeps the previous file when rollback, freeze, or a bad hash is injected. Privileged auto-update stays off. KEV and OSV remain P4. |
+| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 2.2.0 reads AllowTelemetry and related settings, prefers Required, refuses Security=Off on Home and Pro, and counts a change only when the second read matches. A broad Microsoft block shows the MAPS result and creates no rule. Passkeys remain P5. |
+| 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. The client does not download unless fetch is explicitly enabled. | 2.1.0 verifies a local TUF repository and keeps the previous file when rollback, freeze, or a bad hash is injected. Privileged auto-update stays off. 2.2.0 loads local KEV and OSV with provenance. A missing file is `intel: unavailable`. abuse.ch stays off and is not bundled. |
 | 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. CPU limits are published with the measurement method. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. Job Object hard caps do not apply under RDS Dynamic Fair Share Scheduling. | This spec, TRUST_GATES, fixture tests, and the twin `cpu_contract`. Attestation checksum remains unchecked. The resident mode is measured scheduling unless a helper assignment reports `job_cap_applied`. |
 
 ### MVP sequence
@@ -81,7 +91,7 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | **P1** | ASR standard-protection Block, other rules Audit then promote; CFA Audit then Block; backup/restore states. **Shipped in 1.9.0** as observation plus a dual-gated one-step promotion. Not a backup product. | Highest OS prevention return on Home | Audit-first. WMI and non-standard rules are not blanket-Blocked. CFA copy stays modification-only. |
 | **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts. **Shipped in 2.0.0** as observation, a dual-gated `RESTRICT_NETWORK` apply, a loopback helper that refuses undefined operations, and measured-scheduling plus an optional helper Job Object cap. Not a second firewall. Not a Windows service. | Completes the host controls without a new driver | Propose, confirm, apply. One address family is warned. Job Object caps have DFSS/RDS limits and are not claimed when assignment fails. |
 | **P3** | Sandbox `.wsb` launcher on Pro+ only. Home gets the “no Sandbox” checklist. TUF verification before any privileged auto-update. **Shipped in 2.1.0** as a dual-gated Open unfamiliar profile and an offline root/timestamp/snapshot/targets client. Not WDAG. Not Hyper-V on Home. Not a GitHub Release updater. Not a live measurement of the running process. | Isolation where the SKU has it. Update integrity before automation. | Home checklist only. Guest network stays LIMITED or UNKNOWN when it is not observed. A failed verification does not replace the installed file. |
-| **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable | Context without a license violation | Provenance labels. Maps check gates any privacy block list. |
+| **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable. **Shipped in 2.2.0** as local-file feeds with provenance, inventory matches only when an inventory file exists, and a dual-gated privacy choice that re-reads the setting. Not a bundled abuse.ch dump. Not a block of MAPS, Windows Update, or CRL. | Context without a license violation | Provenance labels. A missing feed is `intel: unavailable`. Maps check is shown if a broad Microsoft block is requested, and no such rule is created. |
 | **P5** | Passkey / phishing education. Activity modes (Home / Work / Travel) | High value, no kernel change | Checklist only. Mode switch asks first. |
 | **P6** | Published Claims → Assumptions → Evidence table and AMTSO-style wiring tests | Trust gates | CI publishes the evidence table |
 | **Later** | Restricted autonomy (auto-block with undo and rate limits). Funding UX | Only after Audit data and a low false-positive record | A person approves high-impact actions. Donations never paywall P0–P2. |
@@ -1077,9 +1087,22 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 74. If guest networking is not observed, the launch result is LIMITED. A probe that reports networking disabled is verified and still says Group Policy override was not read. A probe that reports networking enabled is not counted as the requested profile.
 75. TUF verification accepts a fixture repository only when root, timestamp, snapshot, and targets signatures, versions, expiry, and sha256 lengths agree. Rollback, freeze, a bad hash, a mix-and-match snapshot version, a bad signature, and a delegation are rejected. The previous package bytes stay. Privileged auto-update is false. Live binary attestation is UNCHECKED.
 76. The named-pipe contract refuses a caller who is not on the ACL and refuses every operation other than `restrict_network`. The SDDL does not grant Everyone. The helper is not a SYSTEM service. The resident task default stays RunLevel Limited.
-77. No `ExclusionPath`, no MAPS endpoint block, and no GitHub Release download in the P3 modules. KEV, OSV, and the privacy assistant stay P4.
+77. No `ExclusionPath`, no MAPS endpoint block, and no GitHub Release download in the P3 modules.
 
 *End of Function Spec — v0.9.3 / 2.1.0 P3.*
+
+---
+
+## 39. Acceptance checks (2.2.0 — P4 intel and privacy)
+
+78. With no `kev.json` and no `osv.json`, the report is `intel: unavailable` and the match list is empty. An invalid catalog does not become a hit.
+79. KEV copy is CC0, says it is not a CISA or DHS endorsement, and ships no logo. OSV copy names Apache-2.0 and the osv-schema license. A KEV name overlap is a candidate. An OSV hit needs a comparable version. No inventory file means matches were not evaluated.
+80. Feed fetch is off by default and does not call the network. abuse.ch is off, bundled is false, and a fetch runs only with an Auth-Key. The body is not saved into the product.
+81. Home and Pro cannot apply Security=Off. Required, advertising off, and tailored off are supported choices. Enterprise may set diagnostic data off, and the copy says that is not proof traffic stopped. Success is the second read. Auto-protect cannot issue `privacy.set_choice`. A direct call without Cortex writes nothing.
+82. A request that names MAPS, Windows Update, CRL, or Microsoft broadly creates no firewall rule and includes the `ValidateMapsConnection` result. The evidence strip shows observed settings and unknown ones separately.
+83. No `ExclusionPath`, no `Add-MpPreference`, and no GitHub Release download in the P4 modules. Home Sandbox stays unavailable. CFA stays a modification shield. Privileged auto-update stays off. Passkeys, Everyday/Sensitive modes, Claims/Assumptions page polish, and a named-pipe SYSTEM helper stay later.
+
+*End of Function Spec — v0.9.4 / 2.2.0 P4.*
 
 
 

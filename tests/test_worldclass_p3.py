@@ -205,7 +205,7 @@ def _fresh(security: dict) -> dict:
 
 
 def test_version_is_2_1_0():
-    assert get_version() == "2.1.0"
+    assert get_version() == "2.2.0"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 

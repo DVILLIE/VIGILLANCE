@@ -208,8 +208,18 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
     def privacy():
         p = provider('privacy_guard', lambda: PrivacyGuard(store, config, telemetry_file))
         results = p.run()
+        from agent.intel import load_local_intel
+        from agent.modules.privacy_assistant import observe_privacy
+
+        intel_cfg = config.get('intel') or {}
+        intel = load_local_intel(
+            store.db_path.parent / 'intel',
+            abuse_enabled=bool(intel_cfg.get('abuse_ch_enabled', False)),
+        )
+        assistant = observe_privacy()
         if twin:
-            twin.patch(privacy={'checks': [vars(r) for r in results], 'sampled_at': _utc()})
+            twin.patch(privacy={'checks': [vars(r) for r in results], 'sampled_at': _utc(),
+                                'intel': intel, 'assistant': assistant})
         if getattr(p, 'collection_error', None):
             raise RuntimeError(p.collection_error)
 

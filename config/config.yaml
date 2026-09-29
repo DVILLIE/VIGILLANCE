@@ -128,6 +128,12 @@ logging:
   max_file_mb: 10
   backup_count: 3
 
+# Free intel. Local files only unless fetch_enabled is turned on by a caller.
+# abuse.ch stays off. DVielle does not bundle those dumps.
+intel:
+  fetch_enabled: false
+  abuse_ch_enabled: false
+
 # Chat / VILL deferred until core guardian is solid
 chat:
   enabled: false

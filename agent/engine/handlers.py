@@ -42,6 +42,8 @@ class HandlerContext:
     sandbox_launch: Callable[[list[str]], int] | None = None
     sandbox_folder_exists: Callable[[str], bool] | None = None
     sandbox_wsb_dir: Path | None = None
+    privacy_reader: Callable[[], dict] | None = None
+    privacy_runner: Callable[[str], tuple[str | None, bool]] | None = None
 
 
 class HandlerRegistry:
@@ -84,6 +86,7 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("storage.empty_recycle", empty_recycle)
     registry.register("privacy.block_network", block_network)
     registry.register("privacy.open_settings", open_privacy_settings)
+    registry.register("privacy.set_choice", set_privacy_choice)
     registry.register("ai.block_network", block_network)
     registry.register("ai.open_settings", open_ai_settings)
     registry.register("camera.stop_use", smart_close)
@@ -403,6 +406,20 @@ def _open_target(ctx: HandlerContext, target: str) -> dict:
 
 def open_privacy_settings(finding: dict, ctx: HandlerContext) -> dict:
     return _open_target(ctx, "privacy")
+
+
+def set_privacy_choice(finding: dict, ctx: HandlerContext) -> dict:
+    from agent.modules.privacy_assistant import apply_privacy_choice
+
+    signals = finding.get("signals") or {}
+    undo = (ctx.learn_dir / "privacy_undo.txt") if ctx.learn_dir else None
+    return apply_privacy_choice(
+        choice=str(signals.get("choice") or ""),
+        edition=signals.get("edition"),
+        reader=ctx.privacy_reader,
+        runner=ctx.privacy_runner,
+        undo_path=undo,
+    )
 
 
 def open_ai_settings(finding: dict, ctx: HandlerContext) -> dict:
