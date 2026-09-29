@@ -44,6 +44,8 @@ def main() -> int:
     check("microsoft_guard", lambda: importlib.import_module("agent.modules.microsoft_guard"))
     check("defender_health", lambda: importlib.import_module("agent.modules.defender_health"))
     check("edition_matrix", lambda: importlib.import_module("agent.edition_matrix"))
+    check("prevention", lambda: importlib.import_module("agent.modules.prevention"))
+    check("prevention_apply", lambda: importlib.import_module("agent.modules.prevention_apply"))
 
     def _gui_imports():
         try:

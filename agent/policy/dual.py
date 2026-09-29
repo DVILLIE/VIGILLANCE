@@ -46,11 +46,15 @@ HANDLER_KIND: dict[str, ActionKind] = {
     "storage.empty_recycle": ActionKind.DELETE_TEMP,
     "privacy.block_network": ActionKind.RESTRICT_NETWORK,
     "ai.block_network": ActionKind.RESTRICT_NETWORK,
+    "safety.set_asr_rule": ActionKind.SET_ASR_RULE,
+    "safety.set_cfa_mode": ActionKind.SET_CFA_MODE,
 }
 
 _UNDO: dict[ActionKind, str] = {
     ActionKind.RESTRICT_NETWORK: "Remove the DVielle outbound firewall rule for this program.",
     ActionKind.DISABLE_STARTUP: "Rename the .dvielle-disabled startup file back to its original name.",
+    ActionKind.SET_ASR_RULE: "Set the same ASR rule back to the mode recorded before this change.",
+    ActionKind.SET_CFA_MODE: "Set controlled folder access back to the mode recorded before this change.",
 }
 _IRREVERSIBLE = frozenset(
     {ActionKind.CLOSE_PROCESS, ActionKind.DELETE_TEMP, ActionKind.BLOCK_IP}

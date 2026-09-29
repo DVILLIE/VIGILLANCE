@@ -8,6 +8,7 @@ import pytest
 from agent.capability import probe_capabilities
 from agent.edition_matrix import build_edition_matrix, classify_sku, interpret_sac
 from agent.modules import security
+from agent.modules.prevention import parse_prevention
 from agent.modules.defender_health import (
     combine_health,
     interpret_maps_output,
@@ -63,8 +64,8 @@ def _fresh(security_block: dict, *, status: str = "ok", capability: dict | None 
     }
 
 
-def test_version_is_1_8_0():
-    assert get_version() == "1.8.0"
+def test_version_is_1_9_0():
+    assert get_version() == "1.9.0"
 
 
 def test_home_matrix_marks_sandbox_and_authoring_unavailable():
@@ -241,6 +242,11 @@ def test_security_access_denial_sets_collection_error(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(security, "_query_maps", lambda: interpret_maps_output(MAPS_ELEVATION))
     monkeypatch.setattr(security, "_query_edition_matrix", lambda: build_edition_matrix("Home"))
+    monkeypatch.setattr(
+        security,
+        "_query_prevention",
+        lambda: parse_prevention("STATUS:ACCESS_DENIED\nDETAIL:Access is denied"),
+    )
     monitor = security.SecurityMonitor(AgentStore(tmp_path / "agent.db"), {})
     status = monitor.run()
     assert monitor.collection_error

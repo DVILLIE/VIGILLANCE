@@ -33,6 +33,8 @@ class ActionKind(str, Enum):
     CLOSE_PROCESS = "CLOSE_PROCESS"
     DISABLE_STARTUP = "DISABLE_STARTUP"
     DELETE_TEMP = "DELETE_TEMP"
+    SET_ASR_RULE = "SET_ASR_RULE"
+    SET_CFA_MODE = "SET_CFA_MODE"
 
 
 # Non-mutating: may be decided/logged; ActionExecutor must never invoke handlers for these.
@@ -55,6 +57,8 @@ MUTATING_MIN_LEVEL: Mapping[ActionKind, int] = {
     ActionKind.BLOCK_IP: LEVEL_ADMIN,
     ActionKind.DISABLE_STARTUP: LEVEL_REVERSIBLE,
     ActionKind.DELETE_TEMP: LEVEL_REVERSIBLE,
+    ActionKind.SET_ASR_RULE: LEVEL_REVERSIBLE,
+    ActionKind.SET_CFA_MODE: LEVEL_REVERSIBLE,
 }
 
 # Kinds that require an explicit human authorization regardless of level.
@@ -62,7 +66,9 @@ MUTATING_MIN_LEVEL: Mapping[ActionKind, int] = {
 # only be issued/executed under Authorization.USER_APPROVED — never
 # AUTOMATIC_POLICY. This keeps the autonomous agent unable to close apps on its
 # own even if a handler is registered for a user-initiated surface (the GUI).
-USER_APPROVED_ONLY: frozenset[ActionKind] = frozenset({ActionKind.CLOSE_PROCESS})
+USER_APPROVED_ONLY: frozenset[ActionKind] = frozenset(
+    {ActionKind.CLOSE_PROCESS, ActionKind.SET_ASR_RULE, ActionKind.SET_CFA_MODE}
+)
 
 
 def parse_action_kind(value: str | ActionKind) -> ActionKind | None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from agent.engine.footprint import FootprintProgress, partner_playbook
 from agent.engine.models import AuthToken, PolicyDenied
@@ -35,6 +35,9 @@ class HandlerContext:
     learn_dir: Path | None = None
     breach_email: str | None = None
     breach_check: BreachCheck | None = None
+    powershell: Callable[..., tuple[str | None, bool]] | None = None
+    defender_health_reader: Callable[[], Any] | None = None
+    maps_reader: Callable[[], Any] | None = None
 
 
 class HandlerRegistry:
@@ -89,6 +92,8 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("footprint.open_partner", footprint_open_partner)
     registry.register("footprint.mark_resolved", footprint_mark_resolved)
     registry.register("footprint.still_monitoring", footprint_still_monitoring)
+    registry.register("safety.set_asr_rule", set_asr_rule)
+    registry.register("safety.set_cfa_mode", set_cfa_mode)
 
 
 def _result(performed: bool, message: str, *, reversible: str = "no", status: str | None = None) -> dict:
@@ -96,6 +101,35 @@ def _result(performed: bool, message: str, *, reversible: str = "no", status: st
     if status:
         body["status"] = status
     return body
+
+
+def set_asr_rule(finding: dict, ctx: HandlerContext) -> dict:
+    from agent.modules.prevention_apply import apply_asr_rule, undo_path_for
+
+    signals = finding.get("signals") or {}
+    return apply_asr_rule(
+        guid=str(signals.get("guid") or ""),
+        action=signals.get("action"),
+        runner=ctx.powershell,
+        health_reader=ctx.defender_health_reader,
+        maps_reader=ctx.maps_reader,
+        undo_path=undo_path_for(ctx.learn_dir),
+        sku=signals.get("sku"),
+    )
+
+
+def set_cfa_mode(finding: dict, ctx: HandlerContext) -> dict:
+    from agent.modules.prevention_apply import apply_cfa_mode, undo_path_for
+
+    signals = finding.get("signals") or {}
+    return apply_cfa_mode(
+        mode=signals.get("mode"),
+        runner=ctx.powershell,
+        health_reader=ctx.defender_health_reader,
+        maps_reader=ctx.maps_reader,
+        undo_path=undo_path_for(ctx.learn_dir),
+        sku=signals.get("sku"),
+    )
 
 
 def turn_protection_on(finding: dict, ctx: HandlerContext) -> dict:
