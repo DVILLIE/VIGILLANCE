@@ -185,6 +185,9 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
                                  'defender_health': health,
                                  'maps': sec.maps or {},
                                  'edition_matrix': sec.edition_matrix or {},
+                                 'prevention': sec.prevention or {},
+                                 'recovery': sec.recovery or {},
+                                 'promotion': sec.promotion or {},
                                  'coverage': 'partial' if p.collection_error else 'complete'})
             query_updates = {}
             if health.get('query_state'):

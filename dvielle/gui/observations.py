@@ -154,6 +154,16 @@ def prevention_evidence_line(data: dict | None) -> str:
         parts.append(f"{label} {features.get(key) or 'UNKNOWN'}")
     if mode:
         parts.append(f"SAC mode {mode}")
+    prevention = security.get("prevention") if isinstance(security.get("prevention"), dict) else None
+    recovery = security.get("recovery") if isinstance(security.get("recovery"), dict) else None
+    if prevention:
+        parts.append(f"ASR read {prevention.get('coverage') or 'unknown'}")
+        parts.append(f"CFA {prevention.get('cfa_mode_name') or 'Unread'}")
+        parts.append("CFA modification shield")
+    if recovery:
+        parts.append(f"BackupConfigured {recovery.get('backup_configured') or 'unknown'}")
+        parts.append(f"BackupFresh {recovery.get('backup_fresh') or 'unknown'}")
+        parts.append(f"RestoreVerified {recovery.get('restore_verified') or 'unknown'}")
     line = " · ".join(str(part) for part in parts)
     healthy = (
         state == "ok"

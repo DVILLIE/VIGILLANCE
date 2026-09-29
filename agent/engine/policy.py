@@ -31,6 +31,8 @@ USER_HANDLERS = frozenset(
         "footprint.open_partner",
         "footprint.mark_resolved",
         "footprint.still_monitoring",
+        "safety.set_asr_rule",
+        "safety.set_cfa_mode",
     }
 )
 AUTO_HANDLERS = frozenset({"safety.turn_protection_on", "storage.free_safe_temp"})

@@ -32,7 +32,7 @@ PRODUCT_NOTES: tuple[str, ...] = (
     "App Control for Business PowerShell authoring is not available on Home. A policy can still be effective on Home if one was deployed another way.",
     "Smart App Control is probe-only. Clean-install eligibility, region limits, and toggle reversibility without reset are not inferred.",
     "Windows Defender Application Guard is deprecated and is not a Home sandbox substitute. Client Hyper-V is not available on Home.",
-    "This build observes ASR, CFA, and App Control. It does not enforce them.",
+    "This matrix does not enforce ASR, CFA, or App Control. Support is not an on/off reading.",
 )
 
 ASSUMPTIONS: tuple[str, ...] = (

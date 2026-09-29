@@ -16,6 +16,7 @@ from agent.modules.defender_health import (
     query_defender_health,
     query_maps,
 )
+from agent.modules.prevention import build_promotion, load_recovery, query_prevention_posture
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
@@ -39,6 +40,9 @@ class SecurityStatus:
     maps: dict[str, Any] | None = None
     edition_matrix: dict[str, Any] | None = None
     firewall_query_state: str = "UNKNOWN"
+    prevention: dict[str, Any] | None = None
+    recovery: dict[str, Any] | None = None
+    promotion: dict[str, Any] | None = None
 
 
 def _query_defender() -> tuple[bool | None, bool | None]:
@@ -99,6 +103,10 @@ def _query_edition_matrix() -> EditionMatrix:
     return current_edition_matrix()
 
 
+def _query_prevention():
+    return query_prevention_posture()
+
+
 def _firewall_query_state(profiles: dict[str, bool]) -> str:
     if not IS_WINDOWS:
         return "UNAVAILABLE"
@@ -127,6 +135,9 @@ class SecurityMonitor:
         maps = _query_maps()
         health = combine_health(_query_defender_health(), maps)
         matrix = _query_edition_matrix()
+        posture = _query_prevention()
+        recovery = load_recovery(self.store.db_path.parent / "learn" / "recovery.txt")
+        promotion = build_promotion(posture, health, maps, sku=matrix.sku)
         issues: list[str] = []
 
         if defender is False:
@@ -172,6 +183,8 @@ class SecurityMonitor:
         reasons: list[str] = []
         if health.coverage != "complete":
             reasons.append(health.coverage_detail)
+        if posture.coverage != "complete":
+            reasons.append(posture.coverage_detail)
         if defender is None or realtime is None or firewall is None:
             reasons.append("Windows security posture partially unavailable")
         # MAPS unavailable blocks all_clear on the health report. It does not
@@ -188,4 +201,7 @@ class SecurityMonitor:
             maps=maps.to_dict(),
             edition_matrix=matrix.to_dict(),
             firewall_query_state=_firewall_query_state(profiles),
+            prevention=posture.to_dict(),
+            recovery=recovery.to_dict(),
+            promotion=promotion,
         )

@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from agent.modules import ram, security
+from agent.modules.prevention import parse_prevention
 from agent.policy import (
     ActionKind,
     Authorization,
@@ -93,6 +94,11 @@ DefenderSignaturesOutOfDate:False
     monkeypatch.setattr(security, "_query_defender_health", lambda: parse_defender_status(healthy))
     monkeypatch.setattr(security, "_query_maps", lambda: interpret_maps_output("MAPS:RAN\nEXIT:0\nconnected\n"))
     monkeypatch.setattr(security, "_query_edition_matrix", lambda: build_edition_matrix("Home"))
+    monkeypatch.setattr(
+        security,
+        "_query_prevention",
+        lambda: parse_prevention("STATUS:ACCESS_DENIED\nDETAIL:Access is denied"),
+    )
     monkeypatch.setattr(security, "_last_security_sig", None)
     cortex = PolicyCortex(store=store)
 

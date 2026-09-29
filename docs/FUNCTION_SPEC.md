@@ -1,7 +1,7 @@
-# DVielle Function Spec (v0.9 — World-class FREE prevention lock)
+# DVielle Function Spec (v0.9.1 — P1 ASR, CFA, and recovery shipped)
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
-**Date:** 2026-09-29 (v0.9 — eight FREE prevention pillars and the P0→Later sequence locked; v0.8 keep-on loop remains in force)  
+**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0. The v0.8 keep-on loop remains in force.)  
 **Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
@@ -29,6 +29,10 @@ This version does **not** claim a live multi-OS product.
 
 1.8.0 adds read-only Defender health, a MAPS reachability check, and an edition matrix. It does not enable ASR, CFA, App Control, or Windows Sandbox. A partial or access-denied read is not a clean bill of health. Engine currency is **UNKNOWN** until DVielle compares it with a catalog, which this version does not do. Attestation checksums and TUF are not built. The pass/fail list is [TRUST_GATES.md](TRUST_GATES.md).
 
+### Shipped honesty (1.9.0 — P1)
+
+1.9.0 collects ASR rule actions and CFA mode from `Get-MpPreference`. A missing rule is Not configured, not Audit. Standard-protection Block is a user-approved dual-gate path for the vulnerable-driver rule and the LSASS rule, and only while the live action is still Audit and Defender is Active, real-time protection is on, and MAPS passed. The WMI persistence rule and every other ASR rule can be set to Audit only. DVielle does not blanket-Block them. CFA moves from off to Audit, and from Audit to Enabled. Enabled is a modification and boot-sector shield. DVielle does not claim CFA prevents reading or exfiltration. Offline encrypted backups and a restore test stay required (CISA). BackupConfigured, BackupFresh, and RestoreVerified are separate user-declared states, not a backup engine. Home is not described as lacking ASR. Local PowerShell does not require E5. App Control, Windows Sandbox on Home, TUF, and privileged auto-update are still not built.
+
 ---
 
 ## 1.1 World-class FREE pillars (locked 2026-09-29)
@@ -41,12 +45,12 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 
 | # | Pillar | Promise | Assumptions | Evidence |
 |---|--------|---------|-------------|----------|
-| 1 | Defender orchestration | Observe Defender and configure only features the edition supports. Never disable real-time protection to replace it. Never add an install-time `ExclusionPath`. | Defender is present. The user consents before any future change. This 1.8.0 build only observes. | `Get-MpComputerStatus` active mode, real-time, signature age, and the Defender out-of-date flag. Access denial stays partial. |
+| 1 | Defender orchestration | Observe Defender and configure only features the edition supports. Never disable real-time protection to replace it. Never add an install-time `ExclusionPath`. | Defender is present. The user consents before a preference change. 1.9.0 changes ASR or CFA only through the dual gate, then re-reads the live preference. | `Get-MpComputerStatus` active mode, real-time, signature age, and the Defender out-of-date flag. Access denial stays partial. |
 | 2 | Edition-honest matrix | Show Home vs Pro+ support before any enablement. Windows Sandbox and App Control PowerShell authoring are unavailable on Home. | EditionID / caption classification. Smart App Control is a probe, not an eligibility guess. | `feature_matrix` on the capability report and the console evidence strip. |
-| 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules and other rules are Audit-first when enforcement exists. | Defender Active, real-time on, cloud protection reachable, platform not left unmaintained. User has not turned CFA off. Offline encrypted backups and a restore drill still required (CISA). | Not in 1.8.0. P1 collects ASR/CFA mode and events before any Block. |
+| 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
 | 4 | Firewall assist | Propose Windows Firewall rules. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. | P2. 1.8.0 only reports profile on/off when the read completes. |
 | 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. | Matrix cell. P3 launches `.wsb` only on a supporting SKU. |
-| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. | P4–P5. 1.8.0 verifies MAPS and refuses a “block Microsoft cloud” recommendation. |
+| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 1.9.0 stores the three recovery states in a deletable local marker. MAPS is still verified and is not blocked. Passkeys remain P5. |
 | 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. | Unchecked until built. See TRUST_GATES. |
 | 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. | This spec, TRUST_GATES, and fixture tests. Attestation checksum remains unchecked. |
 
@@ -56,7 +60,7 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 |----------|-------|-----|------------------|
 | **P0** | Defender health gate, MAPS check, do-no-harm (never displace Defender) | Later prevention depends on active Defender and cloud reachability | Fail closed to Windows defaults. Incomplete collection stays partial. |
 | **P0** | Edition matrix and honest Home / Pro pathing | Stops Sandbox and App Control over-claims | Feature flags by edition |
-| **P1** | ASR standard-protection Block, other rules Audit then promote; CFA Audit then Block; backup/restore wizard | Highest OS prevention return on Home | Audit-first. CFA copy stays modification-only. |
+| **P1** | ASR standard-protection Block, other rules Audit then promote; CFA Audit then Block; backup/restore states. **Shipped in 1.9.0** as observation plus a dual-gated one-step promotion. Not a backup product. | Highest OS prevention return on Home | Audit-first. WMI and non-standard rules are not blanket-Blocked. CFA copy stays modification-only. |
 | **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts | Completes the host controls without a new driver | Propose, confirm, apply. Job Object caps have DFSS/RDS limits. |
 | **P3** | Sandbox `.wsb` launcher on Pro+ only. Home gets the “no Sandbox” checklist. TUF update pipeline before any privileged auto-update | Isolation where the SKU has it. Update integrity before automation. | Hidden on Home. Manual update until TUF tests pass. |
 | **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable | Context without a license violation | Provenance labels. Maps check gates any privacy block list. |
@@ -90,7 +94,7 @@ P0 only, and only the read-only half:
 
 ### Laws that stay in force
 
-Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference ExclusionPath`. No offensive tools. No elevated unattended / Highest change in this version. No App Control, ASR, or CFA enforcement in this version. Camera in-use on Windows stays unknown. The footprint collector stays empty. Unknown stays unknown.
+Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference ExclusionPath`. No offensive tools. No elevated unattended / Highest change in this version. No App Control enforcement. ASR and CFA changes are user-approved, one rule or one CFA mode at a time, and counted as applied only when a second `Get-MpPreference` matches. Auto-protect cannot issue them. Camera in-use on Windows stays unknown. The footprint collector stays empty. Unknown stays unknown.
 
 ---
 
@@ -1018,6 +1022,20 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 58. No new mutator ships in 1.8.0. ASR, CFA, and App Control are not enforced. `ExclusionPath` is still absent.
 
 *End of Function Spec — v0.9 / 1.8.0 FREE prevention lock.*
+
+---
+
+## 36. Acceptance checks (1.9.0 — P1 ASR, CFA, recovery)
+
+59. ASR and CFA are read from `Get-MpPreference`. Access denial, a timeout, and a mismatched id/action count stay partial. A partial read does not describe every rule as Off.
+60. Windows Home and Windows Pro share the same ASR promotion rules. The product does not say Home lacks ASR and does not require Microsoft 365 E5 for the local PowerShell path.
+61. The vulnerable-driver rule and the LSASS rule may be set to Block only when the live action is Audit and Defender Active, real-time protection, and MAPS all pass. The WMI rule is not set to Block. Other rules may be set to Audit and are not blanket-Blocked. Warn is not Audit evidence.
+62. CFA off or disk-only audit moves to folder Audit first. Full Enabled is offered only from live Audit mode. Copy states the modification/delete shield and states that offline backups plus a restore test remain required.
+63. BackupConfigured, BackupFresh, and RestoreVerified are separate. A backup timestamp does not set RestoreVerified. A missing marker is unknown. Clearing the marker returns the states to unknown.
+64. ASR and CFA writes go through DualGate and Cortex persist-before-mutate. Auto-protect cannot issue them. The apply path re-reads the live preference. A denied or non-matching re-read is not recorded as applied. The previous mode can be restored where the plan still allows that non-Block value.
+65. No `ExclusionPath`, no ASR path exclusion, and no rule that blocks Defender cloud endpoints. Windows Sandbox stays unavailable on Home. TUF and privileged auto-update stay unchecked.
+
+*End of Function Spec — v0.9.1 / 1.9.0 P1.*
 
 
 
