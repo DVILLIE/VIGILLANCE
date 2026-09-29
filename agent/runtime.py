@@ -177,14 +177,26 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
         sec = p.run()
         observed["security"] = sec
         if twin:
+            health = sec.defender_health or {}
             twin.patch(security={'defender_enabled': sec.defender_enabled,
                                  'realtime_protection': sec.realtime_protection,
                                  'firewall_enabled': sec.firewall_enabled,
-                                 'issues': list(sec.issues), 'sampled_at': _utc()})
+                                 'issues': list(sec.issues), 'sampled_at': _utc(),
+                                 'defender_health': health,
+                                 'maps': sec.maps or {},
+                                 'edition_matrix': sec.edition_matrix or {},
+                                 'coverage': 'partial' if p.collection_error else 'complete'})
+            query_updates = {}
+            if health.get('query_state'):
+                query_updates['defender'] = health['query_state']
+            if sec.firewall_query_state:
+                query_updates['firewall'] = sec.firewall_query_state
+            if query_updates:
+                twin.patch(capability=query_updates)
         for issue in sec.issues:
             toast(issue, 'CRITICAL')
-        if sec.defender_enabled is None or sec.firewall_enabled is None or sec.realtime_protection is None:
-            raise RuntimeError('Windows security posture partially unavailable')
+        if p.collection_error:
+            raise CollectionIncomplete(p.collection_error)
 
     def privacy():
         p = provider('privacy_guard', lambda: PrivacyGuard(store, config, telemetry_file))

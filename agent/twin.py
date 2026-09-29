@@ -75,7 +75,14 @@ class TwinStore:
 
     def set_capability(self, report: CapabilityReport) -> None:
         with self._lock:
-            self._twin.capability = report.to_dict()
+            incoming = report.to_dict()
+            previous = self._twin.capability
+            # An idle capability probe does not re-read Defender. Keep a security
+            # collector's query state instead of replacing it with UNKNOWN.
+            for key in ("defender", "firewall"):
+                if incoming.get(key) == "UNKNOWN" and previous.get(key) not in {None, "", "UNKNOWN"}:
+                    incoming[key] = previous[key]
+            self._twin.capability = incoming
             self._twin.vision = report.overall_vision
             self._twin.hardware = {
                 "ram_total_gb": report.ram_total_gb,

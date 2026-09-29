@@ -107,6 +107,64 @@ def why_measurement_line(data: dict | None) -> str:
     )
 
 
+_MATRIX_LABELS = (
+    ("asr", "ASR"),
+    ("cfa", "CFA"),
+    ("firewall", "Firewall"),
+    ("smart_app_control", "SAC"),
+    ("windows_sandbox", "Sandbox"),
+    ("app_control_authoring", "AppControl"),
+)
+
+
+def prevention_evidence_line(data: dict | None) -> str:
+    """Compact prevention evidence for the console strip.
+
+    A partial, stale, or failed check is labeled incomplete. The line does not
+    say the machine is clear.
+    """
+    if not data:
+        return "Prevention evidence unavailable."
+    if not snapshot_fresh(data):
+        return "Prevention evidence stale. Retained status is not a current reading."
+    security = data.get("security") if isinstance(data.get("security"), dict) else {}
+    capability = data.get("capability") if isinstance(data.get("capability"), dict) else {}
+    matrix = security.get("edition_matrix") if isinstance(security.get("edition_matrix"), dict) else {}
+    features = matrix.get("features") if isinstance(matrix.get("features"), dict) else capability.get("feature_matrix")
+    if not isinstance(features, dict):
+        features = {}
+    health = security.get("defender_health") if isinstance(security.get("defender_health"), dict) else {}
+    maps = security.get("maps") if isinstance(security.get("maps"), dict) else {}
+    sku = matrix.get("sku") or capability.get("edition_sku") or "Unknown"
+    state = collector_state(data, "security")
+    age = health.get("signature_age_days")
+    age_text = f"{age}d" if isinstance(age, int) and not isinstance(age, bool) else "UNKNOWN"
+    parts = [
+        f"SKU {sku}",
+        f"Defender collection {state}",
+        f"mode {health.get('am_running_mode') or 'UNKNOWN'}",
+        f"realtime {health.get('realtime') or 'UNKNOWN'}",
+        f"signature age {age_text}",
+        f"signature {health.get('signature_freshness') or 'UNKNOWN'}",
+        "engine freshness UNKNOWN",
+        f"MAPS {maps.get('result') or 'unavailable'}",
+    ]
+    mode = matrix.get("smart_app_control_mode") or capability.get("smart_app_control_mode")
+    for key, label in _MATRIX_LABELS:
+        parts.append(f"{label} {features.get(key) or 'UNKNOWN'}")
+    if mode:
+        parts.append(f"SAC mode {mode}")
+    line = " · ".join(str(part) for part in parts)
+    healthy = (
+        state == "ok"
+        and health.get("all_clear") is True
+        and maps.get("result") == "pass"
+    )
+    if not healthy:
+        line += " · coverage incomplete"
+    return line
+
+
 def activity_summary(data: dict | None) -> str:
     if not snapshot_fresh(data):
         return "Monitoring observations unavailable or stale"

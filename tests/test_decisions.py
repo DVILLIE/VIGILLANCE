@@ -74,8 +74,25 @@ def test_gate_wires_store_into_cortex(store):
 # ---- modules issue on the NORMAL path -------------------------------------
 
 def test_security_recommends_on_defender_off_and_dedups(store, monkeypatch):
+    from agent.edition_matrix import build_edition_matrix
+    from agent.modules.defender_health import interpret_maps_output, parse_defender_status
+
+    healthy = """STATUS:OK
+AMRunningMode:Normal
+AntivirusEnabled:False
+RealTimeProtectionEnabled:False
+AntivirusSignatureAge:1
+AntivirusSignatureLastUpdated:2026-09-28
+AntivirusSignatureVersion:1.2.3.4
+AMEngineVersion:1.1.25000.1
+AMProductVersion:4.18.25000.1
+DefenderSignaturesOutOfDate:False
+"""
     monkeypatch.setattr(security, "_query_defender", lambda: (False, False))
-    monkeypatch.setattr(security, "_query_firewall", lambda: (True, {"Domain": True}))
+    monkeypatch.setattr(security, "_query_firewall", lambda: (True, {"domain": True, "private": True, "public": True}))
+    monkeypatch.setattr(security, "_query_defender_health", lambda: parse_defender_status(healthy))
+    monkeypatch.setattr(security, "_query_maps", lambda: interpret_maps_output("MAPS:RAN\nEXIT:0\nconnected\n"))
+    monkeypatch.setattr(security, "_query_edition_matrix", lambda: build_edition_matrix("Home"))
     monkeypatch.setattr(security, "_last_security_sig", None)
     cortex = PolicyCortex(store=store)
 

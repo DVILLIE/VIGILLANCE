@@ -6,6 +6,16 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+from agent.capability import current_edition_matrix
+from agent.edition_matrix import EditionMatrix
+from agent.modules.defender_health import (
+    MAPS_GUIDANCE,
+    DefenderHealth,
+    MapsCheck,
+    combine_health,
+    query_defender_health,
+    query_maps,
+)
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
@@ -25,6 +35,10 @@ class SecurityStatus:
     firewall_enabled: bool | None
     firewall_profiles: dict[str, bool]
     issues: list[str]
+    defender_health: dict[str, Any] | None = None
+    maps: dict[str, Any] | None = None
+    edition_matrix: dict[str, Any] | None = None
+    firewall_query_state: str = "UNKNOWN"
 
 
 def _query_defender() -> tuple[bool | None, bool | None]:
@@ -73,6 +87,28 @@ foreach ($p in $profiles) {
     return all_on, profiles
 
 
+def _query_defender_health() -> DefenderHealth:
+    return query_defender_health()
+
+
+def _query_maps() -> MapsCheck:
+    return query_maps()
+
+
+def _query_edition_matrix() -> EditionMatrix:
+    return current_edition_matrix()
+
+
+def _firewall_query_state(profiles: dict[str, bool]) -> str:
+    if not IS_WINDOWS:
+        return "UNAVAILABLE"
+    if len(profiles) == 3:
+        return "AVAILABLE"
+    if profiles:
+        return "LIMITED"
+    return "UNKNOWN"
+
+
 class SecurityMonitor:
     def __init__(
         self,
@@ -82,11 +118,15 @@ class SecurityMonitor:
     ) -> None:
         self.store = store
         self.cortex = cortex
+        self.collection_error: str | None = None
 
     def run(self) -> SecurityStatus:
         global _last_security_sig
         defender, realtime = _query_defender()
         firewall, profiles = _query_firewall()
+        maps = _query_maps()
+        health = combine_health(_query_defender_health(), maps)
+        matrix = _query_edition_matrix()
         issues: list[str] = []
 
         if defender is False:
@@ -95,6 +135,17 @@ class SecurityMonitor:
             issues.append("Real-time protection is disabled")
         if firewall is False:
             issues.append("One or more firewall profiles are disabled")
+        if health.coverage == "complete" and health.active_mode == "LIMITED":
+            issues.append(
+                "Defender AMRunningMode is not Normal. Active mode is a prerequisite for ASR and CFA. "
+                "Passive or EDR Block Mode can be expected when another antivirus provides real-time protection."
+            )
+        if health.signatures_out_of_date is True:
+            issues.append("Defender reports security intelligence out of date")
+        if maps.result == "fail":
+            issues.append(
+                "Defender cloud connectivity check failed. " + MAPS_GUIDANCE
+            )
 
         for issue in issues:
             self.store.log_event("security", "CRITICAL", issue, None)
@@ -118,10 +169,23 @@ class SecurityMonitor:
             )
         _last_security_sig = sig if issues else None
 
+        reasons: list[str] = []
+        if health.coverage != "complete":
+            reasons.append(health.coverage_detail)
+        if defender is None or realtime is None or firewall is None:
+            reasons.append("Windows security posture partially unavailable")
+        # MAPS unavailable blocks all_clear on the health report. It does not
+        # discard a completed Defender and firewall read.
+        self.collection_error = "; ".join(reasons) if reasons else None
+
         return SecurityStatus(
             defender_enabled=defender,
             realtime_protection=realtime,
             firewall_enabled=firewall,
             firewall_profiles=profiles,
             issues=issues,
+            defender_health=health.to_dict(),
+            maps=maps.to_dict(),
+            edition_matrix=matrix.to_dict(),
+            firewall_query_state=_firewall_query_state(profiles),
         )
