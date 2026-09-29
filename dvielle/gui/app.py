@@ -604,6 +604,14 @@ class DVielleApp:
             if sb_rss:
                 budget += f" · {sb_rss / (1024 * 1024):.0f} MB"
             budget += " · " + sb.get("reason", "budget status unavailable")
+            contract = sb.get("cpu_contract") if isinstance(sb.get("cpu_contract"), dict) else {}
+            if contract.get("scheduling_mode") == "measured":
+                budget += " · measured scheduling"
+            elif contract.get("scheduling_mode") == "job_hard_cap" and contract.get("job_cap_applied") is True:
+                budget += " · job hard cap"
+            rate = contract.get("analysis_cpu_rate")
+            if isinstance(rate, int) and not isinstance(rate, bool):
+                budget += f" · analysis CpuRate {rate}"
             return {
                 "cpu": sysd.get("cpu_percent") if section_current(data, "heartbeat", sysd.get("cpu_sampled_at")) else None,
                 "mem": mem_val,

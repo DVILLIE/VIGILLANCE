@@ -29,6 +29,7 @@ class SelfBudget:
     reason: str = "not sampled"
     cpu_limit_percent: float | None = None
     rss_limit_mb: float | None = None
+    cpu_contract: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

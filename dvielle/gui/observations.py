@@ -164,6 +164,10 @@ def prevention_evidence_line(data: dict | None) -> str:
         parts.append(f"BackupConfigured {recovery.get('backup_configured') or 'unknown'}")
         parts.append(f"BackupFresh {recovery.get('backup_fresh') or 'unknown'}")
         parts.append(f"RestoreVerified {recovery.get('restore_verified') or 'unknown'}")
+    firewall_assist = security.get("firewall_assist") if isinstance(security.get("firewall_assist"), dict) else None
+    if firewall_assist:
+        parts.append(f"Firewall rules {firewall_assist.get('coverage') or 'unknown'}")
+        parts.append("not leakproof")
     line = " · ".join(str(part) for part in parts)
     healthy = (
         state == "ok"

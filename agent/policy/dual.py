@@ -46,6 +46,7 @@ HANDLER_KIND: dict[str, ActionKind] = {
     "storage.empty_recycle": ActionKind.DELETE_TEMP,
     "privacy.block_network": ActionKind.RESTRICT_NETWORK,
     "ai.block_network": ActionKind.RESTRICT_NETWORK,
+    "safety.restrict_network": ActionKind.RESTRICT_NETWORK,
     "safety.set_asr_rule": ActionKind.SET_ASR_RULE,
     "safety.set_cfa_mode": ActionKind.SET_CFA_MODE,
 }

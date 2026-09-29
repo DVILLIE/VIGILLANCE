@@ -24,6 +24,7 @@ from agent.modules.privacy_guard import PrivacyGuard
 from agent.modules.ram import RamMonitor
 from agent.modules.resource_advisor import ResourceAdvisor
 from agent.modules.security import SecurityMonitor
+from agent.cpu_contract import published_contract
 from agent.nerve import Cadence, CollectorSpec, CollectionIncomplete, NervePlane, default_intervals
 from agent.ownership import RuntimeLease, RuntimeIntentionallyStopped, read_json
 from agent.policy import PolicyGate
@@ -188,6 +189,7 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
                                  'prevention': sec.prevention or {},
                                  'recovery': sec.recovery or {},
                                  'promotion': sec.promotion or {},
+                                 'firewall_assist': sec.firewall_assist or {},
                                  'coverage': 'partial' if p.collection_error else 'complete'})
             query_updates = {}
             if health.get('query_state'):
@@ -407,9 +409,11 @@ def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lea
             nerve.budget_exceeded = True
         elif budget_recovered >= 3:
             nerve.budget_exceeded = False
+        contract = published_contract(config)
         twin.update_self_budget(SelfBudget(rss_bytes=rss, cpu_percent=own_cpu,
             last_cycle_ms=(time.perf_counter() - started) * 1000, collectors_ran=['heartbeat'],
             exceeded=nerve.budget_exceeded, cpu_limit_percent=cpu_limit, rss_limit_mb=rss_limit,
+            cpu_contract=contract,
             reason='Optional collection deferred: sustained footprint exceeds budget' if nerve.budget_exceeded
                   else ('Within configured budget' if own_cpu is not None else 'CPU interval not available')))
         twin.patch(runtime={'state': 'running', 'heartbeat_at': _utc()})

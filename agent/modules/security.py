@@ -16,6 +16,7 @@ from agent.modules.defender_health import (
     query_defender_health,
     query_maps,
 )
+from agent.modules.firewall_assist import query_firewall_assist
 from agent.modules.prevention import build_promotion, load_recovery, query_prevention_posture
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
@@ -43,6 +44,7 @@ class SecurityStatus:
     prevention: dict[str, Any] | None = None
     recovery: dict[str, Any] | None = None
     promotion: dict[str, Any] | None = None
+    firewall_assist: dict[str, Any] | None = None
 
 
 def _query_defender() -> tuple[bool | None, bool | None]:
@@ -107,6 +109,10 @@ def _query_prevention():
     return query_prevention_posture()
 
 
+def _query_firewall_assist():
+    return query_firewall_assist()
+
+
 def _firewall_query_state(profiles: dict[str, bool]) -> str:
     if not IS_WINDOWS:
         return "UNAVAILABLE"
@@ -136,6 +142,7 @@ class SecurityMonitor:
         health = combine_health(_query_defender_health(), maps)
         matrix = _query_edition_matrix()
         posture = _query_prevention()
+        firewall_assist = _query_firewall_assist()
         recovery = load_recovery(self.store.db_path.parent / "learn" / "recovery.txt")
         promotion = build_promotion(posture, health, maps, sku=matrix.sku)
         issues: list[str] = []
@@ -185,6 +192,8 @@ class SecurityMonitor:
             reasons.append(health.coverage_detail)
         if posture.coverage != "complete":
             reasons.append(posture.coverage_detail)
+        if firewall_assist.coverage != "complete":
+            reasons.append(firewall_assist.coverage_detail)
         if defender is None or realtime is None or firewall is None:
             reasons.append("Windows security posture partially unavailable")
         # MAPS unavailable blocks all_clear on the health report. It does not
@@ -204,4 +213,5 @@ class SecurityMonitor:
             prevention=posture.to_dict(),
             recovery=recovery.to_dict(),
             promotion=promotion,
+            firewall_assist=firewall_assist.to_dict(),
         )

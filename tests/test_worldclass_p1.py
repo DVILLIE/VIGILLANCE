@@ -150,8 +150,10 @@ def _invoke(tmp_path: Path, prefs: _Prefs, handler: str, signals: dict):
     return engine, engine.handlers.invoke(handler, finding, engine.handler_ctx, token)
 
 
-def test_version_is_1_9_0():
-    assert get_version() == "1.9.0"
+def test_version_is_past_the_1_9_0_prevention_release():
+    assert get_version() == "2.0.0"
+    text = (ROOT / "docs" / "FUNCTION_SPEC.md").read_text(encoding="utf-8")
+    assert "1.9.0" in text
 
 
 def test_catalog_matches_learn_standard_and_other_split():

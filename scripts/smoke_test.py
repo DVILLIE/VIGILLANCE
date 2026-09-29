@@ -46,6 +46,9 @@ def main() -> int:
     check("edition_matrix", lambda: importlib.import_module("agent.edition_matrix"))
     check("prevention", lambda: importlib.import_module("agent.modules.prevention"))
     check("prevention_apply", lambda: importlib.import_module("agent.modules.prevention_apply"))
+    check("firewall_assist", lambda: importlib.import_module("agent.modules.firewall_assist"))
+    check("privilege", lambda: importlib.import_module("agent.privilege"))
+    check("cpu_contract", lambda: importlib.import_module("agent.cpu_contract"))
 
     def _gui_imports():
         try:

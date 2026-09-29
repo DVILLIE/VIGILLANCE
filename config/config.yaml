@@ -29,10 +29,13 @@ nerve:
     network_info: 300
 
 # Agent CPU is normalized to total logical CPU capacity. Sustained excess defers
-# optional collection; this is a scheduling budget, not an OS-enforced quota.
+# optional collection; this is measured scheduling, not an OS-enforced quota.
+# analysis_cpu_percent is the published helper Job Object hard cap (CpuRate = percent * 100).
+# The resident Limited task does not assign that job. It does not terminate user apps.
 budget:
   max_cpu_percent: 1.0
   max_rss_mb: 150
+  analysis_cpu_percent: 20
 
 workload:
   busy_cpu_percent: 80
