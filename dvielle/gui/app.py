@@ -27,7 +27,14 @@ from dvielle.gui import theme as T
 from dvielle.gui.attacks_window import AttacksWindow
 from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
-from dvielle.gui.observations import activity_summary, chat_stats, collector_state, section_current, snapshot_fresh
+from dvielle.gui.observations import (
+    activity_summary,
+    chat_stats,
+    collector_state,
+    prevention_evidence_line,
+    section_current,
+    snapshot_fresh,
+)
 from dvielle.gui.presence import (
     ActivityTicker,
     ClockMono,
@@ -380,6 +387,16 @@ class DVielleApp:
         panel.grid(row=0, column=3, sticky="nsew", padx=(6, 0))
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        self.evidence_lbl = ctk.CTkLabel(
+            inner,
+            text="Prevention evidence unavailable.",
+            font=("Consolas", 11),
+            text_color=T.TEXT_DIM,
+            wraplength=250,
+            justify="left",
+            anchor="w",
+        )
+        self.evidence_lbl.pack(anchor="w", fill="x", pady=(0, 8))
         # Rows bound to real signals (twin/capability/nerve), not animation.
         self._matrix_rows: dict[str, MatrixRow] = {}
         for name in ("Defender", "Firewall", "Nerve", "Vision", "Pulse"):
@@ -611,6 +628,15 @@ class DVielleApp:
         data = v.get("twin")
         sec = (data or {}).get("security") or {}
         security_current = section_current(data, "security")
+        evidence = prevention_evidence_line(data)
+        evidence_lbl = getattr(self, "evidence_lbl", None)
+        if evidence_lbl is not None:
+            incomplete = (
+                "coverage incomplete" in evidence
+                or evidence.startswith("Prevention evidence stale")
+                or evidence.startswith("Prevention evidence unavailable")
+            )
+            evidence_lbl.configure(text=evidence, text_color=T.WARNING if incomplete else T.ACCENT)
 
         def _posture(name: str, val) -> None:
             row = rows.get(name)
@@ -623,7 +649,17 @@ class DVielleApp:
             else:
                 row.set_state(collector_state(data, "security").upper() + " / UNKNOWN", T.TEXT_DIM)
 
-        _posture("Defender", sec.get("defender_enabled") if security_current else None)
+        defender_row = rows.get("Defender")
+        if defender_row is not None:
+            health = sec.get("defender_health") if isinstance(sec.get("defender_health"), dict) else {}
+            if not security_current:
+                defender_row.set_state(collector_state(data, "security").upper(), T.WARNING if collector_state(data, "security") == "partial" else T.TEXT_DIM)
+            elif health.get("all_clear") is True and sec.get("defender_enabled") is True:
+                defender_row.set_state("ACTIVE", T.SUCCESS)
+            elif sec.get("defender_enabled") is False or sec.get("realtime_protection") is False:
+                defender_row.set_state("OFF", T.DANGER)
+            else:
+                defender_row.set_state(str(health.get("overall") or "UNKNOWN"), T.WARNING)
         _posture("Firewall", sec.get("firewall_enabled") if security_current else None)
 
         running = self.controller.status.running and snapshot_fresh(data)

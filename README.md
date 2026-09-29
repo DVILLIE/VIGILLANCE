@@ -1,6 +1,6 @@
 # DVielle — DEEP VIGILANCE
 
-DVielle is a Windows-primary local guardian. Linux and macOS run in limited mode. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 1.7.1 keeps the 1.7.0 dual gate and fails closed when a mutate decision is not saved, when a collection probe fails, or when an install would run elevated code from a writable directory. The resident scheduled task stays Limited. A Highest task is an explicit installer option only after the install directory is locked down, and elevated unattended use is not recommended until that lockdown is proven on the target Windows PC.
+DVielle is a Windows-primary local guardian. Linux and macOS run in limited mode. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 1.8.0 keeps the 1.7.0 dual gate and fails closed when a mutate decision is not saved, when a collection probe fails, or when an install would run elevated code from a writable directory. The resident scheduled task stays Limited. A Highest task is an explicit installer option only after the install directory is locked down, and elevated unattended use is not recommended until that lockdown is proven on the target Windows PC. 1.8.0 adds a read-only Defender health report, a MAPS reachability check, and an edition matrix. It does not turn on ASR, Controlled Folder Access, or App Control.
 
 The native console attaches to the background agent. Its values and activity come from measured state; unavailable or stale evidence is shown explicitly. Monitoring runs autonomously. Closing an application still requires a fresh process identity and explicit confirmation; automatic file cleanup, firewall changes and RAM trimming are disabled.
 
@@ -29,6 +29,7 @@ A second headless launch exits without duplicating collectors. A console can acq
 - Windows Home and Pro have a Required diagnostic-data floor. Registry settings alone do not prove that traffic stopped.
 - Public-IP lookup, cloud chat, cloud speech and web search require separate opt-ins. Core monitoring does not need a model.
 - DVielle complements Windows security. It cannot prove a machine is free of threats.
+- Windows Home has no Windows Sandbox and no App Control authoring. The console evidence strip shows edition support, not a guess that a feature is on. Pass/fail checks are in [docs/TRUST_GATES.md](docs/TRUST_GATES.md). The FREE roadmap is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) §1.1.
 
 See [implemented autonomy and verification](docs/AUTONOMY.md), [architecture](docs/VIGILLANCE_MASTER_ARCHITECTURE.md), [product decisions](docs/DECISIONS.md), and [Windows privacy details](docs/TELEMETRY_AND_HOME.md).
 
@@ -54,7 +55,8 @@ See [docs/DEV.md](docs/DEV.md). The installer smoke checks imports and package m
 | Doc | Purpose |
 |-----|---------|
 | [docs/VIGILLANCE_MASTER_ARCHITECTURE.md](docs/VIGILLANCE_MASTER_ARCHITECTURE.md) | **Master architecture + repo gap map** |
-| [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) | Keep-on pillars and current honesty limits |
+| [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) | Keep-on pillars, FREE prevention roadmap, honesty limits |
+| [docs/TRUST_GATES.md](docs/TRUST_GATES.md) | Pass/fail checks; TUF still unchecked |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
 | [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
 | [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |

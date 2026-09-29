@@ -13,6 +13,7 @@ from typing import Any, Literal
 
 import psutil
 
+from agent.edition_matrix import EditionMatrix, build_edition_matrix, classify_sku, interpret_sac
 from agent.utils import IS_WINDOWS, run_powershell
 
 CapState = Literal["AVAILABLE", "LIMITED", "UNKNOWN", "UNAVAILABLE"]
@@ -39,6 +40,11 @@ class CapabilityReport:
     overall_vision: CapState
     gaps: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    edition_sku: str = "Unknown"
+    edition_id: str | None = None
+    feature_matrix: dict[str, str] = field(default_factory=dict)
+    matrix_notes: list[str] = field(default_factory=list)
+    smart_app_control_mode: str | None = None
 
     # Back-compat aliases used by older Twin code
     @property
@@ -123,6 +129,55 @@ def _basic_os() -> tuple[str, str]:
     return sys.platform, ""
 
 
+def _read_edition_id() -> str | None:
+    if not IS_WINDOWS:
+        return None
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\Microsoft\Windows NT\CurrentVersion",
+        ) as key:
+            value, _kind = winreg.QueryValueEx(key, "EditionID")
+            return value if isinstance(value, str) and value else None
+    except OSError:
+        return None
+
+
+def _read_sac() -> tuple[str | None, CapState]:
+    """Probe Smart App Control. Learn documents the DWORD; a miss stays UNKNOWN."""
+    if not IS_WINDOWS:
+        return None, "UNAVAILABLE"
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"SYSTEM\CurrentControlSet\Control\CI\Policy",
+        ) as key:
+            value, kind = winreg.QueryValueEx(key, "VerifiedAndReputablePolicyState")
+            readable = kind == winreg.REG_DWORD
+            return interpret_sac(value if readable else None, readable=readable, windows=True)
+    except OSError:
+        return None, "UNKNOWN"
+
+
+def current_edition_matrix(caption: str | None = None) -> EditionMatrix:
+    """SKU matrix from the registry and an optional CIM caption. No Defender mutation."""
+    if not IS_WINDOWS:
+        return build_edition_matrix("NonWindows")
+    edition_id = _read_edition_id()
+    mode, state = _read_sac()
+    sku = classify_sku(edition_id, caption, windows=True)
+    return build_edition_matrix(
+        sku,
+        edition_id=edition_id,
+        smart_app_control=state,
+        smart_app_control_mode=mode,
+    )
+
+
 def _battery_state() -> CapState:
     try:
         bat = psutil.sensors_battery()
@@ -142,20 +197,13 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
     gaps: list[str] = []
     notes: list[str] = []
     if deep:
-        caption, build, edition, wmi = _os_info()
+        caption, build, _caption_edition, wmi = _os_info()
     else:
         # Boot never launches WMI/PowerShell. Deep capability probing is deferred.
         caption, build = _basic_os()
-        edition, wmi = None, "UNKNOWN"
-        if IS_WINDOWS:
-            try:
-                import winreg
-                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                        r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
-                    sku = str(winreg.QueryValueEx(key, "EditionID")[0])
-                    edition = "Home" if sku.lower().startswith("core") else sku
-            except OSError:
-                pass
+        wmi = "UNKNOWN"
+    matrix = current_edition_matrix(caption if deep else None)
+    edition = matrix.sku
     if wmi == "UNAVAILABLE" and IS_WINDOWS:
         gaps.append("wmi_cim_unavailable")
     elif wmi == "UNKNOWN":
@@ -175,6 +223,8 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
     primary = "T1" if admin else "T0"
     if edition == "ProOrHigher" and not admin:
         notes.append("Pro/Enterprise SKU detected but running as standard user.")
+    if edition == "Home":
+        notes.append("Windows Sandbox and App Control authoring are unavailable on this Home SKU.")
     if ram_gb <= 8.0:
         primary = f"{primary}+T3"
         notes.append("Low-end RAM tier: prefer thinner Nerve.")
@@ -207,6 +257,11 @@ def probe_capabilities(*, deep: bool = False) -> CapabilityReport:
         os_caption=caption,
         os_build=build,
         edition_hint=edition,
+        edition_sku=matrix.sku,
+        edition_id=matrix.edition_id,
+        feature_matrix=dict(matrix.features),
+        matrix_notes=list(matrix.notes),
+        smart_app_control_mode=matrix.smart_app_control_mode,
         is_admin=admin,
         ram_total_gb=ram_gb,
         cpu_count=int(cpu_n),

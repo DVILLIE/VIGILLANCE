@@ -1,9 +1,10 @@
-# DVielle Function Spec (v0.8 — Universal keep-on + options-then-act)
+# DVielle Function Spec (v0.9 — World-class FREE prevention lock)
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
-**Date:** 2026-09-26 (v0.8 — every pillar: user keep-on decisions → learn → quiet when expected → options when suspicious → act)  
+**Date:** 2026-09-29 (v0.9 — eight FREE prevention pillars and the P0→Later sequence locked; v0.8 keep-on loop remains in force)  
 **Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
-**Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)
+**Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
+**Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
 
 ---
 
@@ -23,6 +24,73 @@ This version does **not** claim a live multi-OS product.
 | Footprint | The live collector is **empty**. Remote breach, broker, and dark-web rows are drill tickets only. DVielle does not invent hits or search other people. |
 | Blocked IPs | The Attacks window does not show an “active now” block count. No gated BLOCK_IP writer is registered. |
 | Mutations | Firewall, temp delete, startup disable, smart close, and BLOCK_IP need both a keep-on choice (or published auto-protect for that subject) and Cortex. |
+
+### Shipped honesty (1.8.0)
+
+1.8.0 adds read-only Defender health, a MAPS reachability check, and an edition matrix. It does not enable ASR, CFA, App Control, or Windows Sandbox. A partial or access-denied read is not a clean bill of health. Engine currency is **UNKNOWN** until DVielle compares it with a catalog, which this version does not do. Attestation checksums and TUF are not built. The pass/fail list is [TRUST_GATES.md](TRUST_GATES.md).
+
+---
+
+## 1.1 World-class FREE pillars (locked 2026-09-29)
+
+Core prevention is free. DVielle orchestrates Microsoft Defender. It does not replace Defender, and it does not turn real-time protection off to “take over.”
+
+Every promise below has the shape **Promise → Assumptions → Evidence**. Silence about an assumption is an over-claim (seL4 publishes its assumptions; DVielle does the same). An AMTSO Security Features Check proves wiring. It is not a malware-efficacy percentage.
+
+### The eight pillars
+
+| # | Pillar | Promise | Assumptions | Evidence |
+|---|--------|---------|-------------|----------|
+| 1 | Defender orchestration | Observe Defender and configure only features the edition supports. Never disable real-time protection to replace it. Never add an install-time `ExclusionPath`. | Defender is present. The user consents before any future change. This 1.8.0 build only observes. | `Get-MpComputerStatus` active mode, real-time, signature age, and the Defender out-of-date flag. Access denial stays partial. |
+| 2 | Edition-honest matrix | Show Home vs Pro+ support before any enablement. Windows Sandbox and App Control PowerShell authoring are unavailable on Home. | EditionID / caption classification. Smart App Control is a probe, not an eligibility guess. | `feature_matrix` on the capability report and the console evidence strip. |
+| 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules and other rules are Audit-first when enforcement exists. | Defender Active, real-time on, cloud protection reachable, platform not left unmaintained. User has not turned CFA off. Offline encrypted backups and a restore drill still required (CISA). | Not in 1.8.0. P1 collects ASR/CFA mode and events before any Block. |
+| 4 | Firewall assist | Propose Windows Firewall rules. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. | P2. 1.8.0 only reports profile on/off when the read completes. |
+| 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. | Matrix cell. P3 launches `.wsb` only on a supporting SKU. |
+| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. | P4–P5. 1.8.0 verifies MAPS and refuses a “block Microsoft cloud” recommendation. |
+| 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. | Unchecked until built. See TRUST_GATES. |
+| 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. | This spec, TRUST_GATES, and fixture tests. Attestation checksum remains unchecked. |
+
+### MVP sequence
+
+| Priority | Build | Why | Breakage control |
+|----------|-------|-----|------------------|
+| **P0** | Defender health gate, MAPS check, do-no-harm (never displace Defender) | Later prevention depends on active Defender and cloud reachability | Fail closed to Windows defaults. Incomplete collection stays partial. |
+| **P0** | Edition matrix and honest Home / Pro pathing | Stops Sandbox and App Control over-claims | Feature flags by edition |
+| **P1** | ASR standard-protection Block, other rules Audit then promote; CFA Audit then Block; backup/restore wizard | Highest OS prevention return on Home | Audit-first. CFA copy stays modification-only. |
+| **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts | Completes the host controls without a new driver | Propose, confirm, apply. Job Object caps have DFSS/RDS limits. |
+| **P3** | Sandbox `.wsb` launcher on Pro+ only. Home gets the “no Sandbox” checklist. TUF update pipeline before any privileged auto-update | Isolation where the SKU has it. Update integrity before automation. | Hidden on Home. Manual update until TUF tests pass. |
+| **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable | Context without a license violation | Provenance labels. Maps check gates any privacy block list. |
+| **P5** | Passkey / phishing education. Activity modes (Home / Work / Travel) | High value, no kernel change | Checklist only. Mode switch asks first. |
+| **P6** | Published Claims → Assumptions → Evidence table and AMTSO-style wiring tests | Trust gates | CI publishes the evidence table |
+| **Later** | Restricted autonomy (auto-block with undo and rate limits). Funding UX | Only after Audit data and a low false-positive record | A person approves high-impact actions. Donations never paywall P0–P2. |
+
+### What 1.8.0 implements
+
+P0 only, and only the read-only half:
+
+- Defender health from `Get-MpComputerStatus`: AMRunningMode, real-time protection, antivirus signature age, `DefenderSignaturesOutOfDate`, and the observed engine version. Engine freshness stays UNKNOWN.
+- MAPS via `MpCmdRun.exe -ValidateMapsConnection`. Exit 0 without a documented failure is pass. Elevation required (80070005), service disabled (800106BA), and unsupported OS (0x80070667) stay unavailable. A documented connection failure is fail. The text tells the user DVielle does not block Defender cloud endpoints.
+- Edition matrix: ASR, CFA, and Firewall are edition-supported on Windows Home and Pro. Smart App Control is the `VerifiedAndReputablePolicyState` probe (0 off, 1 enforce, 2 evaluation) or UNKNOWN. Windows Sandbox is UNAVAILABLE on Home. App Control authoring is UNAVAILABLE on Home.
+- The console evidence strip shows those states. Collector status `partial` is not rendered as active protection.
+
+### What 1.8.0 does not claim
+
+- Ransomware-proof because CFA might later be enabled.
+- Enterprise WDAC authoring on Home.
+- Sandbox, WDAG, or Hyper-V as a Home isolation product.
+- Passkeys stop account takeover.
+- A privacy mode that blocks Microsoft cloud services.
+- “AMTSO verified” as a detection-rate claim.
+- GitHub Release download as a secure privileged update.
+- Bundled abuse.ch indicators.
+- “Backup job succeeded” equals “restore will work.”
+- A measured CPU contract. No universal percent is copied from another product.
+- Smart App Control can be freely toggled back to Evaluation after an April 2026 update. That reversibility is UNKNOWN.
+- An explicit Microsoft sentence that “CFA never blocks reads.” The documented scope is modification. Read protection is simply not claimed.
+
+### Laws that stay in force
+
+Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference ExclusionPath`. No offensive tools. No elevated unattended / Highest change in this version. No App Control, ASR, or CFA enforcement in this version. Camera in-use on Windows stays unknown. The footprint collector stays empty. Unknown stays unknown.
 
 ---
 
@@ -935,6 +1003,21 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 50. `scripts/block-ip.ps1` is not a product guarantee. It reports success only after the live rule is verified to block the requested address.
 
 *End of Function Spec — 1.7.1 honesty addendum.*
+
+---
+
+## 35. Acceptance checks (1.8.0 — FREE pillar lock and P0 observe)
+
+51. `docs/FUNCTION_SPEC.md` states the eight pillars, the P0→Later sequence, and Promise → Assumptions → Evidence for each pillar.
+52. `docs/TRUST_GATES.md` is the pass/fail list. Attestation checksum and TUF stay unchecked until those mechanisms exist.
+53. `docs/DECISIONS.md` records the 2026-09-29 lock: core prevention is not paywalled; orchestrate Defender rather than replace it; Home has no Windows Sandbox; CFA is not a read/exfiltration claim; TUF comes before privileged auto-update; KEV and OSV are acceptable; abuse.ch requires a user Auth-Key.
+54. Defender health reports active mode, real-time protection, signature age when `AntivirusSignatureAge` is present, and engine version as an observation. Engine freshness remains UNKNOWN.
+55. Access denial or a timed-out Defender read is partial coverage. The evidence strip does not call that an all-clear, and the Defender row does not show ACTIVE.
+56. MAPS uses `ValidateMapsConnection` or reports unavailable. Failure copy does not recommend blocking Defender cloud endpoints.
+57. The Home matrix marks Windows Sandbox UNAVAILABLE and App Control authoring UNAVAILABLE, and marks ASR, CFA, and Firewall as edition-supported. Smart App Control stays a probe.
+58. No new mutator ships in 1.8.0. ASR, CFA, and App Control are not enforced. `ExclusionPath` is still absent.
+
+*End of Function Spec — v0.9 / 1.8.0 FREE prevention lock.*
 
 
 
