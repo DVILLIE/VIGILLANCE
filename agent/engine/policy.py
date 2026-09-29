@@ -48,13 +48,20 @@ def handler_is_denied(name: str) -> bool:
 
 
 class PolicyGate:
-    def __init__(self, *, auto_enabled: bool) -> None:
+    def __init__(self, *, auto_enabled: bool, experience: dict | None = None) -> None:
         self.auto_enabled = auto_enabled
+        self.experience = experience
         self._issued: set[tuple[str, str, str]] = set()
 
     def issue(self, finding_id: str, handler: str, *, auto: bool, subject: str = "") -> AuthToken:
         if handler_is_denied(handler):
             raise PolicyDenied("that action is on the denylist")
+        if auto and self.experience is not None:
+            from agent.experiences import experience_allows_auto
+
+            allowed, reason = experience_allows_auto(self.experience, handler)
+            if not allowed:
+                raise PolicyDenied(reason)
         subject = str(subject or "")
         if auto:
             if not self.auto_enabled:

@@ -42,6 +42,7 @@ class ResolutionEngine:
         now=None,
         cooldown_seconds: int = 6 * 60 * 60,
         auto_enabled: bool | None = None,
+        experience: dict | None = None,
     ) -> None:
         data_dir = store.db_path.parent
         self.store = store
@@ -59,8 +60,9 @@ class ResolutionEngine:
         enabled = auto_enabled
         if enabled is None:
             enabled = _read_auto(self.memory.learn_dir / "auto_protect.txt")
-        self.policy = PolicyGate(auto_enabled=enabled)
-        self.dual = DualGate(self.store, self.policy)
+        self.experience = experience
+        self.policy = PolicyGate(auto_enabled=enabled, experience=experience)
+        self.dual = DualGate(self.store, self.policy, experience)
         self.handlers = HandlerRegistry(self.policy, self.dual)
         register_default_handlers(self.handlers)
 
@@ -76,7 +78,7 @@ class ResolutionEngine:
             self._log(obs.pillar, f"INFO quiet {obs.kind} {obs.subject_identity} {match.code}")
             return {"disposition": match.disposition, "keep_on_match": match.code, "finding": None, "mutated": False}
 
-        if not force_surface and not _should_surface(obs):
+        if not force_surface and not _should_surface(obs, self.experience):
             self._log("activity", f"INFO held {obs.pillar} {obs.subject_identity} {obs.severity} {obs.confidence}")
             return {"disposition": "held", "keep_on_match": match.code, "finding": None, "mutated": False}
 
@@ -202,6 +204,15 @@ class ResolutionEngine:
         self.handlers.invoke(handler, finding, self.handler_ctx, token)
 
     def _try_auto(self, finding: dict, handler: str) -> dict | None:
+        if self.experience is not None:
+            from agent.experiences import experience_allows_auto
+
+            allowed, reason = experience_allows_auto(
+                self.experience, handler, severity=str(finding.get("severity") or "")
+            )
+            if not allowed:
+                self._log("errors", f"ERROR auto-protect refused: {reason}")
+                return None
         try:
             token = self.policy.issue(
                 finding["id"],
@@ -263,7 +274,11 @@ class ResolutionEngine:
         _append_log(self.log_dir, name, f"{self.now()} {message}")
 
 
-def _should_surface(obs: Observation) -> bool:
+def _should_surface(obs: Observation, experience: dict | None = None) -> bool:
+    if experience is not None:
+        from agent.experiences import experience_surfaces
+
+        return experience_surfaces(experience, obs.severity, obs.confidence)
     if obs.confidence not in ("medium", "high"):
         return False
     return obs.severity in ("medium", "high", "critical")

@@ -54,6 +54,8 @@ def main() -> int:
     check("privilege_pipe", lambda: importlib.import_module("agent.privilege.pipe"))
     check("intel", lambda: importlib.import_module("agent.intel"))
     check("privacy_assistant", lambda: importlib.import_module("agent.modules.privacy_assistant"))
+    check("experiences", lambda: importlib.import_module("agent.experiences"))
+    check("passkeys", lambda: importlib.import_module("agent.modules.passkeys"))
 
     def _gui_imports():
         try:

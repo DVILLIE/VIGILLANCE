@@ -128,6 +128,21 @@ logging:
   max_file_mb: 10
   backup_count: 3
 
+# Activity experiences change alert floors and which proposals are offered.
+# They do not bypass the dual gate. Everyday cannot enable denylist actions.
+# Sensitive cannot set CLOSE_PROCESS or Open unfamiliar to automatic.
+# Open unfamiliar does not launch from this file. Home stays checklist-only.
+experiences:
+  active: everyday
+  everyday:
+    denylist_actions: false
+    close_process_auto: false
+  sensitive:
+    close_process_auto: false
+    open_unfamiliar_auto: false
+  open_unfamiliar:
+    launch: false
+
 # Free intel. Local files only unless fetch_enabled is turned on by a caller.
 # abuse.ch stays off. DVielle does not bundle those dumps.
 intel:
