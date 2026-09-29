@@ -49,6 +49,9 @@ def main() -> int:
     check("firewall_assist", lambda: importlib.import_module("agent.modules.firewall_assist"))
     check("privilege", lambda: importlib.import_module("agent.privilege"))
     check("cpu_contract", lambda: importlib.import_module("agent.cpu_contract"))
+    check("sandbox", lambda: importlib.import_module("agent.modules.sandbox"))
+    check("tuf", lambda: importlib.import_module("agent.update.tuf"))
+    check("privilege_pipe", lambda: importlib.import_module("agent.privilege.pipe"))
 
     def _gui_imports():
         try:

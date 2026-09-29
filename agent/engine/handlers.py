@@ -39,6 +39,9 @@ class HandlerContext:
     defender_health_reader: Callable[[], Any] | None = None
     maps_reader: Callable[[], Any] | None = None
     helper_endpoint: dict[str, Any] | None = None
+    sandbox_launch: Callable[[list[str]], int] | None = None
+    sandbox_folder_exists: Callable[[str], bool] | None = None
+    sandbox_wsb_dir: Path | None = None
 
 
 class HandlerRegistry:
@@ -96,6 +99,7 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("safety.set_asr_rule", set_asr_rule)
     registry.register("safety.set_cfa_mode", set_cfa_mode)
     registry.register("safety.restrict_network", restrict_network)
+    registry.register("safety.open_unfamiliar", open_unfamiliar)
 
 
 def _result(performed: bool, message: str, *, reversible: str = "no", status: str | None = None) -> dict:
@@ -117,6 +121,44 @@ def set_asr_rule(finding: dict, ctx: HandlerContext) -> dict:
         maps_reader=ctx.maps_reader,
         undo_path=undo_path_for(ctx.learn_dir),
         sku=signals.get("sku"),
+    )
+
+
+def open_unfamiliar(finding: dict, ctx: HandlerContext) -> dict:
+    from agent.modules.sandbox import open_unfamiliar as launch_unfamiliar
+
+    signals = finding.get("signals") or {}
+    probe_name = signals.get("network_probe", "unavailable")
+
+    def probe(_path: str) -> str | None:
+        if probe_name == "disabled":
+            return "disabled"
+        if probe_name == "enabled":
+            return "enabled"
+        return None
+
+    folder = str(signals.get("host_folder") or "")
+    exists = ctx.sandbox_folder_exists
+    if exists is None:
+        exists = lambda candidate: Path(candidate).is_dir()
+    launch = ctx.sandbox_launch
+    if launch is None:
+        from agent.modules.sandbox import default_sandbox_launch
+
+        launch = default_sandbox_launch
+    feature = signals.get("feature_installed")
+    if feature is not None and not isinstance(feature, bool):
+        feature = None
+    return launch_unfamiliar(
+        sku=str(signals.get("sku") or "Unknown"),
+        host_folder=folder,
+        feature_installed=feature,
+        sandbox_exe=str(signals.get("sandbox_exe") or r"C:\Windows\System32\WindowsSandbox.exe"),
+        folder_exists=exists,
+        launch=launch,
+        network_probe=probe,
+        wsb_dir=ctx.sandbox_wsb_dir,
+        read_only=signals.get("read_only", True) is not False,
     )
 
 

@@ -49,6 +49,7 @@ HANDLER_KIND: dict[str, ActionKind] = {
     "safety.restrict_network": ActionKind.RESTRICT_NETWORK,
     "safety.set_asr_rule": ActionKind.SET_ASR_RULE,
     "safety.set_cfa_mode": ActionKind.SET_CFA_MODE,
+    "safety.open_unfamiliar": ActionKind.OPEN_SANDBOX,
 }
 
 _UNDO: dict[ActionKind, str] = {
@@ -56,6 +57,7 @@ _UNDO: dict[ActionKind, str] = {
     ActionKind.DISABLE_STARTUP: "Rename the .dvielle-disabled startup file back to its original name.",
     ActionKind.SET_ASR_RULE: "Set the same ASR rule back to the mode recorded before this change.",
     ActionKind.SET_CFA_MODE: "Set controlled folder access back to the mode recorded before this change.",
+    ActionKind.OPEN_SANDBOX: "Close Windows Sandbox. The disposable sandbox discards its changes when it closes. The host folder was mapped read-only.",
 }
 _IRREVERSIBLE = frozenset(
     {ActionKind.CLOSE_PROCESS, ActionKind.DELETE_TEMP, ActionKind.BLOCK_IP}

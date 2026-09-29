@@ -35,6 +35,7 @@ class ActionKind(str, Enum):
     DELETE_TEMP = "DELETE_TEMP"
     SET_ASR_RULE = "SET_ASR_RULE"
     SET_CFA_MODE = "SET_CFA_MODE"
+    OPEN_SANDBOX = "OPEN_SANDBOX"
 
 
 # Non-mutating: may be decided/logged; ActionExecutor must never invoke handlers for these.
@@ -59,6 +60,7 @@ MUTATING_MIN_LEVEL: Mapping[ActionKind, int] = {
     ActionKind.DELETE_TEMP: LEVEL_REVERSIBLE,
     ActionKind.SET_ASR_RULE: LEVEL_REVERSIBLE,
     ActionKind.SET_CFA_MODE: LEVEL_REVERSIBLE,
+    ActionKind.OPEN_SANDBOX: LEVEL_REVERSIBLE,
 }
 
 # Kinds that require an explicit human authorization regardless of level.
@@ -67,7 +69,7 @@ MUTATING_MIN_LEVEL: Mapping[ActionKind, int] = {
 # AUTOMATIC_POLICY. This keeps the autonomous agent unable to close apps on its
 # own even if a handler is registered for a user-initiated surface (the GUI).
 USER_APPROVED_ONLY: frozenset[ActionKind] = frozenset(
-    {ActionKind.CLOSE_PROCESS, ActionKind.SET_ASR_RULE, ActionKind.SET_CFA_MODE}
+    {ActionKind.CLOSE_PROCESS, ActionKind.SET_ASR_RULE, ActionKind.SET_CFA_MODE, ActionKind.OPEN_SANDBOX}
 )
 
 

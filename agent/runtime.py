@@ -190,6 +190,8 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
                                  'recovery': sec.recovery or {},
                                  'promotion': sec.promotion or {},
                                  'firewall_assist': sec.firewall_assist or {},
+                                 'sandbox': sec.sandbox or {},
+                                 'update': sec.update or {},
                                  'coverage': 'partial' if p.collection_error else 'complete'})
             query_updates = {}
             if health.get('query_state'):

@@ -168,6 +168,23 @@ def prevention_evidence_line(data: dict | None) -> str:
     if firewall_assist:
         parts.append(f"Firewall rules {firewall_assist.get('coverage') or 'unknown'}")
         parts.append("not leakproof")
+    sandbox = security.get("sandbox") if isinstance(security.get("sandbox"), dict) else None
+    if sandbox:
+        parts.append(f"Sandbox offer {sandbox.get('offer') or 'UNKNOWN'}")
+        if sandbox.get("running") is True:
+            parts.append(f"Sandbox session {sandbox.get('isolation') or 'UNKNOWN'}")
+        else:
+            parts.append("no sandbox session")
+    update = security.get("update") if isinstance(security.get("update"), dict) else None
+    if update:
+        parts.append(f"TUF {update.get('last_result') or 'UNKNOWN'}")
+        version = update.get("installed_version") or "UNKNOWN"
+        parts.append(f"package {version}")
+        if update.get("privileged_auto_update") is False:
+            parts.append("privileged auto-update off")
+        else:
+            parts.append("privileged auto-update not off")
+        parts.append(f"live binary {update.get('live_binary_attestation') or 'UNCHECKED'}")
     line = " · ".join(str(part) for part in parts)
     healthy = (
         state == "ok"

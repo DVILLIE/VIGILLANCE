@@ -4,9 +4,10 @@ This is not a Windows service and it does not change the resident scheduled
 task. It binds 127.0.0.1, requires a per-start token, and dispatches only
 ``restrict_network``. Undefined operations never reach a firewall cmdlet.
 
-A later service should replace this loopback stub with the named pipe in
-``contract.PIPE_NAME`` and an ACL limited to the installed user. Do not elevate
-the Limited scheduled task to Highest to avoid building that service.
+``agent.privilege.pipe`` defines the named-pipe DACL (SYSTEM and one user SID;
+Everyone is refused) and tests it in process. This stub is still the loopback
+listener. It is not a SYSTEM service. Do not elevate the Limited scheduled task
+to Highest to avoid building that service.
 """
 
 from __future__ import annotations
