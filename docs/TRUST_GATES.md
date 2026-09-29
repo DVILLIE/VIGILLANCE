@@ -1,8 +1,8 @@
 # Trust gates
 
-Pass/fail checklist for a DVielle change. Version 2.0.0 ships P2 on top of the 1.9.0 P1 path. Boxes are for a human or CI run against the tree that is about to ship.
+Pass/fail checklist for a DVielle change. Version 2.1.0 ships P3 on top of the 2.0.0 P2 path. Boxes are for a human or CI run against the tree that is about to ship.
 
-Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.1, 2026-09-29) and the primary-source brief of that date. A green box means the check was actually run. An empty box means it was not.
+Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.3, 2026-09-29) and the primary-source brief of that date. A green box means the check was actually run. An empty box means it was not.
 
 ## Run on every P0 change
 
@@ -15,8 +15,8 @@ Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.1, 2026-09-29) and t
 
 ## Explicitly unchecked until built
 
-- [ ] Attestation checksum — not implemented. Do not claim a signed measurement of the agent binary
-- [ ] TUF — not implemented. Do not auto-update a privileged agent from a GitHub Release asset. Manual update remains the path until root, timestamp, snapshot, and targets reject rollback, freeze, and mix-and-match in fault-injection tests
+- [ ] Live binary attestation — not implemented. Do not claim a signed measurement of the running agent. 2.1.0 displays the TUF package hash after verification. That is metadata attestation, not a measurement of the process
+- [x] TUF metadata path — offline client verifies root, timestamp, snapshot, and targets. Fault injection for rollback, freeze, a bad hash, mix-and-match, and a bad signature keeps the previous file. Privileged auto-update stays off. No GitHub Release updater. Covered by `tests/test_worldclass_p3.py` in the P3 run below
 
 ## P1 (1.9.0) — recorded on the Linux run above
 
@@ -30,10 +30,16 @@ Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.1, 2026-09-29) and t
 - [x] Firewall writes are absent from the observe script. The apply script is reached only from the helper dispatcher. No `ExclusionPath`, no MAPS block, no GitHub auto-update in the P2 modules. Covered by `tests/test_worldclass_p2.py` in that run.
 - [x] Auto-protect cannot issue `safety.restrict_network`. A firewall change counts only when the second read matches. A one-family rule is warned and is not called leakproof. Covered by `tests/test_worldclass_p2.py` in that run.
 
+## P3 (2.1.0) — recorded on the Linux run below
+
+- [x] `python -m pytest -q` includes `tests/test_worldclass_p3.py`: Home Sandbox offer UNAVAILABLE with a SAC/ASR/CFA/Firewall checklist, Pro launch only through `WindowsSandbox.exe` and a `.wsb` that disables networking and maps one read-only folder, unobserved guest networking stays LIMITED, auto-protect cannot open a sandbox, TUF rollback/freeze/bad-hash/mix-and-match keep the previous file, and the pipe ACL refuses undefined operations. Linux run on 2026-09-29 for 2.1.0: 370 passed, 13 skipped (the skipped tests are the existing Windows-only cases). `python scripts/smoke_test.py` passed on that run. `ruff check agent dvielle tests scripts/smoke_test.py scripts/verify_runtime.py --select E9,F63,F7,F82` passed.
+- [x] No `ExclusionPath`, no MAPS endpoint block, and no `api.github.com` download in the P3 modules. WDAG and `New-VM` are not launch paths. The resident scheduled task default stays RunLevel Limited. Covered by `tests/test_worldclass_p3.py` in that run.
+- [x] A verified network probe is not a malware-escape claim, and Group Policy override of `.wsb` settings is named as unread. Privileged auto-update remains false. Live binary attestation remains UNCHECKED.
+
 ## Still true, not new work
 
-- Dual mutate gate still wraps every OS change. 2.0.0 routes firewall app rules through the existing `RESTRICT_NETWORK` kind. It does not add a second mutate path
-- Resident scheduled task stays RunLevel Limited. Elevated unattended use stays held. The helper stub is not a Highest scheduled task
+- Dual mutate gate still wraps every OS change. 2.1.0 adds `OPEN_SANDBOX` for Open unfamiliar. Auto-protect cannot issue it. Firewall app rules still use `RESTRICT_NETWORK`
+- Resident scheduled task stays RunLevel Limited. Elevated unattended use stays held. The helper is not a SYSTEM service and not a Highest scheduled task
 - No offensive tools
 - Camera in-use on Windows and the live footprint collector still do not invent evidence
-- P3 remains: Sandbox `.wsb` on Pro+ only, and TUF before any privileged auto-update. Intel feeds and the privacy assistant are still later
+- P4 remains: CISA KEV and OSV, with provenance labels, and the privacy assistant that does not block MAPS. abuse.ch stays out of the bundle. Passkeys and activity modes stay P5

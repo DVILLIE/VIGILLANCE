@@ -18,6 +18,8 @@ from agent.modules.defender_health import (
 )
 from agent.modules.firewall_assist import query_firewall_assist
 from agent.modules.prevention import build_promotion, load_recovery, query_prevention_posture
+from agent.modules.sandbox import observe_sandbox, probe_sandbox_feature
+from agent.update.tuf import attestation_view
 from agent.policy import ActionKind, Authorization, PolicyCortex
 from agent.policy.levels import LEVEL_RECOMMEND
 from agent.store.db import AgentStore
@@ -45,6 +47,8 @@ class SecurityStatus:
     recovery: dict[str, Any] | None = None
     promotion: dict[str, Any] | None = None
     firewall_assist: dict[str, Any] | None = None
+    sandbox: dict[str, Any] | None = None
+    update: dict[str, Any] | None = None
 
 
 def _query_defender() -> tuple[bool | None, bool | None]:
@@ -143,6 +147,8 @@ class SecurityMonitor:
         matrix = _query_edition_matrix()
         posture = _query_prevention()
         firewall_assist = _query_firewall_assist()
+        sandbox = observe_sandbox(matrix.sku, feature_installed=probe_sandbox_feature())
+        update = attestation_view(self.store.db_path.parent / "tuf")
         recovery = load_recovery(self.store.db_path.parent / "learn" / "recovery.txt")
         promotion = build_promotion(posture, health, maps, sku=matrix.sku)
         issues: list[str] = []
@@ -214,4 +220,6 @@ class SecurityMonitor:
             recovery=recovery.to_dict(),
             promotion=promotion,
             firewall_assist=firewall_assist.to_dict(),
+            sandbox=sandbox,
+            update=update,
         )
