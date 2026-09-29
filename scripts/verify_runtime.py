@@ -20,6 +20,41 @@ from agent.ownership import read_json  # noqa: E402
 from agent.runtime import runtime_paths  # noqa: E402
 
 
+_INTERPRETER_NAMES = {"python.exe", "pythonw.exe", "python", "python3.12"}
+
+
+def _directory_key(path: Path) -> str:
+    """Case-folded absolute directory. Windows compares interpreter dirs this way."""
+    return os.path.normcase(str(Path(path).resolve()))
+
+
+def living_interpreter_matches(actual_exe: Path) -> bool:
+    """True when the living image is this verifier's launcher or its base interpreter.
+
+    ``Path(sys.executable).resolve().parent`` is the historical check: the owner
+    image sits in the same directory as the verifier. On Windows that directory
+    is the venv ``Scripts`` redirector (CPython bpo-34977). The scheduled task
+    starts that redirector, and the process that runs ``agent.main`` — the one
+    recorded as ``owner_pid`` — is the base ``pythonw.exe``. ``psutil`` reports
+    that image path. ``sys.executable`` stays on the redirector, so the two
+    parents differ.
+
+    Inside a virtual environment ``sys.prefix != sys.base_prefix`` and
+    ``sys.base_prefix`` is the base install (docs.python.org ``sys.prefix``).
+    The base interpreter lives in that directory on Windows, including a
+    pythoncore layout, and in ``bin`` under it on POSIX. No user path is
+    hard-coded. Outside a venv the extra directory is not accepted.
+    """
+    actual_dir = _directory_key(Path(actual_exe).parent)
+    launcher_dir = _directory_key(Path(sys.executable).parent)
+    if actual_dir == launcher_dir:
+        return True
+    if sys.prefix == sys.base_prefix:
+        return False
+    base = Path(sys.base_prefix)
+    return actual_dir in {_directory_key(base), _directory_key(base / "bin")}
+
+
 def resident_is_current(snapshot: dict | None) -> bool:
     """Require a fresh heartbeat and its exact living Python process identity."""
     try:
@@ -36,11 +71,10 @@ def resident_is_current(snapshot: dict | None) -> bool:
         created_at = float(runtime["owner_create_time"])
         if not math.isfinite(created_at) or abs(process.create_time() - created_at) > 0.001:
             return False
-        expected_dir = os.path.normcase(str(Path(sys.executable).resolve().parent))
         actual_exe = Path(process.exe()).resolve()
-        if os.path.normcase(str(actual_exe.parent)) != expected_dir:
+        if not living_interpreter_matches(actual_exe):
             return False
-        if actual_exe.name.lower() not in {"python.exe", "pythonw.exe", "python", "python3.12"}:
+        if actual_exe.name.lower() not in _INTERPRETER_NAMES:
             return False
         args = process.cmdline()
         return any(args[index:index + 2] == ["-m", "agent.main"] for index in range(len(args) - 1))

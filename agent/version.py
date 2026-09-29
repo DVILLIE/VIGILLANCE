@@ -16,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 
 # Keep aligned with pyproject.toml [project].version
-_FALLBACK = "2.3.0"
+_FALLBACK = "2.3.1"
 
 
 def _from_pyproject(root: Path) -> str | None:
