@@ -82,7 +82,12 @@ $pythonw = Join-Path $venv 'Scripts\pythonw.exe'
 if (-not (Test-Path -LiteralPath $pythonw)) { throw 'The Python 3.12 environment lacks pythonw.exe.' }
 Push-Location $InstallDir
 try {
-    Invoke-DvielleNative $python @('-m', 'pip', 'install', '-e', '.[windows,chat]')
+    # Re-read [project].dependencies into this install-root .venv, including
+    # cryptography. --upgrade reprocesses the local project so a file cutover
+    # cannot keep a stale editable install that omits a newly declared package.
+    # only-if-needed installs a missing dependency and leaves one that already
+    # satisfies its specifier. https://pip.pypa.io/en/stable/user_guide/#only-if-needed-recursive-upgrade
+    Invoke-DvielleNative $python @('-m', 'pip', 'install', '--upgrade', '--upgrade-strategy', 'only-if-needed', '-e', '.[windows,chat]')
     Invoke-DvielleNative $python @('-m', 'pip', 'check')
     # No collector execution, persistence, cloud lookup, or machine mutation in this check.
     Invoke-DvielleNative $python @('scripts\smoke_test.py')

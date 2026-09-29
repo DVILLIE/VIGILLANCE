@@ -39,6 +39,23 @@ def test_limited_is_the_default_and_highest_is_after_acl_lockdown():
     assert "TASK_RUNLEVEL_HIGHEST" in install or "TASK_RUNLEVEL_HIGHEST" in common
 
 
+def test_install_resyncs_declared_dependencies_before_the_resident_starts():
+    install = _text("installer/install-dvielle.ps1")
+    pyproject = _text("pyproject.toml")
+    smoke = _text("scripts/smoke_test.py")
+    assert "cryptography>=41" in pyproject
+    assert "'--upgrade'" in install
+    assert "'only-if-needed'" in install
+    assert "'.[windows,chat]'" in install
+    pip_at = install.index("'-m', 'pip', 'install'")
+    smoke_at = install.index("scripts\\smoke_test.py')")
+    register_at = install.index("Register-ScheduledTask")
+    assert pip_at < smoke_at < register_at
+    assert "agent.update.tuf" in smoke
+    assert "[string]$RunLevel = 'Limited'" in install
+    assert "ExclusionPath" not in install
+
+
 def test_block_ip_does_not_treat_a_name_match_as_protection():
     script = _text("scripts/block-ip.ps1")
     assert "Test-DvielleBlockCoversAddress" in script

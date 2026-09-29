@@ -6,7 +6,7 @@ The native console attaches to the background agent. Its values and activity com
 
 ## Install
 
-Windows 10/11 and Python 3.12 are required. Run `installer\Install-DVielle.bat` as administrator on the PC. The installer creates `C:\DVILLIE\.venv`, checks dependencies, registers the resident logon task and verifies startup. Existing configuration is preserved.
+Windows 10/11 and Python 3.12 are required. Run `installer\Install-DVielle.bat` as administrator on the PC. The installer creates `C:\DVILLIE\.venv`, syncs the dependencies declared in `pyproject.toml` (including `cryptography`) into that environment, registers the resident logon task and verifies startup. Existing configuration is preserved. Copying a new tree over an existing install does not refresh `.venv`; run the installer again, or the dependency sync in [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md), before starting the resident.
 
 | Action | Command from C:\DVILLIE |
 |---|---|

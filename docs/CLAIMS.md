@@ -1,6 +1,6 @@
 # Claims, assumptions, and evidence
 
-Version 2.3.0. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief).
+Version 2.3.1. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief).
 
 An empty box in [TRUST_GATES.md](TRUST_GATES.md) is UNCHECKED. A green box is a check that was actually run. An AMTSO Security Features Check, if one is ever run, proves wiring. It is not a malware-efficacy percentage. https://www.amtso.org/security-features-check/
 
@@ -89,7 +89,7 @@ Local guidance tells the user to adopt a passkey where the relying party support
 
 These are named so a later change cannot treat them as already done:
 
-1. **Live Windows resident `verify_runtime`.** `python scripts/verify_runtime.py` after a real resident start on Windows. A Linux or CI unit run does not check this box. See TRUST_GATES.
+1. **Live Windows resident `verify_runtime`.** `python scripts/verify_runtime.py` after a real resident start on Windows. A Linux or CI unit run does not check this box. See TRUST_GATES. **Assumption (2.3.1).** The living owner may be the base interpreter image. On Windows a venv `Scripts\python.exe` / `pythonw.exe` is a redirector (CPython bpo-34977). `owner_pid` is the process whose image `psutil` reports, which can be `pythonw.exe` in the `sys.base_prefix` directory (the base install, including a pythoncore layout) while `sys.executable` stays in `Scripts`. The verifier accepts that image only when it is itself running in a venv (`sys.prefix != sys.base_prefix`), and still requires a fresh heartbeat, a matching create time, a Python interpreter name, and `-m agent.main`. `tests/test_verify_runtime.py` covers that shape with a fake process. It is not a live resident proof.
 2. **Elevated ACL field prove.** The installer contract tests the intended ACL and refuses a writable install tree for a Highest task. A field proof of the live elevated ACL on the target PC is UNCHECKED. Elevated unattended use stays not recommended.
 3. **Named-pipe SYSTEM helper.** The helper remains the loopback stub. It is not a SYSTEM service and not a replacement of that stub. The pipe contract still refuses undefined operations.
 4. **Privileged auto-update.** TUF verification does not turn this on.
