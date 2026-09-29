@@ -34,9 +34,10 @@ def ingest_monitors(
     camera_facts=None,
     footprint_facts=None,
     collect_live: bool = False,
+    experience=None,
 ) -> list[dict]:
     """Feed one cycle into the engine. Does not close apps, block networks, or delete files by itself."""
-    engine = engine_for(store)
+    engine = engine_for(store, experience=experience)
     results: list[dict] = []
     if collect_live:
         if egress_facts is None:

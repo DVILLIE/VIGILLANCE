@@ -59,6 +59,9 @@ def load_runtime_config(config_dir: Path | None = None) -> tuple[dict, dict, Pat
             raise ValueError(f'{section} values must be YAML true/false booleans')
     if not isinstance(config.get('network', {}).get('allow_public_ip_lookup', False), bool):
         raise ValueError('network.allow_public_ip_lookup must be a YAML true/false boolean')
+    from agent.experiences import validate_experience_config
+
+    validate_experience_config(config)
     default_intervals(config)
     return config, whitelists, telemetry_path
 
@@ -74,7 +77,7 @@ def runtime_paths(config_dir: Path | None = None) -> tuple[dict, dict, Path, Pat
     return config, whitelists, telemetry_path, install_root, resolve_data_dir(config, install_root)
 
 
-def _ingest_keep_on(store, observed: dict) -> None:
+def _ingest_keep_on(store, observed: dict, experience=None) -> None:
     """Feed the latest samples into the keep-on engine. Mutations stay behind DualGate."""
     try:
         from agent.engine.service import collect_startup_items, ingest_monitors
@@ -86,6 +89,7 @@ def _ingest_keep_on(store, observed: dict) -> None:
             disks=observed.get("disks") or [],
             startup_items=collect_startup_items(),
             collect_live=True,
+            experience=experience,
         )
     except Exception:
         logger.exception("keep-on ingest failed")
@@ -177,6 +181,19 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
         p = provider('security', lambda: SecurityMonitor(store, config, cortex=cortex))
         sec = p.run()
         observed["security"] = sec
+        from agent.experiences import resolve_experience
+        from agent.modules.passkeys import account_guidance
+
+        matrix = sec.edition_matrix or {}
+        experience = resolve_experience(
+            config,
+            sku=matrix.get("sku"),
+            sandbox=sec.sandbox,
+            promotion=sec.promotion,
+            firewall=sec.firewall_assist,
+        )
+        passkeys = account_guidance()
+        observed["experience"] = experience
         if twin:
             health = sec.defender_health or {}
             twin.patch(security={'defender_enabled': sec.defender_enabled,
@@ -192,6 +209,8 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
                                  'firewall_assist': sec.firewall_assist or {},
                                  'sandbox': sec.sandbox or {},
                                  'update': sec.update or {},
+                                 'experience': experience,
+                                 'passkeys': passkeys,
                                  'coverage': 'partial' if p.collection_error else 'complete'})
             query_updates = {}
             if health.get('query_state'):
@@ -258,7 +277,7 @@ def run_once(store, config, whitelists, telemetry_file, scripts_dir, modes, modu
         except Exception:
             failed.append(name)
             logger.exception('collector failed: %s', name)
-    _ingest_keep_on(store, observed)
+    _ingest_keep_on(store, observed, observed.get("experience"))
     return failed
 
 
@@ -448,7 +467,7 @@ def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lea
                                          'security': sec.get('sampled_at')}, 'collectors': data['collectors']}})
             twin.patch(runtime={'cycle_count': data['runtime']['cycle_count'] + 1, 'last_pulse_at': _utc()})
             twin.snapshot()
-            _ingest_keep_on(store, observed)
+            _ingest_keep_on(store, observed, observed.get("experience"))
             if on_pulse:
                 try:
                     on_pulse()

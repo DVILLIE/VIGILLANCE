@@ -111,9 +111,10 @@ class DualGate:
     after the keep-on token matches. BLOCK_IP has no product writer here.
     """
 
-    def __init__(self, store: AgentStore, keep_on) -> None:
+    def __init__(self, store: AgentStore, keep_on, experience: dict | None = None) -> None:
         self.store = store
         self.keep_on = keep_on
+        self.experience = experience
         self.cortex = PolicyCortex(store=store)
         self.registry = ActionRegistry()
         self.executor = ActionExecutor(store, self.registry)
@@ -136,6 +137,12 @@ class DualGate:
         if token.subject != subject or not subject:
             raise PolicyDenied("options required before mutate")
         auto = bool(token.auto)
+        if auto and self.experience is not None:
+            from agent.experiences import experience_allows_auto
+
+            allowed, reason = experience_allows_auto(self.experience, handler_name)
+            if not allowed:
+                raise PolicyDenied(reason)
         if auto:
             if kind in USER_APPROVED_ONLY or kind is ActionKind.BLOCK_IP:
                 raise PolicyDenied("auto-protect cannot authorize this action")

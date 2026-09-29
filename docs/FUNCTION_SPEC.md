@@ -1,7 +1,7 @@
-# DVielle Function Spec (v0.9.4 — P4 free intel and privacy assistant)
+# DVielle Function Spec (v0.9.5 — P5 experiences, passkeys, and claims)
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
-**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0; v0.9.4 records that P4 shipped in 2.2.0. The v0.8 keep-on loop remains in force.)  
+**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0; v0.9.4 records that P4 shipped in 2.2.0; v0.9.5 records that P5 shipped in 2.3.0. The v0.8 keep-on loop remains in force.)  
 **Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
@@ -57,9 +57,23 @@ If `kev.json` and `osv.json` are absent, the report is `intel: unavailable`. Inv
 
 The privacy assistant prefers Required diagnostic data (AllowTelemetry 1). Home and Pro cannot claim Security=Off. Diagnostic data off (0) is offered only on Enterprise, Education, or Server, and the copy still says that is not proof Microsoft traffic stopped. Advertising id and tailored experiences are separate choices. A write counts only when a second read of that value matches. MAPS, Windows Update, and CRL names are not turned into firewall rules. If a request names them, or names Microsoft broadly, the consequence includes the existing `ValidateMapsConnection` result.
 
-Passkeys, Everyday/Sensitive modes, Claims/Assumptions page polish, and a named-pipe SYSTEM helper stay later. Privileged auto-update stays off.
+### Shipped honesty (2.3.0 — P5)
 
-P4 remains closed for this version. P5 remains: passkey education and Everyday/Sensitive modes.
+2.3.0 adds three activity experiences and local passkey guidance. It does not replace Defender, and it does not change the Limited resident task. The dual gate is unchanged.
+
+Everyday observes ASR, CFA, and Firewall and does not propose those mutations. Its alert floor is high, so a medium finding stays quiet. Config cannot turn denylist actions on, and it cannot make CLOSE_PROCESS automatic.
+
+Sensitive can surface a low-severity finding when confidence is medium or high. Auto-protect for the published set requires critical severity, which is tighter than a high-severity protection-off event. CLOSE_PROCESS and Open unfamiliar stay user-approved even if config sets `close_process_auto` or `open_unfamiliar_auto`. When the live CFA plan allows Audit, that proposal is listed first, with `applied: false`. A firewall restrict proposal is listed the same way. Neither is written without the dual gate. CFA copy stays a modification shield.
+
+Open unfamiliar is the existing Pro+ Windows Sandbox path (`safety.open_unfamiliar`). Resolving the experience does not start `WindowsSandbox.exe`. On Home the result is the SAC, ASR, CFA, and Firewall checklist only. A forged ready offer is not accepted on Home. `launch: true` in config is refused.
+
+Passkey guidance tells the user to adopt a passkey where the relying party supports one. WebAuthn is RP-scoped, which resists a lookalike origin. The same guidance says session theft and weak recovery are separate. There is no phishing-impossible badge. Checklist marks do not change an account. There is no browser automation.
+
+The claims page is [CLAIMS.md](CLAIMS.md). It lists each promise, the assumptions, the evidence, and what stays UNCHECKED, including live `verify_runtime`, an elevated ACL field proof, and the named-pipe SYSTEM helper.
+
+A named-pipe SYSTEM helper stays later. Privileged auto-update stays off. Elevated unattended use stays not recommended.
+
+P4 remains closed. P5 is closed for this version.
 
 ---
 
@@ -78,9 +92,9 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
 | 4 | Firewall assist | Propose Windows Firewall app rules per profile. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. Do not stop MpsSvc. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local and the resident task stays Limited. | 2.0.0 reads rules with `Get-NetFirewallRule` / profile state, proposes a block, and applies it only inside DualGate. Success is the second read. |
 | 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. Group Policy can override a `.wsb` file. Guest networking is UNKNOWN unless a probe reports it. | 2.1.0 writes Networking Disable and one ReadOnly folder, and starts only `WindowsSandbox.exe`. Home stays UNAVAILABLE. Unobserved guest networking stays LIMITED. |
-| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 2.2.0 reads AllowTelemetry and related settings, prefers Required, refuses Security=Off on Home and Pro, and counts a change only when the second read matches. A broad Microsoft block shows the MAPS result and creates no rule. Passkeys remain P5. |
+| 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony where the relying party supports them, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 2.2.0 reads AllowTelemetry and related settings, prefers Required, refuses Security=Off on Home and Pro, and counts a change only when the second read matches. A broad Microsoft block shows the MAPS result and creates no rule. 2.3.0 adds local passkey guidance with no phishing-impossible badge and no account automation. |
 | 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. The client does not download unless fetch is explicitly enabled. | 2.1.0 verifies a local TUF repository and keeps the previous file when rollback, freeze, or a bad hash is injected. Privileged auto-update stays off. 2.2.0 loads local KEV and OSV with provenance. A missing file is `intel: unavailable`. abuse.ch stays off and is not bundled. |
-| 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. CPU limits are published with the measurement method. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. Job Object hard caps do not apply under RDS Dynamic Fair Share Scheduling. | This spec, TRUST_GATES, fixture tests, and the twin `cpu_contract`. Attestation checksum remains unchecked. The resident mode is measured scheduling unless a helper assignment reports `job_cap_applied`. |
+| 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. CPU limits are published with the measurement method. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. Job Object hard caps do not apply under RDS Dynamic Fair Share Scheduling. | This spec, [CLAIMS.md](CLAIMS.md), TRUST_GATES, fixture tests, and the twin `cpu_contract`. Live `verify_runtime` and an elevated ACL field proof remain UNCHECKED. The resident mode is measured scheduling unless a helper assignment reports `job_cap_applied`. |
 
 ### MVP sequence
 
@@ -92,8 +106,8 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts. **Shipped in 2.0.0** as observation, a dual-gated `RESTRICT_NETWORK` apply, a loopback helper that refuses undefined operations, and measured-scheduling plus an optional helper Job Object cap. Not a second firewall. Not a Windows service. | Completes the host controls without a new driver | Propose, confirm, apply. One address family is warned. Job Object caps have DFSS/RDS limits and are not claimed when assignment fails. |
 | **P3** | Sandbox `.wsb` launcher on Pro+ only. Home gets the “no Sandbox” checklist. TUF verification before any privileged auto-update. **Shipped in 2.1.0** as a dual-gated Open unfamiliar profile and an offline root/timestamp/snapshot/targets client. Not WDAG. Not Hyper-V on Home. Not a GitHub Release updater. Not a live measurement of the running process. | Isolation where the SKU has it. Update integrity before automation. | Home checklist only. Guest network stays LIMITED or UNKNOWN when it is not observed. A failed verification does not replace the installed file. |
 | **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable. **Shipped in 2.2.0** as local-file feeds with provenance, inventory matches only when an inventory file exists, and a dual-gated privacy choice that re-reads the setting. Not a bundled abuse.ch dump. Not a block of MAPS, Windows Update, or CRL. | Context without a license violation | Provenance labels. A missing feed is `intel: unavailable`. Maps check is shown if a broad Microsoft block is requested, and no such rule is created. |
-| **P5** | Passkey / phishing education. Activity modes (Home / Work / Travel) | High value, no kernel change | Checklist only. Mode switch asks first. |
-| **P6** | Published Claims → Assumptions → Evidence table and AMTSO-style wiring tests | Trust gates | CI publishes the evidence table |
+| **P5** | Passkey education, activity experiences, and the claims page. **Shipped in 2.3.0** as Everyday (quiet observation), Sensitive (tighter auto-protect, sooner CFA Audit and firewall proposals), and Open unfamiliar (the existing Sandbox path; Home checklist only). Not a phishing-impossible badge. Not a browser that changes accounts. Not a SYSTEM helper. | High value, no kernel change | Config cannot enable denylist actions or automatic CLOSE_PROCESS. Proposals stay unapplied until the dual gate. |
+| **P6** | AMTSO-style efficacy tests, if a real test is ever run | Trust gates | 2.3.0 already publishes the claims table. Efficacy percentages stay omitted. |
 | **Later** | Restricted autonomy (auto-block with undo and rate limits). Funding UX | Only after Audit data and a low false-positive record | A person approves high-impact actions. Donations never paywall P0–P2. |
 
 ### What 1.8.0 implements
@@ -1100,9 +1114,21 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 80. Feed fetch is off by default and does not call the network. abuse.ch is off, bundled is false, and a fetch runs only with an Auth-Key. The body is not saved into the product.
 81. Home and Pro cannot apply Security=Off. Required, advertising off, and tailored off are supported choices. Enterprise may set diagnostic data off, and the copy says that is not proof traffic stopped. Success is the second read. Auto-protect cannot issue `privacy.set_choice`. A direct call without Cortex writes nothing.
 82. A request that names MAPS, Windows Update, CRL, or Microsoft broadly creates no firewall rule and includes the `ValidateMapsConnection` result. The evidence strip shows observed settings and unknown ones separately.
-83. No `ExclusionPath`, no `Add-MpPreference`, and no GitHub Release download in the P4 modules. Home Sandbox stays unavailable. CFA stays a modification shield. Privileged auto-update stays off. Passkeys, Everyday/Sensitive modes, Claims/Assumptions page polish, and a named-pipe SYSTEM helper stay later.
+83. No `ExclusionPath`, no `Add-MpPreference`, and no GitHub Release download in the P4 modules. Home Sandbox stays unavailable. CFA stays a modification shield. Privileged auto-update stays off. As of 2.2.0, passkeys, activity experiences, the claims page, and a named-pipe SYSTEM helper stayed later. 2.3.0 ships the first three (§40). The helper stays later.
 
 *End of Function Spec — v0.9.4 / 2.2.0 P4.*
+
+---
+
+## 40. Acceptance checks (2.3.0 — P5 experiences, passkeys, claims)
+
+84. Everyday observes ASR, CFA, and Firewall and does not propose those mutations. A medium-severity finding stays held. `denylist_actions: true` does not enable a denylist handler. `close_process_auto: true` does not make CLOSE_PROCESS automatic.
+85. Sensitive can surface a low-severity finding when confidence is medium or high. A low-confidence finding stays held. Auto-protect for the published set requires critical severity. `close_process_auto: true` is refused. A dual-gate perform with an automatic CLOSE_PROCESS token does not run the mutator. CFA Audit and firewall restrict proposals stay `applied: false` and still require user approval.
+86. Open unfamiliar on Home is the checklist only (SAC, ASR, CFA, Firewall) and does not start a process. A forged READY offer on Home is ignored. On Pro+, the named handler is `safety.open_unfamiliar` and resolving the experience still does not launch. `launch: true` is refused. Auto-protect cannot issue it.
+87. Passkey guidance says adopt a passkey where the relying party supports one, says the credential is RP-scoped, and warns that session theft and weak recovery are separate. `phishing_impossible` is false, `badge` is null, and browser automation is false. Marking every checklist row reviewed does not set those flags and does not change an account.
+88. `docs/CLAIMS.md` lists promise, assumptions, evidence, and UNCHECKED for the pillars, including live `verify_runtime` and an elevated ACL field proof. README points at it. No `ExclusionPath`, no `Set-MpPreference`, no `New-NetFirewallRule`, and no GitHub Release download in the P5 modules. The named-pipe helper stays the loopback stub. Privileged auto-update stays off. The resident task stays Limited.
+
+*End of Function Spec — v0.9.5 / 2.3.0 P5.*
 
 
 

@@ -188,6 +188,23 @@ def prevention_evidence_line(data: dict | None) -> str:
     privacy_clause = privacy_evidence_clause(data)
     if privacy_clause:
         parts.append(privacy_clause)
+    experience = security.get("experience") if isinstance(security.get("experience"), dict) else None
+    if experience and experience.get("name"):
+        parts.append(f"experience {experience.get('name')}")
+        if experience.get("denylist_actions") is False:
+            parts.append("denylist off")
+        if experience.get("close_process_auto") is False:
+            parts.append("CLOSE_PROCESS user-approved")
+        sandbox = experience.get("sandbox") if isinstance(experience.get("sandbox"), dict) else None
+        if sandbox and sandbox.get("checklist_only") is True:
+            parts.append("open unfamiliar checklist only")
+    passkeys = security.get("passkeys") if isinstance(security.get("passkeys"), dict) else None
+    if passkeys is not None:
+        parts.append("passkeys RP-scoped")
+        if passkeys.get("phishing_impossible") is False and passkeys.get("badge") is None:
+            parts.append("no phishing-impossible badge")
+        if passkeys.get("browser_automation") is False:
+            parts.append("no account automation")
     line = " · ".join(str(part) for part in parts)
     healthy = (
         state == "ok"
