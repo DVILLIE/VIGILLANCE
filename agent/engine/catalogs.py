@@ -162,7 +162,7 @@ def privacy_options() -> list[Option]:
         _mutate(
             "block_network",
             "Block this app's network",
-            "Add a per-app outbound block only after an identity check. If that cannot be done, nothing is blocked.",
+            "Add a Windows Firewall outbound block for this program after you confirm. IPv6 and VPN can still carry traffic. DVielle does not claim a leakproof block.",
             "privacy.block_network",
         ),
         _guide(
@@ -189,7 +189,7 @@ def ai_options() -> list[Option]:
         _mutate(
             "block_network",
             "Block this AI app's internet",
-            "Add a per-app outbound block only after an identity check. This does not prove a model was trained.",
+            "Add a Windows Firewall outbound block for this program after you confirm. This does not prove a model was trained, and it is not a leakproof block.",
             "ai.block_network",
         ),
         _guide(

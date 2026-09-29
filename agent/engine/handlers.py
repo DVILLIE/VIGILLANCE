@@ -38,6 +38,7 @@ class HandlerContext:
     powershell: Callable[..., tuple[str | None, bool]] | None = None
     defender_health_reader: Callable[[], Any] | None = None
     maps_reader: Callable[[], Any] | None = None
+    helper_endpoint: dict[str, Any] | None = None
 
 
 class HandlerRegistry:
@@ -94,6 +95,7 @@ def register_default_handlers(registry: HandlerRegistry) -> None:
     registry.register("footprint.still_monitoring", footprint_still_monitoring)
     registry.register("safety.set_asr_rule", set_asr_rule)
     registry.register("safety.set_cfa_mode", set_cfa_mode)
+    registry.register("safety.restrict_network", restrict_network)
 
 
 def _result(performed: bool, message: str, *, reversible: str = "no", status: str | None = None) -> dict:
@@ -278,11 +280,44 @@ def block_network(finding: dict, ctx: HandlerContext) -> dict:
     if not ok:
         text = message if "not stopped" in message.lower() else message.rstrip(".") + ". Traffic was not stopped."
         return _result(False, text)
-    path = str((finding.get("signals") or {}).get("path") or "")
+    signals = finding.get("signals") or {}
+    path = str(signals.get("path") or signals.get("program") or "")
     if ctx.block_app is not None:
         performed, detail = ctx.block_app(name, path)
     else:
-        performed, detail = block_app_network(name, path)
+        performed, detail = block_app_network(
+            name,
+            path,
+            profile=str(signals.get("profile") or "Any"),
+            address_families=signals.get("address_families"),
+            remote_addresses=signals.get("remote_addresses"),
+            endpoint=ctx.helper_endpoint,
+        )
+    if performed and "does not prove" not in detail.lower():
+        detail = detail.rstrip(".") + ". This does not prove every connection already stopped."
+    if not performed and "not stopped" not in detail.lower():
+        detail = detail.rstrip(".") + ". Traffic was not stopped."
+    return _result(performed, detail, reversible="yes" if performed else "no")
+
+
+def restrict_network(finding: dict, ctx: HandlerContext) -> dict:
+    """Firewall assistant apply. Same RESTRICT_NETWORK kind, always via the helper."""
+    require_cortex_mutate()
+    signals = finding.get("signals") or {}
+    path = str(signals.get("program") or signals.get("path") or "")
+    name = str(signals.get("name") or Path(path).name)
+    if not name or name.lower() in SYSTEM_PROTECTED:
+        return _result(False, f"DVielle will not block the network for {name or 'that program'}. Traffic was not stopped.")
+    families = signals.get("address_families")
+    remotes = signals.get("remote_addresses")
+    performed, detail = block_app_network(
+        name,
+        path,
+        profile=str(signals.get("profile") or "Public"),
+        address_families=families if isinstance(families, list) else None,
+        remote_addresses=remotes if isinstance(remotes, list) else None,
+        endpoint=ctx.helper_endpoint,
+    )
     if performed and "does not prove" not in detail.lower():
         detail = detail.rstrip(".") + ". This does not prove every connection already stopped."
     if not performed and "not stopped" not in detail.lower():

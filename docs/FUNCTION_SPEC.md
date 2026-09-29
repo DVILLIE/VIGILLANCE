@@ -1,7 +1,7 @@
-# DVielle Function Spec (v0.9.1 — P1 ASR, CFA, and recovery shipped)
+# DVielle Function Spec (v0.9.2 — P2 firewall assist, helper, CPU contracts)
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
-**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0. The v0.8 keep-on loop remains in force.)  
+**Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0. The v0.8 keep-on loop remains in force.)  
 **Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
@@ -33,6 +33,14 @@ This version does **not** claim a live multi-OS product.
 
 1.9.0 collects ASR rule actions and CFA mode from `Get-MpPreference`. A missing rule is Not configured, not Audit. Standard-protection Block is a user-approved dual-gate path for the vulnerable-driver rule and the LSASS rule, and only while the live action is still Audit and Defender is Active, real-time protection is on, and MAPS passed. The WMI persistence rule and every other ASR rule can be set to Audit only. DVielle does not blanket-Block them. CFA moves from off to Audit, and from Audit to Enabled. Enabled is a modification and boot-sector shield. DVielle does not claim CFA prevents reading or exfiltration. Offline encrypted backups and a restore test stay required (CISA). BackupConfigured, BackupFresh, and RestoreVerified are separate user-declared states, not a backup engine. Home is not described as lacking ASR. Local PowerShell does not require E5. App Control, Windows Sandbox on Home, TUF, and privileged auto-update are still not built.
 
+### Shipped honesty (2.0.0 — P2)
+
+2.0.0 reads Windows Firewall profiles and existing DVielle app rules. It can propose an outbound Block for one program, on one profile (Domain, Private, Public, or Any), for IPv4, IPv6, or both, with up to four specific remote networks. The apply path is the existing `RESTRICT_NETWORK` dual gate (`safety.restrict_network`, and the privacy and AI block handlers when they are not given a test double). The Limited process does not run `New-NetFirewallRule`. It sends a versioned request to a loopback helper. The helper accepts only `restrict_network`, checks the parameters again, and keeps the rule only when a second `Get-NetFirewallRule` matches. Anything else, including stopping MpsSvc, a Defender exclusion, or a GitHub update, is an undefined operation and is refused. The helper is a stub, not a Windows service. The resident scheduled task stays RunLevel Limited. A rule is not a leakproof block: IPv6 and VPN adapters are called out, and a full leakproof guarantee stays UNKNOWN. Stopping MpsSvc is not done.
+
+The CPU contract is published on the twin. The resident task uses measured scheduling (the existing self-budget: optional collectors defer after three heartbeats over the configured CPU or memory limit). That is not an OS hard cap. The helper may assign its own process to a Windows Job Object hard cap at 20% (`CpuRate` 2000, percentage times 100). If the machine is not Windows, or `SetInformationJobObject` fails (including Remote Desktop Services with Dynamic Fair Share Scheduling), the result stays measured and says so. DVielle does not terminate user applications to make that number look healthy. 20% is DVielle's published helper cap, not a Microsoft-mandated agent budget and not a copied industry figure.
+
+Windows Sandbox `.wsb` profiles and TUF remain P3. There is still no privileged GitHub auto-update.
+
 ---
 
 ## 1.1 World-class FREE pillars (locked 2026-09-29)
@@ -48,11 +56,11 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | 1 | Defender orchestration | Observe Defender and configure only features the edition supports. Never disable real-time protection to replace it. Never add an install-time `ExclusionPath`. | Defender is present. The user consents before a preference change. 1.9.0 changes ASR or CFA only through the dual gate, then re-reads the live preference. | `Get-MpComputerStatus` active mode, real-time, signature age, and the Defender out-of-date flag. Access denial stays partial. |
 | 2 | Edition-honest matrix | Show Home vs Pro+ support before any enablement. Windows Sandbox and App Control PowerShell authoring are unavailable on Home. | EditionID / caption classification. Smart App Control is a probe, not an eligibility guess. | `feature_matrix` on the capability report and the console evidence strip. |
 | 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
-| 4 | Firewall assist | Propose Windows Firewall rules. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. | P2. 1.8.0 only reports profile on/off when the read completes. |
+| 4 | Firewall assist | Propose Windows Firewall app rules per profile. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. Do not stop MpsSvc. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local and the resident task stays Limited. | 2.0.0 reads rules with `Get-NetFirewallRule` / profile state, proposes a block, and applies it only inside DualGate. Success is the second read. |
 | 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. | Matrix cell. P3 launches `.wsb` only on a supporting SKU. |
 | 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 1.9.0 stores the three recovery states in a deletable local marker. MAPS is still verified and is not blocked. Passkeys remain P5. |
 | 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. | Unchecked until built. See TRUST_GATES. |
-| 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. | This spec, TRUST_GATES, and fixture tests. Attestation checksum remains unchecked. |
+| 8 | Verification discipline | Public claims map to wiring checks plus an assumptions list. Efficacy language waits for a real test or is omitted. CPU limits are published with the measurement method. | The host matches the assumption list for that claim. Feature checks are not lab efficacy. Job Object hard caps do not apply under RDS Dynamic Fair Share Scheduling. | This spec, TRUST_GATES, fixture tests, and the twin `cpu_contract`. Attestation checksum remains unchecked. The resident mode is measured scheduling unless a helper assignment reports `job_cap_applied`. |
 
 ### MVP sequence
 
@@ -61,7 +69,7 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 | **P0** | Defender health gate, MAPS check, do-no-harm (never displace Defender) | Later prevention depends on active Defender and cloud reachability | Fail closed to Windows defaults. Incomplete collection stays partial. |
 | **P0** | Edition matrix and honest Home / Pro pathing | Stops Sandbox and App Control over-claims | Feature flags by edition |
 | **P1** | ASR standard-protection Block, other rules Audit then promote; CFA Audit then Block; backup/restore states. **Shipped in 1.9.0** as observation plus a dual-gated one-step promotion. Not a backup product. | Highest OS prevention return on Home | Audit-first. WMI and non-standard rules are not blanket-Blocked. CFA copy stays modification-only. |
-| **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts | Completes the host controls without a new driver | Propose, confirm, apply. Job Object caps have DFSS/RDS limits. |
+| **P2** | Firewall app-rule assistant; privileged helper with an unelevated UI; published CPU contracts. **Shipped in 2.0.0** as observation, a dual-gated `RESTRICT_NETWORK` apply, a loopback helper that refuses undefined operations, and measured-scheduling plus an optional helper Job Object cap. Not a second firewall. Not a Windows service. | Completes the host controls without a new driver | Propose, confirm, apply. One address family is warned. Job Object caps have DFSS/RDS limits and are not claimed when assignment fails. |
 | **P3** | Sandbox `.wsb` launcher on Pro+ only. Home gets the “no Sandbox” checklist. TUF update pipeline before any privileged auto-update | Isolation where the SKU has it. Update integrity before automation. | Hidden on Home. Manual update until TUF tests pass. |
 | **P4** | KEV and OSV intel. abuse.ch opt-in with Auth-Key. Privacy assistant that leaves Defender cloud reachable | Context without a license violation | Provenance labels. Maps check gates any privacy block list. |
 | **P5** | Passkey / phishing education. Activity modes (Home / Work / Travel) | High value, no kernel change | Checklist only. Mode switch asks first. |
@@ -94,7 +102,7 @@ P0 only, and only the read-only half:
 
 ### Laws that stay in force
 
-Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference ExclusionPath`. No offensive tools. No elevated unattended / Highest change in this version. No App Control enforcement. ASR and CFA changes are user-approved, one rule or one CFA mode at a time, and counted as applied only when a second `Get-MpPreference` matches. Auto-protect cannot issue them. Camera in-use on Windows stays unknown. The footprint collector stays empty. Unknown stays unknown.
+Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference ExclusionPath`. No offensive tools. No elevated unattended / Highest change in this version. No App Control enforcement. ASR and CFA changes are user-approved, one rule or one CFA mode at a time, and counted as applied only when a second `Get-MpPreference` matches. Auto-protect cannot issue them. Firewall app rules use the same dual gate and count only when a second `Get-NetFirewallRule` matches. Auto-protect cannot issue `safety.restrict_network`. The helper does not stop MpsSvc and does not download updates. Camera in-use on Windows stays unknown. The footprint collector stays empty. Unknown stays unknown.
 
 ---
 
@@ -1036,6 +1044,19 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 65. No `ExclusionPath`, no ASR path exclusion, and no rule that blocks Defender cloud endpoints. Windows Sandbox stays unavailable on Home. TUF and privileged auto-update stay unchecked.
 
 *End of Function Spec — v0.9.1 / 1.9.0 P1.*
+
+---
+
+## 37. Acceptance checks (2.0.0 — P2 firewall, helper, CPU)
+
+66. Firewall observation reads profiles, MpsSvc status, and DVielle app rules. It does not stop or start MpsSvc, and it does not create a rule. An incomplete read proposes nothing.
+67. A proposal can name one program, one profile, IPv4 and/or IPv6, and up to four specific remote networks. Applying it uses `RESTRICT_NETWORK` through DualGate. Auto-protect cannot issue `safety.restrict_network`.
+68. The Limited process sends the request to the helper. The helper refuses every operation other than `restrict_network`, refuses a bad token, and refuses parameters outside the schema. Success is a second `Get-NetFirewallRule` read. A partial read removes the DVielle rules from that attempt and is not counted as applied.
+69. Copy states that the block is not leakproof. A single address family is warned. A VPN-like adapter is named when the read sees one. Home Sandbox stays unavailable. CFA copy stays a modification shield.
+70. The twin publishes `cpu_contract`. The resident task's mode is measured scheduling. The published analysis cap is 20% (`CpuRate` 2000). `terminates_other_processes` is false. A Job Object hard cap is claimed only when assignment on the helper succeeded.
+71. No `ExclusionPath`, no MAPS endpoint block, and no GitHub auto-update in the P2 modules. The resident scheduled task default stays RunLevel Limited. TUF and Sandbox `.wsb` stay P3.
+
+*End of Function Spec — v0.9.2 / 2.0.0 P2.*
 
 
 

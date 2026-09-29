@@ -52,6 +52,10 @@ class ResolutionEngine:
         self.handler_ctx = handler_ctx or HandlerContext(lookup=default_lookup, close=default_close)
         if self.handler_ctx.learn_dir is None:
             self.handler_ctx.learn_dir = self.memory.learn_dir
+        if self.handler_ctx.helper_endpoint is None:
+            from agent.privilege.broker import discover_endpoint
+
+            self.handler_ctx.helper_endpoint = discover_endpoint(data_dir)
         enabled = auto_enabled
         if enabled is None:
             enabled = _read_auto(self.memory.learn_dir / "auto_protect.txt")
