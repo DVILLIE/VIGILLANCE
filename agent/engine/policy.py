@@ -35,6 +35,7 @@ USER_HANDLERS = frozenset(
         "safety.set_cfa_mode",
         "safety.restrict_network",
         "safety.open_unfamiliar",
+        "privacy.set_choice",
     }
 )
 AUTO_HANDLERS = frozenset({"safety.turn_protection_on", "storage.free_safe_temp"})
