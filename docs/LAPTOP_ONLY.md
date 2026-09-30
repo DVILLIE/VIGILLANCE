@@ -10,7 +10,7 @@ A selected `-InstallDir` is that installation’s only config and data root. Sta
 
 ## Install or update
 
-1. Install the free Python 3.12 Windows distribution from [python.org](https://www.python.org/downloads/windows/), including Tcl/Tk and the Python launcher.
+1. Install the free Python 3.12 Windows distribution from [python.org](https://www.python.org/downloads/windows/), including Tcl/Tk and the Python launcher. A setup executable can bundle that installer. It is not the Release download until a Release lists `DVielle-Setup-2.4.0.exe`. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
 2. Open the unzipped project folder (the source tree, with `installer` next to `agent` and `pyproject.toml`) and run `installer\Install-DVielle.bat`. Approve its Windows elevation prompt. The default destination is `C:\DVILLIE`.
 3. The installer uses `C:\DVILLIE\.venv` (or `<InstallDir>\.venv` when you passed `-InstallDir`), syncs `[project].dependencies` (including `cryptography`) with `pip install --upgrade --upgrade-strategy only-if-needed -e ".[windows]"`, checks imports, requests failure auditing, registers one resident task, starts it and verifies a fresh heartbeat from its process. A file copy onto an existing install does not refresh `.venv` by itself. From that install root, run the same pip command, then `python -m pip check` and `scripts\smoke_test.py`, before starting the resident. `smoke_test.py` imports `agent.update.tuf`, which needs `cryptography`. The install stops before the task is enabled if that import fails.
 

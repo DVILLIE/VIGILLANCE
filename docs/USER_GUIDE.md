@@ -20,7 +20,7 @@ DVielle is not a cloud service and not a server product. Install it on the PC yo
 1. Download the latest release from [github.com/DVILLIE/VIGILLANCE/releases/latest](https://github.com/DVILLIE/VIGILLANCE/releases/latest).
    - `DVielle-2.4.0-windows-installer.zip` is the bundle to unzip and install.
    - `DVielle-2.4.0-windows-source.zip` is the same tree under a source name, plus the GitHub source archive that a tag creates automatically.
-   - There is no `.exe`. The project does not ship a PyInstaller binary.
+   - `DVielle-Setup-2.4.0.exe` is not on the Release. The project can build that setup wrapper. It bootstraps official Python 3.12.10 and then runs the same Limited installer. It is not a PyInstaller binary. Use the zip until a Release lists the exe by name. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
 2. Install Python 3.12 if it is not already on the PC.
 3. Unzip the archive. You should see `installer`, `agent`, `dvielle`, `config`, and `pyproject.toml` in one folder.
 4. Right-click `installer\Install-DVielle.bat` and choose **Run as administrator**.
