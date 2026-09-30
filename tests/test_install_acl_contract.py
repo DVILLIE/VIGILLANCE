@@ -46,7 +46,8 @@ def test_install_resyncs_declared_dependencies_before_the_resident_starts():
     assert "cryptography>=41" in pyproject
     assert "'--upgrade'" in install
     assert "'only-if-needed'" in install
-    assert "'.[windows,chat]'" in install
+    assert "'.[windows]'" in install
+    assert "'.[windows,chat]'" not in install
     pip_at = install.index("'-m', 'pip', 'install'")
     smoke_at = install.index("scripts\\smoke_test.py')")
     register_at = install.index("Register-ScheduledTask")

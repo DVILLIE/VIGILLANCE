@@ -87,7 +87,7 @@ try {
     # cannot keep a stale editable install that omits a newly declared package.
     # only-if-needed installs a missing dependency and leaves one that already
     # satisfies its specifier. https://pip.pypa.io/en/stable/user_guide/#only-if-needed-recursive-upgrade
-    Invoke-DvielleNative $python @('-m', 'pip', 'install', '--upgrade', '--upgrade-strategy', 'only-if-needed', '-e', '.[windows,chat]')
+    Invoke-DvielleNative $python @('-m', 'pip', 'install', '--upgrade', '--upgrade-strategy', 'only-if-needed', '-e', '.[windows]')
     Invoke-DvielleNative $python @('-m', 'pip', 'check')
     # No collector execution, persistence, cloud lookup, or machine mutation in this check.
     Invoke-DvielleNative $python @('scripts\smoke_test.py')

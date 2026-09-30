@@ -149,7 +149,7 @@ Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference Exclusion
 | Default | `monitor_only` / observe-first. Mutations are opt-in or Auto-protect only. |
 | Fail closed | If confidence is low or identity of a target is unclear → ask or skip; never guess-mutate. |
 | Honesty | Unknown = say unknown. Prefer the next best **working fix**. Never fake a resolution. Windows Home toggles ≠ proof traffic stopped; AI “trained on your file” needs evidence we usually won’t have — still offer block/allow/settings fixes. |
-| No data theft by us | No uploading twin dumps, files, chats, or screenshots by default. Optional cloud LLM stays off unless user enables it; then say exactly what leaves. |
+| No data theft by us | No uploading twin dumps, files, chats, or screenshots. The optional cloud-LLM chat path was removed in 2.3.3. |
 | Public repo trust | No exploit kits, credential dumpers, outbound attack tools, or “hack back.” |
 
 **Never ship:** exploit PoCs/payloads, mass external scanners, password cracking/dumping, unauthorized lateral movement, silent training on user data.

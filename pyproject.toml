@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dvielle"
-version = "2.3.2"
+version = "2.3.3"
 description = "DVielle — DEEP VIGILLANCE Windows security agent"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -23,7 +23,6 @@ windows = [
     "pywin32>=306; sys_platform == 'win32'",
     "pyttsx3>=2.90; sys_platform == 'win32'",
 ]
-chat = ["duckduckgo-search>=6.0", "SpeechRecognition>=3.10"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
