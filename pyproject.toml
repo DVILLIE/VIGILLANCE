@@ -1,13 +1,25 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dvielle"
 version = "2.4.0"
-description = "DVielle — DEEP VIGILLANCE Windows security agent"
+description = "DVielle — DEEP VIGILLANCE, a free local Windows guardian"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Ravikant R. Tayade", email = "kt.tradingsystem@gmail.com" },
+]
+keywords = ["windows", "privacy", "security", "guardian"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
 dependencies = [
     "psutil>=5.9.8",
     "PyYAML>=6.0.1",
