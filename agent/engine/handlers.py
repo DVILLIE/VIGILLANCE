@@ -514,7 +514,7 @@ def footprint_diy_opt_out(finding: dict, ctx: HandlerContext) -> dict:
     return _result(
         False,
         "Do-it-yourself path: search only your own name, open each site's opt-out or takedown page, "
-        "and set a Google Alert for your name if you want a reminder. "
+        "and set a search alert you control if you want a reminder. "
         "DVielle did not search anyone and did not submit a form. This ticket stays in progress.",
         status="in_progress",
     )

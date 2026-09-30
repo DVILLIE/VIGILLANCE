@@ -30,7 +30,7 @@ That command uses a throwaway folder, a fake process closer, a fake per-app bloc
 18. A footprint ticket lists lockdown, opt-in breach check, DIY opt-out, partner playbooks, mark resolved, and still monitoring.
 19. The breach check is refused until you choose it. With no email enrolled, nothing is sent.
 20. An opt-in drill check says the email leaves the device, stores no address, and does not claim the internet was erased.
-21. Partner names (DeleteMe, Incogni, Aura, LifeLock, REMOVE) are links in the playbook. None is required, and none is called.
+21. The playbook lists public homepages (DeleteMe, Incogni, Aura, LifeLock, REMOVE). None is required, none is called, and none is a DVielle partner.
 22. **Mark resolved** records your confirmation. The progress file is `data/learn/baseline_footprint.txt`.
 
 Unit coverage is `tests/test_keep_on_engine.py`, `tests/test_privacy_ai_camera.py`, and `tests/test_footprint.py`:

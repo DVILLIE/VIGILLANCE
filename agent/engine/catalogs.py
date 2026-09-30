@@ -266,7 +266,7 @@ def footprint_options() -> list[Option]:
         _guide(
             "partner",
             "Start / open partner removal or monitoring",
-            "Show removal and monitoring playbooks such as DeleteMe, Incogni, Aura, LifeLock, and REMOVE. No service is required.",
+            "Show optional public pages for removal or monitoring. No service is required, and DVielle does not endorse one.",
             "footprint.open_partner",
         ),
         _guide(
