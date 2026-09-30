@@ -151,3 +151,9 @@ A failed update can leave startup disabled. Keep your config and retry from a co
 ## What this guide does not promise
 
 DVielle cannot prove the PC is free of threats. It cannot prove a firewall rule blocks every leak. It cannot prove a site offers a passkey, and it does not change your accounts. Those limits are written down in [CLAIMS.md](CLAIMS.md).
+
+## Support and contact
+
+**Ravikant R. T. · kt.tradingsystem@gmail.com**
+
+Use that address for questions about this guide, the installer, or the software. DVielle has no in-app chat assistant.
