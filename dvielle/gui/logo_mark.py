@@ -1,14 +1,22 @@
 """DVielle emblem. This is the only animated widget in the console.
 
 The mark is a deep disc, two orbits, and a D/V monogram with a nucleus.
-Startup scales and turns it in over a handful of frames, and the orbits
-draw themselves in during that same short intro. Then a slow brightness
-pulse runs about once a second. Nothing else in the console moves.
+Startup scales and turns it in, and the orbits draw themselves during that
+short intro. Then a slow brightness pulse runs about once a second.
+
+The intro does not run while the window is withdrawn. On Windows,
+CustomTkinter paints the title bar by withdrawing the window and calling
+``update()`` (``CTk._windows_set_titlebar_color`` in CustomTkinter 5.2/6).
+That hidden ``update()`` delivers ``after`` callbacks before the console is
+on screen, and Tk does not reliably paint image changes made in that state.
+Frames advance only once the mark is viewable, then keep going. Nothing else
+in the console moves.
 """
 
 from __future__ import annotations
 
 import math
+import tkinter as tk
 
 import customtkinter as ctk
 
@@ -20,7 +28,11 @@ INTRO_REVEAL = (0.34, 0.52, 0.68, 0.82, 0.93, 1.0)
 INTRO_SCALES = (0.74, 0.84, 0.91, 0.96, 0.99, 1.0)
 INTRO_MS = 70
 IDLE_MS = 1100
-IDLE_GAINS = (1.0, 1.05)
+# 1.12 is still a soft breathe, and it survives the 56px downsample.
+IDLE_GAINS = (1.0, 1.12)
+# While the console is withdrawn (title bar, tray), poll slowly. Map pulls
+# the intro forward as soon as the window is shown.
+HIDDEN_MS = 200
 
 _INK = (236, 244, 246, 255)
 _MINT = (126, 196, 186, 235)
@@ -36,8 +48,10 @@ def motion_plan() -> dict:
         "intro_ms": INTRO_MS,
         "idle_ms": IDLE_MS,
         "idle_gains": IDLE_GAINS,
+        "hidden_ms": HIDDEN_MS,
         "intro_frames": len(INTRO_ANGLES),
         "animates": "logo",
+        "starts_when": "viewable",
     }
 
 
@@ -115,6 +129,24 @@ def _render_frame(base, image_module, enhance, angle: float, gain: float, scale:
     return image
 
 
+def build_frames(size: int) -> tuple[list, list]:
+    """Intro frames, then the two idle pulse frames. Raises if Pillow is missing."""
+    from PIL import Image, ImageEnhance
+
+    intro: list = []
+    steps = max(1, len(INTRO_ANGLES) - 1)
+    for index, angle in enumerate(INTRO_ANGLES):
+        mark = draw_emblem(size, reveal=INTRO_REVEAL[index])
+        gain = 0.9 + 0.1 * (index / steps)
+        intro.append(_render_frame(mark, Image, ImageEnhance, angle, gain, INTRO_SCALES[index]))
+    settled = draw_emblem(size, reveal=1.0)
+    idle = [
+        _render_frame(settled, Image, ImageEnhance, 0, gain, 1.0)
+        for gain in IDLE_GAINS
+    ]
+    return intro, idle
+
+
 class LogoMark(ctk.CTkFrame):
     def __init__(self, master, size: int = 68, **kwargs) -> None:
         super().__init__(
@@ -125,52 +157,214 @@ class LogoMark(ctk.CTkFrame):
             **kwargs,
         )
         self.pack_propagate(False)
-        self.size = size
+        self.size = int(size)
         self._alive = True
         self._intro_i = 0
         self._idle_i = 0
         self._intro: list = []
         self._idle: list = []
+        self._current = None
         self._photo = None
-        self._label = ctk.CTkLabel(self, text="", text_color=T.ACCENT)
-        self._label.pack(expand=True)
+        self._image_item = None
+        self._text_item = None
+        self._using_text = False
+        self._job = None
+        self._job_owner = None
+        self._canvas = tk.Canvas(
+            self,
+            width=self.size,
+            height=self.size,
+            bg=T.hex_color("panel"),
+            highlightthickness=0,
+            bd=0,
+        )
+        self._canvas.pack(expand=True)
         self._prepare()
-        if self._intro:
-            self._show(self._intro[0])
-            self._intro_i = 1
-        self.after(INTRO_MS, self._tick)
+        self._paint_initial()
+        try:
+            self.bind("<Map>", self._on_map, add="+")
+        except Exception:
+            pass
+        T.subscribe(self._on_theme)
+        self._schedule(1)
+
+    def _set_scaling(self, new_widget_scaling, new_window_scaling) -> None:
+        super()._set_scaling(new_widget_scaling, new_window_scaling)
+        if getattr(self, "_canvas", None) is None:
+            return
+        try:
+            self._repaint()
+        except Exception:
+            pass
+
+    def _pixel_size(self) -> int:
+        try:
+            scale = float(self._get_widget_scaling())
+        except Exception:
+            scale = 1.0
+        return max(1, int(round(self.size * scale)))
+
+    def _fit_canvas(self) -> None:
+        px = self._pixel_size()
+        self._canvas.configure(width=px, height=px, bg=T.hex_color("panel"))
 
     def _prepare(self) -> None:
         try:
-            from PIL import Image, ImageEnhance
-        except ImportError:
-            self._label.configure(text="DV", font=T.FONT_TITLE, text_color=T.ACCENT)
-            return
-        try:
-            steps = max(1, len(INTRO_ANGLES) - 1)
-            for index, angle in enumerate(INTRO_ANGLES):
-                mark = draw_emblem(self.size, reveal=INTRO_REVEAL[index])
-                gain = 0.9 + 0.1 * (index / steps)
-                self._intro.append(
-                    _render_frame(mark, Image, ImageEnhance, angle, gain, INTRO_SCALES[index])
-                )
-            settled = draw_emblem(self.size, reveal=1.0)
-            for gain in IDLE_GAINS:
-                self._idle.append(_render_frame(settled, Image, ImageEnhance, 0, gain, 1.0))
+            intro, idle = build_frames(self.size)
         except Exception:
-            self._intro.clear()
-            self._idle.clear()
-            self._label.configure(text="DV", font=T.FONT_TITLE, text_color=T.ACCENT)
+            self._using_text = True
+            self._intro = []
+            self._idle = []
+            return
+        if not intro or not idle:
+            self._using_text = True
+            return
+        self._intro = intro
+        self._idle = idle
+
+    def _paint_initial(self) -> None:
+        if self._intro and not self._using_text:
+            try:
+                self._show(self._intro[0])
+                return
+            except Exception:
+                self._using_text = True
+                self._intro = []
+                self._idle = []
+        self._show_text(T.hex_color("accent"))
 
     def _show(self, image) -> None:
-        self._photo = ctk.CTkImage(
-            light_image=image,
-            dark_image=image,
-            size=(self.size, self.size),
-        )
-        self._label.configure(image=self._photo, text="")
+        from PIL import Image, ImageTk
+
+        px = self._pixel_size()
+        shown = image
+        if shown.size != (px, px):
+            shown = shown.resize((px, px), Image.Resampling.LANCZOS)
+        photo = ImageTk.PhotoImage(shown)
+        self._fit_canvas()
+        if self._image_item is None:
+            self._canvas.delete("all")
+            self._text_item = None
+            self._image_item = self._canvas.create_image(px // 2, px // 2, image=photo)
+        else:
+            self._canvas.coords(self._image_item, px // 2, px // 2)
+            self._canvas.itemconfig(self._image_item, image=photo)
+        # Tk drops a PhotoImage that has no Python reference.
+        self._photo = photo
+        self._current = image
+
+    def _show_text(self, color: str) -> None:
+        px = self._pixel_size()
+        self._fit_canvas()
+        self._image_item = None
+        self._photo = None
+        self._current = None
+        if self._text_item is None:
+            self._canvas.delete("all")
+            self._text_item = self._canvas.create_text(
+                px // 2,
+                px // 2,
+                text="DV",
+                fill=color,
+                font=("Segoe UI", max(12, px // 3), "bold"),
+            )
+        else:
+            self._canvas.coords(self._text_item, px // 2, px // 2)
+            self._canvas.itemconfig(self._text_item, fill=color)
+
+    def _pulse_text(self) -> None:
+        tone = T.hex_color("accent") if self._idle_i % 2 == 0 else T.hex_color("accent_dim")
+        self._idle_i += 1
+        self._show_text(tone)
+
+    def _repaint(self) -> None:
+        if self._current is not None and not self._using_text:
+            self._show(self._current)
+            return
+        if self._text_item is not None or self._using_text:
+            tone = T.hex_color("accent") if self._idle_i % 2 == 0 else T.hex_color("accent_dim")
+            self._show_text(tone)
+
+    def _on_map(self, _event=None) -> None:
+        if not self._alive:
+            return
+        try:
+            self._repaint()
+        except Exception:
+            pass
+        # A hidden poll may be hundreds of milliseconds out. The intro should
+        # start on the frame the window appears.
+        if self._intro and self._intro_i < len(self._intro):
+            self._schedule(1)
+
+    def _on_theme(self, _mode: str) -> None:
+        if not self._alive:
+            return
+        try:
+            if not self.winfo_exists():
+                T.unsubscribe(self._on_theme)
+                return
+            self._canvas.configure(bg=T.hex_color("panel"))
+            self._repaint()
+        except Exception:
+            T.unsubscribe(self._on_theme)
+
+    def _schedule(self, ms: int) -> None:
+        self._cancel()
+        if not self._alive:
+            return
+        try:
+            owner = self.winfo_toplevel()
+            self._job_owner = owner
+            self._job = owner.after(int(ms), self._tick)
+        except Exception:
+            self._job = None
+            self._job_owner = None
+
+    def _cancel(self) -> None:
+        job, owner = self._job, self._job_owner
+        self._job = None
+        self._job_owner = None
+        if job is None or owner is None:
+            return
+        try:
+            owner.after_cancel(job)
+        except Exception:
+            pass
+
+    def _give_up_to_text(self) -> None:
+        self._using_text = True
+        self._intro = []
+        self._idle = []
+        self._current = None
+        self._pulse_text()
+
+    def _advance(self) -> None:
+        if self._using_text or (not self._intro and not self._idle):
+            self._pulse_text()
+            self._schedule(IDLE_MS)
+            return
+        try:
+            if self._intro and self._intro_i < len(self._intro):
+                self._show(self._intro[self._intro_i])
+                self._intro_i += 1
+                self._schedule(INTRO_MS)
+                return
+            if self._idle:
+                self._show(self._idle[self._idle_i % len(self._idle)])
+                self._idle_i += 1
+                self._schedule(IDLE_MS)
+                return
+        except Exception:
+            self._give_up_to_text()
+            self._schedule(IDLE_MS)
+            return
+        self._pulse_text()
+        self._schedule(IDLE_MS)
 
     def _tick(self) -> None:
+        self._job = None
+        self._job_owner = None
         if not self._alive:
             return
         try:
@@ -180,21 +374,24 @@ class LogoMark(ctk.CTkFrame):
         except Exception:
             self._alive = False
             return
-        if self._intro and self._intro_i < len(self._intro):
-            self._show(self._intro[self._intro_i])
-            self._intro_i += 1
-            self.after(INTRO_MS, self._tick)
+        try:
+            visible = bool(self.winfo_viewable())
+        except Exception:
+            visible = False
+        if not visible:
+            self._schedule(HIDDEN_MS)
             return
-        if self._idle:
-            self._show(self._idle[self._idle_i % len(self._idle)])
-            self._idle_i += 1
-            self.after(IDLE_MS, self._tick)
-            return
-        tone = T.hex_color("accent") if self._idle_i % 2 == 0 else T.hex_color("accent_dim")
-        self._idle_i += 1
-        self._label.configure(text="DV", text_color=tone)
-        self.after(IDLE_MS, self._tick)
+        try:
+            self._advance()
+        except Exception:
+            try:
+                self._give_up_to_text()
+            except Exception:
+                return
+            self._schedule(IDLE_MS)
 
     def destroy(self) -> None:
         self._alive = False
+        self._cancel()
+        T.unsubscribe(self._on_theme)
         super().destroy()

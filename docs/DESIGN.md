@@ -94,7 +94,7 @@ No parallax, no particle storms, no scan line, no pulsing status dot, no animate
 
 The day's accent is chosen once, from the local date, when the console opens. Orbits, the second color, and card-corner marks use that seed and stay still. Dark and Light remain the saved choice in `console_ui.json`. The five day names are Violet, Coral, Gold, Sky, and Rose. On Light those hues are cooled (soft sky, mint, lilac, dusty rose) so they do not glare on white. Dark keeps the richer pair. Green, amber, and red stay the status colors.
 
-The header mark is a drawn D/V orbital emblem. It scales and turns in, the orbits complete during that short intro, then the whole mark brightens slightly about once a second. That is the only motion.
+The header mark is a drawn D/V orbital emblem. It scales and turns in, the orbits complete during that short intro, then the whole mark brightens slightly about once a second. The intro waits until that mark is on screen. A withdrawn title-bar redraw must not spend the frames where nobody can see them. That is the only motion. There is no separate Watch card.
 
 ## Light palette — Dayglass
 
