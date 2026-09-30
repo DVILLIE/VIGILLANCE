@@ -71,7 +71,7 @@ The console is a shell, not a four-column instrument panel.
 
 1. **Header** — logo, product name, one status sentence, the day's color name, Dark/Light, start.
 2. **Left pages** — Now, This PC, Network, Findings, Protection, Apps. One page is visible.
-3. **Now** — three still load rings (processor, memory, disk), a still network map, latest notes as cards (severity glyph, color bar, and a plain word: Noted, Caution, Needs a look, Settled), a small static watch mark, collector chips. Page icons and a header status orb are drawn, not typed bullets.
+3. **Now** — three still load rings (processor, memory, disk), a still network map, latest notes as cards (severity glyph, color bar, and a plain word: Noted, Caution, Needs a look, Settled), and collector chips. Page icons and a header status orb are drawn, not typed bullets. The header logo is the brand mark. There is no separate Watch card.
 4. **This PC** — full-width load bars (processor, memory, disk).
 5. **Apps** — noticed, you choose, then it can close. The choice dialogs are unchanged.
 6. **Footer** — work log, why, attacks, pause, hide. Why stays one click away.

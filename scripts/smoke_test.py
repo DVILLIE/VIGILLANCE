@@ -71,7 +71,6 @@ def main() -> int:
         except ImportError:
             raise RuntimeError("tkinter not available (install python3-tk on Linux)")
         import customtkinter  # noqa: F401
-        importlib.import_module("dvielle.gui.hologram")
         importlib.import_module("dvielle.gui.voice")
         importlib.import_module("dvielle.gui.app")
 

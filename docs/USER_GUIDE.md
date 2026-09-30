@@ -50,7 +50,7 @@ The left rail has six pages:
 
 | Page | What it is for |
 |------|----------------|
-| Now | How busy the PC is, latest notes, and a still picture of the logo |
+| Now | How busy the PC is, and the latest notes |
 | This PC | Processor, memory, and disk in more detail |
 | Network | This PC, local address, gateway, and DNS |
 | Findings | What was noticed, in plain language |

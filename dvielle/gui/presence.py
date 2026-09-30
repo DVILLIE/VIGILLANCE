@@ -7,91 +7,11 @@ time string once a second; that is a readout, not a motion effect.
 
 from __future__ import annotations
 
-import tkinter as tk
-
 import customtkinter as ctk
 
 from dvielle.gui import theme as T
 from dvielle.gui.graphics import dial_pair
 from dvielle.gui.observations import collector_state
-
-
-class LivingRadar(ctk.CTkFrame):
-    """Static radar instrument. The sweep does not move."""
-
-    def __init__(self, master, size: int = 120, **kwargs) -> None:
-        super().__init__(master, fg_color="transparent", **kwargs)
-        self.size = size
-        self._running = False
-        self.canvas = tk.Canvas(
-            self,
-            width=size,
-            height=size,
-            bg=T.hex_color("panel"),
-            highlightthickness=0,
-            bd=0,
-        )
-        self.canvas.pack()
-        T.subscribe(self._on_theme)
-        self._redraw_radar()
-
-    def _on_theme(self, _mode: str) -> None:
-        try:
-            if not self.winfo_exists():
-                T.unsubscribe(self._on_theme)
-                return
-            self.canvas.configure(bg=T.hex_color("panel"))
-            self._redraw_radar()
-        except Exception:
-            T.unsubscribe(self._on_theme)
-
-    def _redraw_radar(self) -> None:
-        # Must not be named _draw — CTkFrame._draw(no_color_updates=...) owns that.
-        self.canvas.delete("all")
-        cx = cy = self.size // 2
-        r = self.size // 2 - 6
-        self.canvas.create_oval(
-            cx - r - 2, cy - r - 2, cx + r + 2, cy + r + 2,
-            outline=T.hex_color("accent_dim"), width=1,
-        )
-        for frac in (0.35, 0.6, 0.85, 1.0):
-            rr = int(r * frac)
-            self.canvas.create_oval(
-                cx - rr, cy - rr, cx + rr, cy + rr,
-                outline=T.hex_color("border"), width=1,
-            )
-        self.canvas.create_line(cx - r, cy, cx + r, cy, fill=T.hex_color("border"), width=1)
-        self.canvas.create_line(cx, cy - r, cx, cy + r, fill=T.hex_color("border"), width=1)
-        # Fixed arcs so the mark still reads as a radar. They do not sweep.
-        phase = int(T.current_motif()["phase"])
-        self.canvas.create_arc(
-            cx - r, cy - r, cx + r, cy + r,
-            start=phase, extent=48,
-            style=tk.ARC, outline=T.hex_color("orbit"), width=2,
-        )
-        self.canvas.create_arc(
-            cx - r + 8, cy - r + 8, cx + r - 8, cy + r - 8,
-            start=128, extent=28,
-            style=tk.ARC, outline=T.hex_color("accent"), width=2,
-        )
-        self.canvas.create_text(
-            cx,
-            cy,
-            text="DV" if self._running else "WAIT",
-            fill=T.hex_color("accent") if self._running else T.hex_color("mute"),
-            font=("Segoe UI", 16, "bold"),
-        )
-
-    def set_running(self, running: bool) -> None:
-        running = bool(running)
-        if self._running == running:
-            return
-        self._running = running
-        self._redraw_radar()
-
-    def destroy(self) -> None:
-        T.unsubscribe(self._on_theme)
-        super().destroy()
 
 
 class ActivityTicker(ctk.CTkFrame):

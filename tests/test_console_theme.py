@@ -185,10 +185,12 @@ def test_only_the_logo_animates() -> None:
     assert plan["intro_ms"] >= 50
     assert plan["idle_ms"] >= 1000
 
-    from dvielle.gui.presence import ClockMono, LivingRadar, PressureGauge, ScanFeed
+    from dvielle.gui import presence as presence_mod
+    from dvielle.gui.presence import ClockMono, PressureGauge, ScanFeed
 
-    for cls in (LivingRadar, PressureGauge, ScanFeed):
+    for cls in (PressureGauge, ScanFeed):
         assert "self.after" not in inspect.getsource(cls)
+    assert not hasattr(presence_mod, "LivingRadar")
     assert "self.after" in inspect.getsource(ClockMono)
 
     presence = (ROOT / "dvielle" / "gui" / "presence.py").read_text(encoding="utf-8")
@@ -219,6 +221,10 @@ def test_only_the_logo_animates() -> None:
     assert "RingCard" in app
     assert "StatusOrb" in app
     assert "link_map" in app
+    assert "Still picture" not in app
+    assert "LivingRadar" not in app
+    assert "self.radar" not in app
+    assert not (ROOT / "dvielle" / "gui" / "hologram.py").exists()
     assert line_status("[WARN] One check is only partial.")[0] == "Caution"
     assert line_status("[sample] Layout preview.")[0] == "Noted"
     assert line_status("CRITICAL hold")[0] == "Needs a look"

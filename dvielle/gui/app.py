@@ -34,7 +34,6 @@ from dvielle.gui.observations import (
 from dvielle.gui.presence import (
     ActivityTicker,
     ClockMono,
-    LivingRadar,
     MatrixRow,
     NerveRail,
     PressureGauge,
@@ -392,31 +391,11 @@ class DVielleApp:
         self.link_map = NetworkMap(page)
         self.link_map.pack(fill="x", pady=(0, 6))
 
-        split = ctk.CTkFrame(page, fg_color="transparent")
-        split.pack(fill="both", expand=True)
-        notes = ctk.CTkFrame(split, fg_color="transparent")
-        notes.pack(side="left", fill="both", expand=True, padx=(0, 12))
+        notes = ctk.CTkFrame(page, fg_color="transparent")
+        notes.pack(fill="x")
         ctk.CTkLabel(notes, text="Latest notes", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(0, 8))
         self.finding_cards = FindingCards(notes, limit=3)
         self.finding_cards.pack(fill="x")
-
-        watch = ctk.CTkFrame(
-            split,
-            fg_color=T.BG_PANEL,
-            corner_radius=14,
-            border_width=1,
-            border_color=T.BORDER,
-            width=220,
-            height=196,
-        )
-        watch.pack(side="right", fill="y")
-        watch.pack_propagate(False)
-        ctk.CTkLabel(watch, text="Watch", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", padx=14, pady=(12, 0))
-        ctk.CTkLabel(
-            watch, text="Still picture", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM,
-        ).pack(anchor="w", padx=14, pady=(0, 4))
-        self.radar = LivingRadar(watch, size=120)
-        self.radar.pack(padx=14, pady=(4, 8))
 
         ctk.CTkLabel(page, text="Checks", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(8, 4))
         self.nerve_rail = NerveRail(page)
@@ -826,7 +805,6 @@ class DVielleApp:
         self.mission_lbl.configure(text=status.message)
         self.ticker.push(activity_summary(data))
         self.nerve_rail.set_states(data)
-        self.radar.set_running(running)
         if status.ownership == "attached":
             self.start_btn.configure(text="Attached", state="disabled")
             self.vigilance_btn.configure(text="Background owner", state="disabled")
