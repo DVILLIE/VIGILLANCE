@@ -3,7 +3,7 @@
 Microsoft Learn Event 4776: Source Workstation is a *computer name*, not an IP.
 Never feed 4776 workstation into block-ip.
 
-Cursor: EventRecordID primary; advance only after successful process.
+Event-log cursor: EventRecordID is primary; advance only after a successful process.
 No silent truncation — report COLLECTION_DEGRADED.
 """
 

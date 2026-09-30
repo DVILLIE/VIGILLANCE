@@ -79,11 +79,6 @@ class AppGroup:
 # Families: closing any member can affect the family "owner"
 # Keys are lowercase exe names without path
 APP_FAMILIES: dict[str, dict[str, Any]] = {
-    "cursor.exe": {
-        "family": "Cursor",
-        "members": {"cursor.exe"},
-        "friendly": "Cursor (your editor / agents)",
-    },
     "chrome.exe": {
         "family": "Google Chrome",
         "members": {"chrome.exe"},
@@ -170,7 +165,7 @@ def _is_protected_workload(name: str, *, is_fg_pid: bool, fg_name: str | None) -
     """True for the foreground PID, same exe name, or APP_FAMILIES members of the fg app.
 
     Locked #3a: intentional workload = foreground process + its family (v1 proxy).
-    PID-only protection would flag Cursor/Chrome helper processes as 'safe to reduce'.
+    PID-only protection would flag same-family helper processes (for example Chrome renderers) as 'safe to reduce'.
     """
     if is_fg_pid:
         return True
