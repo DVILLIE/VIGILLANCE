@@ -1,0 +1,28 @@
+name: windows-installer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup-exe:
+    name: Build setup executable
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile DVielle-Setup exe
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_installer.ps1
+      - name: Upload setup executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: DVielle-Setup
+          path: dist/DVielle-Setup-*.exe
+          if-no-files-found: error

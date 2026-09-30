@@ -30,5 +30,10 @@ Files stay unless you type DELETE for that exact folder.
 
 There is no cloud install. Put DVielle on the PC you want watched.
 Full steps: docs\USER_GUIDE.md
+
+A setup executable (DVielle-Setup-2.4.0.exe) can be built separately.
+It is not inside this zip, and it is not the v2.4.0 Release download.
+This zip still needs Python 3.12, or the setup file once a Release lists it.
+See docs\WINDOWS_INSTALLER.md.
 Author: Ravikant R. T. · kt.tradingsystem@gmail.com
 License: MIT (see LICENSE).

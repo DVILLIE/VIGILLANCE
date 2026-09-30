@@ -99,5 +99,6 @@ These are named so a later change cannot treat them as already done:
 8. **CFA read or exfiltration blocking.** Not claimed.
 9. **Full VPN and IPv6 leakproof behavior** for every client. UNKNOWN.
 10. **abuse.ch dumps inside the product.** Not shipped.
+11. **Setup executable field install.** `DVielle-Setup-2.4.0.exe` can be compiled by `scripts/build_windows_installer.ps1` and the `windows-installer` job. It checks the official Python 3.12.10 installer, then calls the existing installer at RunLevel Limited. A run of that file on a Windows PC, including SmartScreen and a resident heartbeat, is UNCHECKED. The v2.4.0 Release does not list that file. The zip plus Python 3.12 remains the download. The file is unsigned. It is not an antivirus claim.
 
 Core prevention stays free. No offensive tools.

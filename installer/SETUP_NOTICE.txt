@@ -1,0 +1,15 @@
+DVielle setup
+
+This setup installs DVielle into C:\DVILLIE and registers one logon task for your Windows account.
+
+The task runs with your normal rights (Limited). This setup does not create a Highest task.
+
+Windows will ask for Administrator approval once. That approval is for this setup only.
+
+If Python 3.12 is not already installed, this setup runs the official Python 3.12.10 64-bit installer from python.org, including Tcl/Tk. Stay online for that step if Python is missing. An existing Python 3.12 is left as it is.
+
+This is not an antivirus product. It does not turn Windows Defender off, and it does not add a Defender exclusion.
+
+The setup file is unsigned. Windows SmartScreen may say it prevented an unrecognized app from starting. That warning is expected.
+
+DVielle does not prove this PC is free of threats.
