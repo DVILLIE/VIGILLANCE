@@ -60,7 +60,7 @@ if ($srcRoot -ine $InstallDir) {
         $source = Join-Path $srcRoot $folder
         if (Test-Path -LiteralPath $source) { Copy-Item -LiteralPath $source -Destination $InstallDir -Recurse -Force }
     }
-    foreach ($file in @('requirements.txt', 'pyproject.toml', 'README.md')) {
+    foreach ($file in @('requirements.txt', 'pyproject.toml', 'README.md', 'LICENSE')) {
         Copy-Item -LiteralPath (Join-Path $srcRoot $file) -Destination $InstallDir -Force
     }
     # Preserve all existing user configuration; copy only missing defaults.

@@ -1,38 +1,117 @@
-# DVielle — DEEP VIGILANCE
+# DVielle — DEEP VIGILLANCE
 
-DVielle is a Windows-primary local guardian. Linux and macOS run in limited mode. It observes workload, memory pressure, network connections, authentication failures, privacy policy and security posture, then explains the evidence. Version 2.0.0 keeps the 1.7.0 dual gate and fails closed when a mutate decision is not saved, when a collection probe fails, or when an install would run elevated code from a writable directory. The resident scheduled task stays Limited. A Highest task is an explicit installer option only after the install directory is locked down, and elevated unattended use is not recommended until that lockdown is proven on the target Windows PC. 1.8.0 added a read-only Defender health report, a MAPS reachability check, and an edition matrix. 1.9.0 reads ASR rules and Controlled Folder Access, and can move a single eligible setting from Audit toward Block only after the user approves it and the live preference matches. It does not turn on App Control, and it does not offer Windows Sandbox on Home. Controlled Folder Access is described as a modification shield. Offline backups and a restore test stay required. 2.0.0 observes Windows Firewall app rules and can add an outbound block only after you confirm, through a privileged helper the Limited scheduled task does not become. The block is re-read with Get-NetFirewallRule. It is not a leakproof claim, and DVielle does not stop the firewall service. The published CPU contract is measured scheduling on the resident task, plus a Windows Job Object hard cap for the helper process when that assignment succeeds. User applications are not closed to satisfy it. 2.1.0 can open an unfamiliar folder in Windows Sandbox on Pro, Enterprise, or Education only, using a configuration that disables networking and maps that folder read-only. Windows Home is shown SAC, ASR, CFA, and Firewall instead, and a normal window is not called a sandbox. Package metadata can be checked with The Update Framework (root, timestamp, snapshot, and targets). A failed check leaves the last good file in place. Privileged auto-update stays off, and the running process is not claimed to be measured. 2.2.0 reads a local CISA KEV catalog and local OSV records when those files are present, and it says intel is unavailable when they are not. It does not invent vulnerability hits, and it does not ship abuse.ch dumps. It can set diagnostic data to Required after you confirm, and it re-reads the setting. Windows Home is not told that diagnostic data is off. It does not block Defender cloud, Windows Update, or certificate revocation endpoints. 2.3.0 adds activity experiences with different thresholds, not just names. Everyday watches ASR, Controlled Folder Access, and the firewall and stays quieter. It cannot turn on denylist actions or close an app by itself. Sensitive warns sooner and can suggest Controlled Folder Access Audit or a firewall restriction, and it still waits for you before it closes an app or opens an unfamiliar file. Opening an unfamiliar file uses Windows Sandbox on Pro, Enterprise, or Education. Windows Home sees the checklist instead. Passkey guidance explains relying-party sign-in, and it says stolen sessions and weak account recovery are separate problems. It does not change accounts for you, and it does not claim phishing is impossible. What is promised, what is assumed, and what is still unchecked is in [docs/CLAIMS.md](docs/CLAIMS.md).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Download](https://img.shields.io/github/v/release/DVILLIE/VIGILLANCE?label=Download&color=6b4cff)](https://github.com/DVILLIE/VIGILLANCE/releases/latest)
 
-The native console attaches to the background agent. Its values and activity come from measured state; unavailable or stale evidence is shown explicitly. Monitoring runs autonomously. Closing an application still requires a fresh process identity and explicit confirmation; automatic file cleanup, automatic firewall changes, and RAM trimming stay off.
+DVielle is a free, local guardian for a Windows PC. It watches that computer, explains what it noticed in plain language, and shows options. It changes the PC only after you choose. A finding is a ticket: **Found → Fix → Resolved** (or still monitoring).
+
+It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.0**.
+
+<p>
+  <img alt="DVielle console in Dark" src="docs/images/console-dark.png" width="720" />
+</p>
+<p>
+  <img alt="DVielle console in Light" src="docs/images/console-light.png" width="720" />
+</p>
+
+The pictures above are the 2.4.0 console (Dark and Light) with labeled sample notes. A sample line is not a live Windows reading. On your PC the same window shows this computer’s measurements, and it says when a check is missing or only partial.
+
+## Download
+
+**[Download DVielle 2.4.0](https://github.com/DVILLIE/VIGILLANCE/releases/latest)**
+
+| File | What it is |
+|------|------------|
+| [DVielle-2.4.0-windows-installer.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-installer.zip) | Unzip, then run `installer\Install-DVielle.bat` as administrator |
+| [DVielle-2.4.0-windows-source.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-source.zip) | The same tree, named as source, if you want to read it before installing |
+| GitHub source archive on the release | Created automatically from the `v2.4.0` tag |
+
+There is **no standalone .exe**. This project does not ship a PyInstaller build. You need **Windows 10 or 11 (64-bit)** and **Python 3.12**. Steps are in [docs/USER_GUIDE.md](docs/USER_GUIDE.md) and in `installer/INSTALL.txt` inside the zip.
+
+## What it does
+
+On the PC where you install it, DVielle:
+
+1. **Observes** — processor, memory, disk, network path, sign-in failures, privacy settings, and Windows security posture (including Defender, where Windows allows the read).
+2. **Explains** — notes in ordinary language, with evidence behind **Why**. Unknown stays unknown. A partial check is labeled partial.
+3. **Offers options** — when something looks wrong or unexpected, you get a choice.
+4. **Acts after you choose** — close an app, change one supported setting, or open an unfamiliar folder in Windows Sandbox only when you picked that option and a second check agrees. If either check refuses, nothing is changed.
+
+You can tell it an app or a setting is **OK to keep on**. While that still matches, it stays quiet. A mismatch can raise a note again. It still waits.
+
+The background task runs at your logon. The console is a window on top of that task. Closing the window can hide it to the tray. Monitoring is the resident task, not the window.
+
+## What it is not
+
+- **Not an antivirus replacement.** It works with Microsoft Defender. It does not turn real-time protection off, and it does not add a Defender exclusion for its own folder.
+- **Not an attack tool.** No exploit kits, no password capture, no scanning of other people’s machines. Scope is this PC.
+- **Not a chat assistant.** The chat box was removed in 2.3.3 and is not coming back. See [docs/CHAT_REMOVED.md](docs/CHAT_REMOVED.md).
+- **Limited by default, on purpose.** The resident scheduled task stays Limited (your normal rights). An always-elevated unattended task is not recommended.
+- **Not a promise of a clean PC or a leakproof firewall.** It cannot prove the machine is free of threats. One blocked app is not proof that nothing can leave on every adapter. The written limits are [docs/CLAIMS.md](docs/CLAIMS.md).
+
+It complements Windows security. It does not take Windows security’s place.
+
+## Supported systems
+
+| | |
+|--|--|
+| **Primary** | Windows 10 or Windows 11, 64-bit, on a laptop or desktop PC. Python 3.12. |
+| **Limited / partial** | Linux and macOS can run shared keep-on logic only. Windows-only sensors stay unavailable: Defender, the firewall helper, the logon task, Windows Sandbox, and Windows sign-in events. There is no Linux or macOS installer. Do not treat those systems as a full DVielle product. Camera in-use detection on Windows is not available; Linux may only see device links, and no frames are stored. The footprint collector does not invent breach hits. |
+| **Not this product** | A cloud server, a SaaS dashboard, or an install that watches some other machine. Put DVielle on the PC you want watched. The resident task is an interactive logon task. It does not cover the time before anyone logs on. See [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md). |
+| **Practical minimum** | A current Windows PC that can run Python 3.12 and the CustomTkinter window. No special GPU. |
+
+Windows Home and Windows Pro are both in scope, with different features. Home does not get Windows Sandbox or App Control authoring. The console shows that instead of pretending the feature is there.
+
+## How it works
+
+- **Resident task + console.** `Install-DVielle.bat` registers one logon task named `DVielle` that runs the agent in the background. The desktop shortcut opens the native console, which attaches to that agent. A second launch does not start a second set of collectors.
+- **Dual gate.** A change needs your selected option (or a published auto-protect case for that subject) **and** the decision check. Firewall rules, temp cleanup, startup changes, closing an app, and blocking an address all fail closed if either half says no. Closing an app is user-approved only, and it needs a fresh process identity.
+- **Pillars.** Speed, storage, privacy, AI data leaving the PC, camera, online footprint, and protection. Each one is meant to end in a resolution you can see, not a warning with nowhere to go. What is actually shipped, and what is still unchecked, is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) and [docs/CLAIMS.md](docs/CLAIMS.md).
+- **Dark and Light.** Dark is the default. Light is the header control. The choice is stored in local `console_ui.json` and is not uploaded. The calendar day picks an accent pair. **Only the logo animates.**
+- **Chat is gone.** Console speech for a close or a confirm stays local on Windows. It is not an assistant.
+
+Pass and fail checks for those claims: [docs/TRUST_GATES.md](docs/TRUST_GATES.md). What the resident agent will and will not do on its own: [docs/AUTONOMY.md](docs/AUTONOMY.md).
 
 ## Install
 
-Windows 10/11 and Python 3.12 are required. Run `installer\Install-DVielle.bat` as administrator on the PC. The installer creates `C:\DVILLIE\.venv`, syncs the dependencies declared in `pyproject.toml` (including `cryptography`) into that environment, registers the resident logon task and verifies startup. Existing configuration is preserved. Copying a new tree over an existing install does not refresh `.venv`; run the installer again, or the dependency sync in [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md), before starting the resident.
+Windows 10/11 and Python 3.12. From the unzipped release:
 
-| Action | Command from C:\DVILLIE |
-|---|---|
-| Native console | `.venv\Scripts\pythonw.exe -m dvielle` or desktop shortcut |
+1. Run `installer\Install-DVielle.bat` **as administrator**.
+2. The installer copies the tree to **`C:\DVILLIE`** (that path is the default in `installer\install-dvielle.ps1`), builds `C:\DVILLIE\.venv`, installs the dependencies from `pyproject.toml`, registers the Limited logon task, and checks that it started.
+3. Open **DVielle - Deep Vigilance** on the desktop.
+
+The folder you unzipped is only the source. GitHub may call it `VIGILLANCE-2.4.0` or `VIGILLANCE-main`. DVielle does not install itself into `C:\DVILLIE-main`. A custom destination is `installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'` from an Administrator PowerShell window. Drive roots and shared Windows folders are rejected.
+
+| Action | From the install folder (default `C:\DVILLIE`) |
+|--------|--------------------------------------------------|
+| Open the console | Desktop shortcut, `installer\Launch-DVielle.bat`, or `.venv\Scripts\pythonw.exe -m dvielle` |
 | Headless monitoring | `.venv\Scripts\python.exe -m agent.main` |
-| One observe-only diagnostic pass | `.venv\Scripts\python.exe -m agent.main --once` |
-| Graceful owner shutdown | `.venv\Scripts\python.exe -m agent.main --stop` |
-| Optional hardening | Review `scripts\harden-once.ps1` and its explicit apply/restore parameters |
-| Browser snapshot viewer | See [demo/README.md](demo/README.md) |
+| One observe-only pass | `.venv\Scripts\python.exe -m agent.main --once` |
+| Stop the agent | `.venv\Scripts\python.exe -m agent.main --stop` |
 | Uninstall | `installer\Uninstall-DVielle.bat` |
 
-A second headless launch exits without duplicating collectors. A console can acquire ownership when no agent is running, attach when one is, and recover after an owner crash. An intentional shutdown is respected.
+Day-to-day use, theme, note words, popups, privacy, and uninstall confirmation are in **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**.
 
-## Behavior and limits
+Copying a new tree over an old install does not refresh `.venv`. Run the installer again.
 
-- Scheduling responds to sustained CPU demand, measured memory pressure, configured foreground workloads and session inactivity. This is a conservative rule-based assessment; it does not infer arbitrary user intent.
-- The CPU/RSS budget defers optional collectors after sustained excess. It is a scheduling control, not an operating-system quota or a verified performance guarantee.
-- Authentication counts use source event time and record identity. Successful 4776 events are excluded; a 4776 workstation is a hostname, not a blockable source IP.
-- Unknown peers, familiar process names, reverse DNS and cloud hosting do not establish trust or maliciousness.
-- Windows Home and Pro have a Required diagnostic-data floor. Registry settings alone do not prove that traffic stopped.
-- Public-IP lookup requires a separate opt-in. Core monitoring does not need a model. There is no chat assistant. Console close and confirm lines stay local speech.
-- The console opens in Dark. Light is the header control. The choice is saved as `console_ui.json` in the local data directory and is not uploaded. Only the logo animates. The window is a left-hand set of pages (Now, This PC, Network, Findings, Protection, Apps), not one crowded dashboard.
-- DVielle complements Windows security. It cannot prove a machine is free of threats.
-- Windows Home has no Windows Sandbox and no App Control authoring. The console evidence strip shows edition support, not a guess that a feature is on. Pass/fail checks are in [docs/TRUST_GATES.md](docs/TRUST_GATES.md). Promises, assumptions, and unchecked items are in [docs/CLAIMS.md](docs/CLAIMS.md). The FREE roadmap is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) §1.1.
+## Privacy
 
-See [implemented autonomy and verification](docs/AUTONOMY.md), [architecture](docs/VIGILLANCE_MASTER_ARCHITECTURE.md), [product decisions](docs/DECISIONS.md), and [Windows privacy details](docs/TELEMETRY_AND_HOME.md).
+Local-first. Notes, keep-on choices, and the theme file stay on this PC. Public-IP lookup is off unless you turn it on. Core monitoring does not call a model. DVielle does not upload its snapshot as part of normal use. Home and Pro diagnostic-data limits are explained in [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md).
+
+## Docs
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Install, first open, theme, notes, uninstall |
+| [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) | Pillars, what shipped, honesty limits |
+| [docs/CLAIMS.md](docs/CLAIMS.md) | Promises, assumptions, and what stays unchecked |
+| [docs/TRUST_GATES.md](docs/TRUST_GATES.md) | Pass/fail checks |
+| [docs/AUTONOMY.md](docs/AUTONOMY.md) | What the resident agent does and does not do |
+| [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not in the cloud |
+| [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home and Pro telemetry honesty |
+| [docs/CHAT_REMOVED.md](docs/CHAT_REMOVED.md) | Chat assistant removed in 2.3.3 |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
+| [docs/VIGILLANCE_MASTER_ARCHITECTURE.md](docs/VIGILLANCE_MASTER_ARCHITECTURE.md) | Architecture and gap map |
 
 ## Development checks
 
@@ -43,25 +122,16 @@ py -3.12 -m pytest -q
 py -3.12 -m ruff check agent dvielle scripts/smoke_test.py --select E9,F63,F7,F82
 ```
 
-Options decisions (keep-on, then act only after a choice and a Cortex decision) are in [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md). A local drill for speed, storage, privacy, AI, camera, and footprint does not close real apps, block real networks, use a camera, or search for a person:
+A local drill that does not close real apps, block real networks, use a camera, or search for a person:
 
 ```bat
 py -3.12 -m agent.exercise
 ```
 
-See [docs/DEV.md](docs/DEV.md). The installer smoke checks imports and package metadata without starting collectors. Unit tests use isolated fixtures; lifecycle tests start actual child processes with heavy collectors disabled and temporary state. A successful test run does not substitute for Windows installation and long-running field validation.
+See [docs/DEV.md](docs/DEV.md). Unit tests are not a substitute for a Windows install and a long run on a real PC.
 
-## Docs
+## License and contact
 
-| Doc | Purpose |
-|-----|---------|
-| [docs/VIGILLANCE_MASTER_ARCHITECTURE.md](docs/VIGILLANCE_MASTER_ARCHITECTURE.md) | **Master architecture + repo gap map** |
-| [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) | Keep-on pillars, FREE prevention roadmap, honesty limits |
-| [docs/TRUST_GATES.md](docs/TRUST_GATES.md) | Pass/fail checks; live process attestation still unchecked |
-| [docs/CLAIMS.md](docs/CLAIMS.md) | Promises, assumptions, evidence, and what stays UNCHECKED |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
-| [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
-| [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |
-| [docs/CHAT_REMOVED.md](docs/CHAT_REMOVED.md) | Chat assistant removed in 2.3.3 |
-| [docs/AUTONOMY.md](docs/AUTONOMY.md) | What the resident agent does and does not do |
-| [docs/DEV.md](docs/DEV.md) | Local checks |
+MIT License. Copyright (c) 2026 Ravikant R. Tayade / KT Trading System. See [LICENSE](LICENSE).
+
+Contact: kt.tradingsystem@gmail.com

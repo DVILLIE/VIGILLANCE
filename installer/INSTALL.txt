@@ -1,0 +1,33 @@
+DVielle 2.4.0 — Windows install
+DEEP VIGILLANCE
+
+This zip is the install bundle. It is source plus the installer, not a
+standalone .exe. Python 3.12 is required.
+
+1. Install the free Python 3.12 Windows build from
+   https://www.python.org/downloads/windows/
+   Include Tcl/Tk and the Python launcher (py).
+2. Unzip this archive so installer\ sits next to agent\, dvielle\, config\,
+   and pyproject.toml. Do not run Install-DVielle.bat from a folder that
+   only contains the installer scripts.
+3. Right-click installer\Install-DVielle.bat and choose Run as administrator.
+4. Approve the Windows prompt. The default destination is C:\DVILLIE.
+   The unzip folder name (for example VIGILLANCE-2.4.0 or VIGILLANCE-main)
+   is only the source. It is not where the resident copy lives.
+5. Open the desktop shortcut "DVielle - Deep Vigilance", or run
+   installer\Launch-DVielle.bat from C:\DVILLIE.
+
+A custom folder is allowed. From an Administrator PowerShell window:
+
+  installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'
+
+The resident scheduled task stays Limited (your normal logon rights).
+Do not choose a Highest task for unattended use. DVielle does not add a
+Defender exclusion for its own folder.
+
+Uninstall: installer\Uninstall-DVielle.bat (as administrator).
+Files stay unless you type DELETE for that exact folder.
+
+There is no cloud install. Put DVielle on the PC you want watched.
+Full steps: docs\USER_GUIDE.md
+License: MIT (see LICENSE).
