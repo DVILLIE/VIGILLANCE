@@ -219,6 +219,7 @@ class ResolutionEngine:
                 handler,
                 auto=True,
                 subject=str(finding.get("subject_identity") or ""),
+                severity=str(finding.get("severity") or ""),
             )
             result = self.handlers.invoke(handler, finding, self.handler_ctx, token)
         except PolicyDenied as exc:

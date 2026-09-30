@@ -25,4 +25,4 @@
 - It does not download from GitHub Releases or any other URL.
 - It does not replace a running service, scheduled task, or helper.
 - It does not measure the running process. `live_binary_attestation` stays `UNCHECKED`.
-- It does not ship CISA KEV, OSV, or abuse.ch. Those feeds are later work.
+- It does not download or bundle threat feeds. Local CISA KEV and OSV loaders shipped in 2.2.0 and live outside this wire format. abuse.ch dumps are not bundled.
