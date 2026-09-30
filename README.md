@@ -130,8 +130,10 @@ py -3.12 -m agent.exercise
 
 See [docs/DEV.md](docs/DEV.md). Unit tests are not a substitute for a Windows install and a long run on a real PC.
 
-## License and contact
+## Author and contact
+
+**Ravikant R. T. · kt.tradingsystem@gmail.com**
+
+Questions about DVielle can go to that address.
 
 MIT License. Copyright (c) 2026 Ravikant R. Tayade / KT Trading System. See [LICENSE](LICENSE).
-
-Contact: kt.tradingsystem@gmail.com

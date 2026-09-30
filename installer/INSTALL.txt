@@ -30,4 +30,5 @@ Files stay unless you type DELETE for that exact folder.
 
 There is no cloud install. Put DVielle on the PC you want watched.
 Full steps: docs\USER_GUIDE.md
+Author: Ravikant R. T. · kt.tradingsystem@gmail.com
 License: MIT (see LICENSE).
