@@ -123,8 +123,10 @@ def _corner_orbits(draw: ImageDraw.ImageDraw, width: int, height: int, mode: str
     book = _book(mode)
     motif = T.current_motif()
     phase = int(motif["phase"]) + slot * 47
-    accent = _rgba(book["accent"], 200)
-    orbit = _rgba(book["orbit"], 220)
+    accent_alpha = 200 if mode == "dark" else 120
+    orbit_alpha = 220 if mode == "dark" else 130
+    accent = _rgba(book["accent"], accent_alpha)
+    orbit = _rgba(book["orbit"], orbit_alpha)
     draw.arc((width - 78, -8, width + 10, 62), phase, phase + 130, fill=orbit, width=2)
     if slot % 2 == 0:
         draw.arc((width - 62, 4, width - 8, 50), phase + 24, phase + 100, fill=accent, width=2)
@@ -149,7 +151,7 @@ def _glass(mode: str, width: int, height: int, radius: int = 18, slot: int = 0) 
     if mode == "dark":
         top = _mix(book["panel"], book["accent"], 0.38)
     else:
-        top = _mix("#FFFFFF", book["accent"], 0.14)
+        top = _mix("#F4F7FA", book["accent"], 0.05)
     gradient = _vertical_gradient((width, height), top, book["panel"])
     mask = Image.new("L", (width, height), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, width - 1, height - 1), radius=radius, fill=255)
@@ -163,7 +165,8 @@ def _glass(mode: str, width: int, height: int, radius: int = 18, slot: int = 0) 
         outline=_rgba(book["border"]),
         width=1,
     )
-    draw.arc((10, 1, width // 2, 18), 200, 340, fill=_rgba(book["accent"], 120), width=1)
+    sheen = 120 if mode == "dark" else 70
+    draw.arc((10, 1, width // 2, 18), 200, 340, fill=_rgba(book["accent"], sheen), width=1)
     return panel
 
 
@@ -194,9 +197,10 @@ def _dial(mode: str, percent: float | None, diameter: int) -> Image.Image:
     tone = tone_name(percent)
     color = book["accent"] if tone == "accent" else book[tone]
     phase = int(T.current_motif()["phase"])
+    orbit_alpha = 230 if mode == "dark" else 140
     draw.ellipse(
         (pad + 1, pad + 9, diameter - pad - 3, diameter - pad - 11),
-        outline=_rgba(book["orbit"], 230),
+        outline=_rgba(book["orbit"], orbit_alpha),
         width=2,
     )
     ang = math.radians(phase)
@@ -321,7 +325,8 @@ def _network(mode: str, nodes: list[tuple[str, str, str]]) -> Image.Image:
     y = 46
     for index, (left, right) in enumerate(zip(centers, centers[1:])):
         color = book["orbit"] if index % 2 else book["accent"]
-        draw.arc((left, y - 16, right, y + 16), 206, 334, fill=_rgba(color, 220), width=2)
+        link_alpha = 220 if mode == "dark" else 140
+        draw.arc((left, y - 16, right, y + 16), 206, 334, fill=_rgba(color, link_alpha), width=2)
     ink = _rgba(book["ink"])
     mute = _rgba(book["mute"])
     for center, node in zip(centers, nodes):
@@ -342,6 +347,6 @@ def _rule(mode: str, width: int) -> Image.Image:
     orbit = _rgb(book["orbit"])
     for x in range(width):
         color = accent if x < width * 0.62 else orbit
-        alpha = 230 if x < width * 0.62 else 200
+        alpha = (230 if x < width * 0.62 else 200) if mode == "dark" else 150
         draw.line((x, 0, x, 2), fill=color + (alpha,))
     return image

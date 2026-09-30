@@ -19,23 +19,23 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import date
 
-# Indigo paper and night. Status colors stay green, amber, and red.
-# Accent and orbit change with the day. See SPECTRA.
+# Cool paper for Light. Accents stay calm (sky, mint, lilac), never neon on white.
+# Dark stays rich. The day's name still changes. See SPECTRA.
 LIGHT: dict[str, str] = {
-    "void": "#F6F2FB",
+    "void": "#F4F7FA",
     "panel": "#FFFFFF",
-    "panel_alt": "#EFE8F8",
-    "border": "#DDD3EA",
-    "accent": "#4C1D95",
-    "accent_dim": "#3B1578",
-    "accent_hot": "#6D28D9",
-    "orbit": "#C2410C",
-    "ink": "#1B1426",
-    "mute": "#5A4E68",
+    "panel_alt": "#E8EEF4",
+    "border": "#D2DCE6",
+    "accent": "#5C5280",
+    "accent_dim": "#4C4570",
+    "accent_hot": "#736A96",
+    "orbit": "#3E756C",
+    "ink": "#1A2733",
+    "mute": "#526070",
     "ok": "#0C7040",
     "warn": "#8A5600",
     "crit": "#B4233A",
-    "on_accent": "#F5F3FF",
+    "on_accent": "#F6F5FA",
     "on_crit": "#FFFFFF",
 }
 
@@ -62,27 +62,27 @@ DARK: dict[str, str] = {
 SPECTRA: tuple[dict, ...] = (
     {
         "name": "Violet",
-        "light": {"accent": "#4C1D95", "accent_dim": "#3B1578", "accent_hot": "#6D28D9", "on_accent": "#F5F3FF", "orbit": "#C2410C"},
+        "light": {"accent": "#5C5280", "accent_dim": "#4C4570", "accent_hot": "#736A96", "on_accent": "#F6F5FA", "orbit": "#3E756C"},
         "dark": {"accent": "#DDD6FE", "accent_dim": "#C4B5FD", "accent_hot": "#EDE9FE", "on_accent": "#1E1033", "orbit": "#FDBA74"},
     },
     {
         "name": "Coral",
-        "light": {"accent": "#9A3412", "accent_dim": "#7C2D12", "accent_hot": "#C2410C", "on_accent": "#FFF7ED", "orbit": "#1D4ED8"},
+        "light": {"accent": "#8A5A68", "accent_dim": "#735060", "accent_hot": "#A07886", "on_accent": "#FAF6F7", "orbit": "#4A6A86"},
         "dark": {"accent": "#FDBA74", "accent_dim": "#FB923C", "accent_hot": "#FFEDD5", "on_accent": "#2A1008", "orbit": "#93C5FD"},
     },
     {
         "name": "Gold",
-        "light": {"accent": "#854D0E", "accent_dim": "#713F12", "accent_hot": "#A16207", "on_accent": "#FFFBEB", "orbit": "#6D28D9"},
+        "light": {"accent": "#6E6244", "accent_dim": "#5C5238", "accent_hot": "#8A7C58", "on_accent": "#FAF8F3", "orbit": "#5E5A86"},
         "dark": {"accent": "#FDE047", "accent_dim": "#FACC15", "accent_hot": "#FEF9C3", "on_accent": "#1C1404", "orbit": "#D8B4FE"},
     },
     {
         "name": "Sky",
-        "light": {"accent": "#1E40AF", "accent_dim": "#1E3A8A", "accent_hot": "#1D4ED8", "on_accent": "#EFF6FF", "orbit": "#BE123C"},
+        "light": {"accent": "#3E5A74", "accent_dim": "#334C64", "accent_hot": "#5A7894", "on_accent": "#F4F7FA", "orbit": "#3E7568"},
         "dark": {"accent": "#BFDBFE", "accent_dim": "#93C5FD", "accent_hot": "#DBEAFE", "on_accent": "#0B1730", "orbit": "#FDA4AF"},
     },
     {
         "name": "Rose",
-        "light": {"accent": "#9D174D", "accent_dim": "#831843", "accent_hot": "#BE185D", "on_accent": "#FDF2F8", "orbit": "#B45309"},
+        "light": {"accent": "#86566A", "accent_dim": "#704858", "accent_hot": "#A0788C", "on_accent": "#FAF6F8", "orbit": "#5A7090"},
         "dark": {"accent": "#FBCFE8", "accent_dim": "#F9A8D4", "accent_hot": "#FCE7F3", "on_accent": "#2A0A18", "orbit": "#FBBF24"},
     },
 )

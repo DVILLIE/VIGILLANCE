@@ -92,7 +92,9 @@ Only the brand mark animates.
 
 No parallax, no particle storms, no scan line, no pulsing status dot, no animated tabs or buttons.
 
-The day's accent is chosen once, from the local date, when the console opens. Orbits, the second color, and card-corner marks use that seed and stay still. Dark and Light remain the saved choice in `console_ui.json`. The five day names are Violet, Coral, Gold, Sky, and Rose. Green, amber, and red stay the status colors.
+The day's accent is chosen once, from the local date, when the console opens. Orbits, the second color, and card-corner marks use that seed and stay still. Dark and Light remain the saved choice in `console_ui.json`. The five day names are Violet, Coral, Gold, Sky, and Rose. On Light those hues are cooled (soft sky, mint, lilac, dusty rose) so they do not glare on white. Dark keeps the richer pair. Green, amber, and red stay the status colors.
+
+The header mark is a drawn D/V orbital emblem. It scales and turns in, the orbits complete during that short intro, then the whole mark brightens slightly about once a second. That is the only motion.
 
 ## Light palette — Dayglass
 
@@ -100,13 +102,13 @@ Dark above remains the default. Light is optional and stored locally.
 
 | Token | Hex | Role |
 |-------|-----|------|
-| `void` | `#F6F2FB` | App background |
+| `void` | `#F4F7FA` | Cool paper |
 | `panel` | `#FFFFFF` | Primary surfaces |
-| `panel-2` | `#EFE8F8` | Nested / inset |
-| `stroke` | `#DDD3EA` | Hairlines |
-| `phosphor` | day's accent | Violet, Coral, Gold, Sky, or Rose. Dark enough to read on white |
-| `ink` | `#1B1426` | Primary text |
-| `ink-mute` | `#5A4E68` | Secondary text |
+| `panel-2` | `#E8EEF4` | Nested / inset |
+| `stroke` | `#D2DCE6` | Hairlines |
+| `phosphor` | day's cool accent | Calm sky, mint, or lilac. No neon on white |
+| `ink` | `#1A2733` | Primary text |
+| `ink-mute` | `#526070` | Secondary text |
 | `ok` / `warn` / `crit` | `#0C7040` / `#8A5600` / `#B4233A` | Status only |
 
 Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `light`. Missing or invalid file means dark. CustomTkinter color arguments are `(light, dark)` tuples so a switch repaints widgets. Tk canvases redraw from the active hex. `system` appearance mode is not used: on Linux, CustomTkinter documents that system mode stays light.

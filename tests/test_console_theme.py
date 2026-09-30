@@ -122,6 +122,23 @@ def test_body_and_status_colors_stay_readable() -> None:
             assert book["orbit"] != book["accent"]
 
 
+def test_light_colors_stay_cool_on_paper() -> None:
+    from datetime import date
+
+    from dvielle.gui.logo_mark import draw_emblem
+
+    T.install_day(date(2026, 9, 30))
+    paper = T.LIGHT["void"].lstrip("#")
+    red, _green, blue = (int(paper[i : i + 2], 16) for i in (0, 2, 4))
+    assert blue >= red
+    assert T.LIGHT["accent"].upper() != "#9D174D"
+    assert T.LIGHT["orbit"].upper() != "#B45309"
+    assert T.DARK["accent"].upper() == "#FBCFE8"
+    mark = draw_emblem(56, 1.0)
+    assert mark.size == (56, 56)
+    assert mark.getextrema()[3][1] > 200
+
+
 def test_the_day_changes_color_and_orbit() -> None:
     from datetime import date
 
