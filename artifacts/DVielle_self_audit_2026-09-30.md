@@ -2,6 +2,7 @@
 
 **Tree reviewed:** `main` @ `4dd62e072dd5cebf6ada64c3d5ac018394d2f2ab` (2.3.1, “verify_runtime pythoncore venv shim”).  
 **This note also records one fail-closed gate fix made from that finding** (Sensitive auto-protect severity is enforced inside the mutate gate).  
+**Follow-up on this branch (2.3.2):** the Windows cadence failure below is fixed in `NervePlane.due`. A collector is due when `now >= last_run + interval`. A partial collection still clears failure backoff and still reports the gap. The cause is binary64: `(228.703 + 30) - 228.703` is `29.99999999999997`. TRUST_GATES now says the 2.3.0 green Windows run is that run only. Windows Actions on 2.3.2 stays UNCHECKED until `ci / test` is green. The severity gate fix remains. This follow-up is not a laptop field proof.  
 **Live Windows resident results:** UNCHECKED. Another agent owns the laptop. Nothing below is a field proof.
 
 Sources checked while judging claims (fetched 2026-09-30):
@@ -49,7 +50,7 @@ AssertionError: assert [] == [CollectorSpec(... status='partial' ...)]
 
 **Impact.** `main` does not have a green `ci / test` at the commit operators are asked to install. Trust-gate prose still points at the 2.3.0 green run (`36591371092` / the 2.3.0 push `36592020697`). A partial attacks collector that is not due again at its interval would stall catch-up; this single Windows failure does not by itself prove that stall, because the same test passed in the Linux run above.
 
-**Next action.** fix-now on a Windows runner: print `now`, `last_run_monotonic`, and `_interval` in that assertion. If the delta is a hair under 30, loosen the fixture. If `due()` is genuinely empty for a larger reason, fix the scheduler. Do not paint the trust-gate box green until that run is green.
+**Next action.** Done in 2.3.2 for the scheduler: `due()` compares `now` to `last_run + interval`. The 228.703 stamp is a regression in `tests/test_autonomous_runtime.py`. The trust-gate box stays empty until Actions is green on this commit. Do not treat a Linux unit run as that box.
 
 ### HIGH — Sensitive auto-protect floor was not inside the mutate gate
 

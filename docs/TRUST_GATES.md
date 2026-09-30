@@ -1,6 +1,6 @@
 # Trust gates
 
-Pass/fail checklist for a DVielle change. Version 2.3.0 ships P5 on top of the 2.2.0 P4 path. Boxes are for a human or CI run against the tree that is about to ship. The claims page is [CLAIMS.md](CLAIMS.md).
+Pass/fail checklist for a DVielle change. Version 2.3.0 ships P5 on top of the 2.2.0 P4 path. The current tree is 2.3.2. Boxes are for a human or CI run against the tree that is about to ship. The claims page is [CLAIMS.md](CLAIMS.md). A green box records the run named in that box. It does not carry forward to a later commit.
 
 Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.3, 2026-09-29) and the primary-source brief of that date. A green box means the check was actually run. An empty box means it was not.
 
@@ -56,6 +56,14 @@ Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.3, 2026-09-29) and t
 - [x] `python -m pytest -q` includes `tests/test_worldclass_p5.py`: Everyday cannot enable denylist actions, Sensitive cannot auto-mutate CLOSE_PROCESS, Sensitive proposes CFA Audit and firewall restrict without applying them, Open unfamiliar on Home is checklist only, passkey guidance has no phishing-impossible badge and does not change accounts, and `docs/CLAIMS.md` names the UNCHECKED leftovers. Linux run on 2026-09-29 for 2.3.0: that file passed 11 tests. The full suite was 392 passed, 13 skipped, and 1 failed. The failure is the existing `test_close_pids_refuses_protected_target`: this host's interpreter is named `python3.12`, and the test asks for `python.exe`, so the refusal is an identity mismatch before the protected-name sentence. That test is unchanged. `python scripts/smoke_test.py` passed on that run. `ruff check agent dvielle tests scripts/smoke_test.py scripts/verify_runtime.py --select E9,F63,F7,F82` passed. GitHub Actions run 36591371092 on `windows-latest` passed both `ci / test` and `ci / browser` for this commit.
 - [x] No `ExclusionPath`, no `Set-MpPreference`, no `New-NetFirewallRule`, and no `api.github.com` download in the P5 modules. Home Sandbox stays a checklist. CFA copy stays a modification shield. Privileged auto-update stays false. Covered by `tests/test_worldclass_p5.py`.
 - [ ] Live `verify_runtime` on a Windows resident stays UNCHECKED. 2.3.1 unit-tests a venv redirector whose living image is in `sys.base_prefix` while `sys.executable` stays in `Scripts` (`tests/test_verify_runtime.py`). That fixture is not a resident start on Windows. Elevated ACL field prove stays UNCHECKED. The named-pipe SYSTEM helper stays the loopback stub.
+
+## 2.3.1 and 2.3.2 — not covered by the 2.3.0 green box
+
+The P5 green pytest box is the 2026-09-29 Linux suite (392 passed, 13 skipped, 1 failed) and GitHub Actions run [36591371092](https://github.com/DVILLIE/VIGILLANCE/actions/runs/36591371092). It is not a result for 2.3.1 or 2.3.2.
+
+- 2.3.1 commit `4dd62e0`, Actions run [36599565020](https://github.com/DVILLIE/VIGILLANCE/actions/runs/36599565020): `ci / browser` passed. `ci / test` failed `test_valid_partial_collection_keeps_catchup_cadence_and_reports_gap`. After a valid partial collection, `due(last_run + 30)` used `now - last >= interval`. At `last_run_monotonic == 228.703` that subtraction is `29.99999999999997`, so the collector was not due. The same test passed on Linux because that stamp happened to be a float where the delta still compared as 30. Partial collection itself was correct: failures were reset to 0 and the gap was stored.
+- 2.3.2 keeps that partial contract (no failure backoff, gap still reported) and treats the collector as due when `now >= last_run + interval`. `tests/test_autonomous_runtime.py` locks the 228.703 boundary. A local unit run is not a Windows Actions pass.
+- [ ] `ci / test` and `ci / browser` green on the 2.3.2 commit. Empty until Actions says so.
 
 ## Still later
 

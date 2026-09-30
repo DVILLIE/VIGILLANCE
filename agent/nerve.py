@@ -89,6 +89,22 @@ class NervePlane:
             base = max(base, PRESSURE_RESPONSE_MIN_SECONDS)
         return min(base * (2 ** min(c.failures, 4)), max(base, 900))
 
+    def _deadline_reached(self, c: CollectorSpec, now: float) -> bool:
+        """A never-run collector is due immediately. After a run, it is due at
+        ``last_run + interval`` (base cadence, or failure backoff).
+
+        Compare that deadline to ``now``. ``now - last >= interval`` is not the
+        same test: for some binary64 readings, ``(last + interval) - last`` is
+        just under ``interval``. Windows CI run 36599565020 hit this at
+        ``last_run_monotonic == 228.703`` with a 30s pulse
+        (``(228.703 + 30) - 228.703 == 29.99999999999997``). A partial
+        collection clears ``failures`` before this check, so a coverage gap
+        stays on the base cadence.
+        """
+        if c.last_run_monotonic == 0:
+            return True
+        return now >= c.last_run_monotonic + self._interval(c)
+
     def due(self, now: float | None = None) -> list[CollectorSpec]:
         now = time.monotonic() if now is None else now
         with self._lock:
@@ -97,7 +113,7 @@ class NervePlane:
             return [c for c in self.collectors if c.enabled and c.run is not None
                     and not c.running and c.cadence != Cadence.EVENT
                     and not self._deferred(c)
-                    and (c.last_run_monotonic == 0 or now - c.last_run_monotonic >= self._interval(c))]
+                    and self._deadline_reached(c, now)]
 
     def _notify(self, c: CollectorSpec) -> None:
         if self.on_status:
@@ -169,7 +185,7 @@ class NervePlane:
     def sleep_seconds(self, default: float = 1.0) -> float:
         now = time.monotonic()
         with self._lock:
-            waits = [max(0.1, self._interval(c) - (now - c.last_run_monotonic))
+            waits = [max(0.1, (c.last_run_monotonic + self._interval(c)) - now)
                      for c in self.collectors if c.enabled and c.run and not c.running
                      and c.cadence != Cadence.EVENT and not self._deferred(c)]
         return min(default, min(waits)) if waits else default

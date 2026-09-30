@@ -109,6 +109,31 @@ def test_valid_partial_collection_keeps_catchup_cadence_and_reports_gap():
     assert spec.status == 'partial' and spec.failures == 0
     assert spec.error == 'More source records remain'
     assert plane.due(spec.last_run_monotonic + 30) == [spec]
+    # Still inside the base interval: catch-up does not mean run again immediately.
+    assert plane.due(spec.last_run_monotonic + 29) == []
+
+
+@pytest.mark.parametrize('stamp', [228.703, 228.996, 2.001])
+def test_exact_interval_deadline_is_due_when_delta_compare_is_short(stamp):
+    """Windows run 36599565020: due(last + 30) was empty after a valid partial.
+
+    These stamps are values where (stamp + 30) - stamp is just under 30, so a
+    delta compare misses a deadline the test (and the scheduler) express as
+    last_run + interval. Failure backoff must still hold.
+    """
+    plane = NervePlane()
+    spec = CollectorSpec('attacks', Cadence.PULSE, 30, run=lambda: None, critical=True)
+    spec.last_run_monotonic = stamp
+    spec.status = 'partial'
+    spec.failures = 0
+    plane.register(spec)
+    assert (stamp + 30) - stamp < 30
+    assert plane.due(stamp + 30) == [spec]
+    assert plane.due(stamp + 29) == []
+    spec.failures = 1
+    assert plane._interval(spec) == 60
+    assert plane.due(stamp + 30) == []
+    assert plane.due(stamp + 60) == [spec]
 
 
 def test_failed_provider_backoff_and_recovery():

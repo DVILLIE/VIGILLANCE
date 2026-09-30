@@ -65,7 +65,7 @@ def _fresh(security_block: dict, *, status: str = "ok", capability: dict | None 
 
 
 def test_version_is_2_0_0():
-    assert get_version() == "2.3.1"
+    assert get_version() == "2.3.2"
 
 
 def test_home_matrix_marks_sandbox_and_authoring_unavailable():
