@@ -43,7 +43,6 @@ workload:
   # Names only guide conservative scheduling, never grant security trust.
   protected_foreground_processes:
     - ollama.exe
-    - Cursor.exe
     - claude.exe
 
 network:
@@ -92,7 +91,6 @@ resource_advisor:
   # Docker Desktop.exe, wsl.exe.
   never_close:
     - claude.exe
-    - Cursor.exe
 
 # Privacy adapter — remediation flags are OBSERVE→RECOMMEND only until Cortex+Executor (P0)
 microsoft_guard:

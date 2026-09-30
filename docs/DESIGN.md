@@ -3,7 +3,7 @@
 **Product:** DVielle / VIGILLANCE Mission Console  
 **Date:** 2026-08-24  
 **Aesthetic name:** **Phosphor Void**  
-**Mood reference:** `assets/` brand radar mark + generated mood (`vigillance-design-mood.png` in Cursor assets)
+**Mood reference:** `assets/` brand radar mark and the generated mood image `vigillance-design-mood.png`
 
 ---
 

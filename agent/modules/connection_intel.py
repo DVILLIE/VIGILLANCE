@@ -31,7 +31,6 @@ ORG_HINTS: tuple[tuple[str, str], ...] = (
     ("twitter.com", "X naming domain"),
     ("github.com", "GitHub naming domain"),
     ("openai.com", "OpenAI naming domain"),
-    ("cursor.com", "Cursor naming domain"),
     ("tailscale.com", "Tailscale naming domain"),
 )
 

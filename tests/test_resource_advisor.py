@@ -114,7 +114,7 @@ def _measured(cpu: float | None, *, primed: bool = True) -> dict:
     return body
 
 
-def _wire(monkeypatch, *, snap, cpu, processes, fg=(1234, "cursor.exe")):
+def _wire(monkeypatch, *, snap, cpu, processes, fg=(1234, "notepad.exe")):
     monkeypatch.setattr(ra, "sample_memory", lambda: snap)
     monkeypatch.setattr(ra, "get_foreground_process", lambda: fg)
     monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid, never_close=frozenset(): processes)
@@ -136,7 +136,7 @@ def test_no_pressure_returns_nothing_and_does_not_enumerate(store, monkeypatch):
 
 def test_memory_pressure_recommends_background_offenders(store, monkeypatch):
     procs = [
-        ProcessFootprint(1234, "cursor.exe", 3, 2000, is_foreground=True),  # protected
+        ProcessFootprint(1234, "notepad.exe", 3, 2000, is_foreground=True),  # protected
         ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
         ProcessFootprint(3, "steam.exe", 0.5, 400, closability=55),
     ]
@@ -147,13 +147,13 @@ def test_memory_pressure_recommends_background_offenders(store, monkeypatch):
     kw = cortex.issued[0]
     assert kw["target"] == "reduce_background_contention"
     assert kw["initiator"] == "resource_advisor"
-    assert "cursor.exe" not in kw["details"]["offenders"]  # foreground never an offender
+    assert "notepad.exe" not in kw["details"]["offenders"]  # foreground never an offender
     assert "discord.exe" in kw["details"]["offenders"]
 
 
 def test_cpu_contention_requires_two_pulses_and_nonforeground(store, monkeypatch):
     # foreground is the CPU driver -> intentional load -> never CPU contention.
-    procs = [ProcessFootprint(1234, "cursor.exe", 95, 2000, is_foreground=True)]
+    procs = [ProcessFootprint(1234, "notepad.exe", 95, 2000, is_foreground=True)]
     system = _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
     cortex = _FakeCortex()
     adv = ResourceAdvisor(store, {"resource_advisor": {"toast_cooldown_seconds": 0}}, cortex=cortex)
@@ -164,7 +164,7 @@ def test_cpu_contention_requires_two_pulses_and_nonforeground(store, monkeypatch
 
 def test_cpu_contention_background_driver_after_two_pulses(store, monkeypatch):
     procs = [
-        ProcessFootprint(1234, "cursor.exe", 2, 2000, is_foreground=True),
+        ProcessFootprint(1234, "notepad.exe", 2, 2000, is_foreground=True),
         ProcessFootprint(9, "backup.exe", 95, 300, closability=50),  # background hog
     ]
     system = _wire(monkeypatch, snap=_snap(avail_gb=8.0, commit=40.0), cpu=95.0, processes=procs)
@@ -209,17 +209,17 @@ def test_is_protected_workload_family_and_same_name():
 
 def test_never_close_from_config_lowercases_and_drops_empty():
     nc = ra.never_close_from_config(
-        {"resource_advisor": {"never_close": ["Claude.exe", "", None, "Cursor.exe"]}}
+        {"resource_advisor": {"never_close": ["Claude.exe", "", None, "Notepad.exe"]}}
     )
-    assert nc == frozenset({"claude.exe", "cursor.exe"})
+    assert nc == frozenset({"claude.exe", "notepad.exe"})
     assert ra.never_close_from_config({}) == frozenset()
     assert ra.never_close_from_config(None) == frozenset()
 
 
 def test_is_protected_honours_never_close_case_insensitive():
     nc = frozenset({"claude.exe"})
-    assert ra._is_protected("Claude.exe", is_fg_pid=False, fg_name="cursor.exe", never_close=nc) is True
-    assert ra._is_protected("discord.exe", is_fg_pid=False, fg_name="cursor.exe", never_close=nc) is False
+    assert ra._is_protected("Claude.exe", is_fg_pid=False, fg_name="notepad.exe", never_close=nc) is True
+    assert ra._is_protected("discord.exe", is_fg_pid=False, fg_name="notepad.exe", never_close=nc) is False
     # foreground family still wins with an empty never_close list
     assert ra._is_protected("chrome.exe", is_fg_pid=False, fg_name="chrome.exe", never_close=frozenset()) is True
 
@@ -236,7 +236,7 @@ def test_never_close_protects_named_background_offender(store, monkeypatch):
     # steam.exe is a heavy background app that WOULD be an offender, but the user put
     # it on never_close -> it must not be recommended for closing (and case-insensitive).
     procs = [
-        ProcessFootprint(1234, "cursor.exe", 3, 2000, is_foreground=True),
+        ProcessFootprint(1234, "notepad.exe", 3, 2000, is_foreground=True),
         ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
         ProcessFootprint(3, "steam.exe", 0.5, 400, closability=55),
     ]
@@ -252,7 +252,7 @@ def test_never_close_protects_named_background_offender(store, monkeypatch):
 def test_build_app_group_never_close_is_protected(monkeypatch):
     monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())
     fps = [ProcessFootprint(999999999, "steam.exe", 1, 800)]
-    g = ra._build_app_group("steam.exe", fps, "cursor.exe", set(), frozenset({"steam.exe"}))
+    g = ra._build_app_group("steam.exe", fps, "notepad.exe", set(), frozenset({"steam.exe"}))
     assert g.risk == "protected"
     assert g.role == "protected"
     assert "protected directly or through its parent" in g.close_advice
@@ -261,7 +261,7 @@ def test_build_app_group_never_close_is_protected(monkeypatch):
 def test_build_app_group_shell_is_caution_never_safe(monkeypatch):
     monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())
     fps = [ProcessFootprint(999999999, "powershell.exe", 1, 60)]
-    g = ra._build_app_group("powershell.exe", fps, "cursor.exe", set(), frozenset())
+    g = ra._build_app_group("powershell.exe", fps, "notepad.exe", set(), frozenset())
     assert g.risk == "caution"  # a shell is never a one-tap SAFE close
 
 
@@ -270,7 +270,7 @@ def test_get_app_groups_ranks_protected_last(monkeypatch):
         ProcessFootprint(2, "discord.exe", 1, 800, closability=60),
         ProcessFootprint(3, "steam.exe", 0.5, 400),
     ]
-    monkeypatch.setattr(ra, "get_foreground_process", lambda: (1234, "cursor.exe"))
+    monkeypatch.setattr(ra, "get_foreground_process", lambda: (1234, "notepad.exe"))
     monkeypatch.setattr(ra, "_collect_processes", lambda fg_pid, never_close=frozenset(): procs)
     monkeypatch.setattr(ra, "_running_names", lambda: {"discord.exe", "steam.exe"})
     monkeypatch.setattr(ra, "_pids_with_visible_windows", lambda: set())

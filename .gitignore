@@ -16,3 +16,6 @@ demo/_review_frames/
 .env
 .venv/
 venv/
+# Local editor rules are not part of the product tree.
+.cursor/
+
