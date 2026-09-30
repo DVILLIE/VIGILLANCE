@@ -28,7 +28,7 @@ A second headless launch exits without duplicating collectors. A console can acq
 - Unknown peers, familiar process names, reverse DNS and cloud hosting do not establish trust or maliciousness.
 - Windows Home and Pro have a Required diagnostic-data floor. Registry settings alone do not prove that traffic stopped.
 - Public-IP lookup requires a separate opt-in. Core monitoring does not need a model. There is no chat assistant. Console close and confirm lines stay local speech.
-- The console opens in Dark. Light is the header control labeled Theme. The choice is saved as `console_ui.json` in the local data directory and is not uploaded. Only the logo animates. Lists, tabs, buttons, and backgrounds stay still.
+- The console opens in Dark. Light is the header control. The choice is saved as `console_ui.json` in the local data directory and is not uploaded. Only the logo animates. The window is a left-hand set of pages (Now, This PC, Network, Findings, Protection, Apps), not one crowded dashboard.
 - DVielle complements Windows security. It cannot prove a machine is free of threats.
 - Windows Home has no Windows Sandbox and no App Control authoring. The console evidence strip shows edition support, not a guess that a feature is on. Pass/fail checks are in [docs/TRUST_GATES.md](docs/TRUST_GATES.md). Promises, assumptions, and unchecked items are in [docs/CLAIMS.md](docs/CLAIMS.md). The FREE roadmap is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) §1.1.
 

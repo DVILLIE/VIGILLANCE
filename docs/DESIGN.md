@@ -65,16 +65,20 @@ Rules:
 
 ---
 
-## Layout grammar
+## Layout grammar (2.4.0 Clear Deck)
 
-1. **NOW strip** (full bleed top): brand mark + one sentence + workload pill  
-2. **Pressure field**: 3–4 large meters (not 12 widgets)  
-3. **Secondary rail**: Traffic / Surface tabs — one job  
-4. **Why drawer**: evidence chain, not a chat wall  
+The console is a shell, not a four-column instrument panel.
 
-Spacing scale: 8 / 12 / 16 / 24 / 40  
-Radius: 0–6px max (architectural, not bubbly)  
-Borders: 1px `stroke` only when structure needs it  
+1. **Header** — logo, product name, one status sentence, Dark/Light, start.
+2. **Left pages** — Now, This PC, Network, Findings, Protection, Apps. One page is visible.
+3. **Now** — three figures, latest notes as short cards (a color bar and a plain word: Noted, Caution, Needs a look, Settled), a small static watch mark, collector chips.
+4. **This PC** — full-width load bars (processor, memory, disk).
+5. **Apps** — noticed, you choose, then it can close. The choice dialogs are unchanged.
+6. **Footer** — work log, why, attacks, pause, hide. Why stays one click away.
+
+Spacing scale: 8 / 12 / 16 / 20 / 24  
+Radius: 8–14 on cards. The header, rail, and footer stay square.  
+Borders: 1px stroke on cards. Accent marks the selected page and healthy/pressure state.  
 
 ---
 

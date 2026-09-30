@@ -139,3 +139,15 @@ def test_only_the_logo_animates() -> None:
     assert "def _ease" not in presence
     assert "_pulse_status" not in app
     assert "LogoMark" in app
+    assert "_show_page" in app
+    assert "columnconfigure(3" not in app
+    for label in ("Now", "This PC", "Network", "Findings", "Protection", "Apps"):
+        assert label in app
+
+    from dvielle.gui.shell import CARD_HEIGHT, line_status
+
+    assert CARD_HEIGHT <= 64
+    assert line_status("[WARN] One check is only partial.")[0] == "Caution"
+    assert line_status("[sample] Layout preview.")[0] == "Noted"
+    assert line_status("CRITICAL hold")[0] == "Needs a look"
+    assert line_status("RESOLVED item")[0] == "Settled"

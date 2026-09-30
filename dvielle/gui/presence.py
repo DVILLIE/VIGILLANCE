@@ -115,7 +115,7 @@ class NerveRail(ctk.CTkFrame):
     """Collector indicators driven only by the shared observation states."""
 
     def __init__(self, master, **kwargs) -> None:
-        super().__init__(master, fg_color="transparent", height=28, **kwargs)
+        super().__init__(master, fg_color="transparent", height=36, **kwargs)
         self.pack_propagate(False)
         self._cells: list[ctk.CTkLabel] = []
         labels = ("Beat", "Pulse", "Net", "Privacy", "Shield", "Logons", "Scope")
@@ -131,15 +131,15 @@ class NerveRail(ctk.CTkFrame):
         for name in labels:
             cell = ctk.CTkLabel(
                 self,
-                text=name,
-                font=("Consolas", 12, "bold"),
+                text=f"●  {name}",
+                font=("Segoe UI", 13, "bold"),
                 text_color=T.TEXT_DIM,
-                fg_color=T.BG_PANEL_ALT,
-                corner_radius=4,
-                width=78,
-                height=24,
+                fg_color=T.BG_PANEL,
+                corner_radius=8,
+                width=108,
+                height=32,
             )
-            cell.pack(side="left", padx=3)
+            cell.pack(side="left", padx=4)
             self._cells.append(cell)
 
     def set_states(self, data: dict | None) -> None:
@@ -154,70 +154,64 @@ class NerveRail(ctk.CTkFrame):
         for cell, name in zip(self._cells, self._collector_names):
             cell.configure(
                 text_color=colors.get(collector_state(data, name), T.TEXT_DIM),
-                fg_color=T.BG_PANEL_ALT,
+                fg_color=T.BG_PANEL,
             )
 
 
+def bounded_percent(percent: float | None) -> float | None:
+    """Clamp a measurement to 0–100. Booleans and non-finite values are missing."""
+    if isinstance(percent, bool) or not isinstance(percent, (int, float)):
+        return None
+    try:
+        numeric = float(percent)
+    except (TypeError, ValueError):
+        return None
+    if numeric != numeric or numeric in (float("inf"), float("-inf")):
+        return None
+    return max(0.0, min(100.0, numeric))
+
+
 class PressureGauge(ctk.CTkFrame):
-    """Arc meter. The needle jumps to the measured value; it does not ease."""
+    """Wide load card. The bar jumps to the measurement; it does not ease."""
 
     def __init__(self, master, title: str, **kwargs) -> None:
-        super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=6, **kwargs)
+        super().__init__(
+            master,
+            fg_color=T.BG_PANEL,
+            corner_radius=12,
+            border_width=1,
+            border_color=T.BORDER,
+            **kwargs,
+        )
         self.title = title
         self._value: float | None = None
-        self._display = 0.0
         self._tone = "mute"
-        self._size = 108
-        self.canvas = tk.Canvas(
-            self,
-            width=self._size,
-            height=self._size - 8,
-            bg=T.hex_color("panel_alt"),
-            highlightthickness=0,
-            bd=0,
-        )
-        self.canvas.pack(pady=(8, 0))
+        top = ctk.CTkFrame(self, fg_color="transparent")
+        top.pack(fill="x", padx=18, pady=(14, 4))
+        ctk.CTkLabel(top, text=title, font=T.FONT_BODY, text_color=T.TEXT).pack(side="left")
         self.val_lbl = ctk.CTkLabel(
-            self, text="—", font=("Segoe UI", 22, "bold"), text_color=T.TEXT_DIM,
+            top, text="—", font=("Segoe UI", 28, "bold"), text_color=T.TEXT,
         )
-        self.val_lbl.pack()
-        ctk.CTkLabel(self, text=title, font=T.FONT_TAGLINE, text_color=T.TEXT_DIM).pack(pady=(0, 8))
-        T.subscribe(self._on_theme)
-        self._redraw_gauge()
-
-    def _on_theme(self, _mode: str) -> None:
-        try:
-            if not self.winfo_exists():
-                T.unsubscribe(self._on_theme)
-                return
-            self.canvas.configure(bg=T.hex_color("panel_alt"))
-            self._redraw_gauge()
-        except Exception:
-            T.unsubscribe(self._on_theme)
+        self.val_lbl.pack(side="right")
+        self.track = ctk.CTkFrame(self, fg_color=T.BORDER, height=8, corner_radius=4)
+        self.track.pack(fill="x", padx=18, pady=(8, 16))
+        self.track.pack_propagate(False)
+        self.fill = ctk.CTkFrame(self.track, fg_color=T.ACCENT, corner_radius=4, height=8)
+        self.fill.place(x=0, y=0, relheight=1, relwidth=0)
 
     def set_value(self, percent: float | None) -> None:
-        if isinstance(percent, (int, float)) and not isinstance(percent, bool):
-            try:
-                numeric = float(percent)
-            except (TypeError, ValueError):
-                numeric = None
-            else:
-                if numeric != numeric or numeric in (float("inf"), float("-inf")):
-                    numeric = None
-                else:
-                    numeric = max(0.0, min(100.0, numeric))
-        else:
-            numeric = None
+        numeric = bounded_percent(percent)
         self._value = numeric
         if numeric is None:
-            self._display = 0.0
             self._tone = "mute"
             self.val_lbl.configure(text="—", text_color=T.TEXT_DIM)
-        else:
-            self._display = numeric
-            self._tone = self._tone_for(numeric)
-            self.val_lbl.configure(text=f"{numeric:.0f}", text_color=T.pair(self._tone))
-        self._redraw_gauge()
+            self.fill.place(x=0, y=0, relheight=1, relwidth=0)
+            self.fill.configure(fg_color=T.BORDER)
+            return
+        self._tone = self._tone_for(numeric)
+        self.val_lbl.configure(text=f"{numeric:.0f}", text_color=T.pair(self._tone))
+        self.fill.configure(fg_color=T.pair(self._tone))
+        self.fill.place(x=0, y=0, relheight=1, relwidth=max(0.02, numeric / 100.0))
 
     @staticmethod
     def _tone_for(p: float) -> str:
@@ -226,27 +220,6 @@ class PressureGauge(ctk.CTkFrame):
         if p >= 75:
             return "warn"
         return "accent"
-
-    def _redraw_gauge(self) -> None:
-        self.canvas.delete("all")
-        cx = self._size // 2
-        cy = self._size // 2 + 4
-        r = 42
-        self.canvas.create_arc(
-            cx - r, cy - r, cx + r, cy + r,
-            start=200, extent=-220, style=tk.ARC, outline=T.hex_color("border"), width=8,
-        )
-        extent = -220 * (self._display / 100.0) if self._value is not None else 0
-        self.canvas.create_arc(
-            cx - r, cy - r, cx + r, cy + r,
-            start=200, extent=extent, style=tk.ARC,
-            outline=T.hex_color(self._tone if self._value is not None else "border"),
-            width=8,
-        )
-
-    def destroy(self) -> None:
-        T.unsubscribe(self._on_theme)
-        super().destroy()
 
 
 class ScanFeed(ctk.CTkFrame):
