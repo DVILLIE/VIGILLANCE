@@ -34,7 +34,14 @@ class NetworkPanel(ctk.CTkFrame):
 
     def set_observation_state(self, state: str, sampled_at: str | None) -> None:
         stamp = f" · sampled {sampled_at[:19]} UTC" if sampled_at else ""
-        self._observation.configure(text=f"{state.upper()}{stamp}")
+        tone = {
+            "ok": T.SUCCESS,
+            "partial": T.WARNING,
+            "stale": T.WARNING,
+            "deferred": T.WARNING,
+            "error": T.DANGER,
+        }.get(state, T.TEXT_DIM)
+        self._observation.configure(text=f"{state.upper()}{stamp}", text_color=tone)
 
     def update_snapshot(self, snap: NetworkSnapshot | None) -> None:
         if snap is None:

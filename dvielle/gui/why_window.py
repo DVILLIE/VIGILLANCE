@@ -48,6 +48,10 @@ class WhyWindow(ctk.CTkToplevel):
         self.configure(fg_color=T.BG_DARK)
         apply_tk_window_icon(self)
 
+        rule = ctk.CTkFrame(self, fg_color=T.ACCENT, height=3, corner_radius=0)
+        rule.pack_propagate(False)
+        rule.pack(fill="x")
+
         ctk.CTkLabel(self, text="WHY — EVIDENCE LEDGER", font=T.FONT_TITLE, text_color=T.ACCENT).pack(pady=(12, 2))
         ctk.CTkLabel(
             self,
@@ -65,7 +69,7 @@ class WhyWindow(ctk.CTkToplevel):
         row.pack(fill="x", padx=14, pady=10)
         ctk.CTkButton(
             row, text="Refresh", command=self.refresh,
-            fg_color=T.ACCENT_DIM, hover_color=T.ACCENT, text_color=T.BG_DARK,
+            fg_color=T.ACCENT_DIM, hover_color=T.ACCENT, text_color=T.ON_ACCENT,
         ).pack(side="left")
         ctk.CTkButton(
             row, text="Close", command=self.destroy, fg_color=T.BORDER, hover_color=T.ACCENT_DIM,
@@ -119,7 +123,7 @@ class WhyWindow(ctk.CTkToplevel):
         ctk.CTkLabel(
             head,
             text=f"{(r.get('initiator') or '?').upper()}  ·  {r.get('action')}  ·  L{level} {_LEVEL_NAME.get(level, '')}",
-            font=T.FONT_TITLE, text_color=T.ACCENT_GLOW,
+            font=T.FONT_TITLE, text_color=T.ACCENT,
         ).pack(side="left")
         ctk.CTkLabel(
             head, text=f"conf {conf_s}  ·  {_ago(r.get('ts', ''))}", font=T.FONT_MONO, text_color=T.TEXT_DIM

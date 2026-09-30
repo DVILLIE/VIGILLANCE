@@ -1,14 +1,12 @@
-"""Living Mission Console presence — always-on visual heartbeat (Phosphor Void).
+"""Mission Console instruments. Static drawings and live text.
 
-Design refs (verified patterns, adapted to our tokens):
-- Mission-control ops: live status pulse, mono telemetry, dark command density
-- Phosphor Deck: instrument housings, scan zones, value-before-label
-- Our DESIGN.md: one phosphor accent; motion for presence/heartbeat, not particle storms
+The brand mark in ``logo_mark.py`` is the only animation. These widgets
+redraw when a measurement or the theme changes. The clock updates its
+time string once a second; that is a readout, not a motion effect.
 """
 
 from __future__ import annotations
 
-import math
 import tkinter as tk
 
 import customtkinter as ctk
@@ -16,83 +14,82 @@ import customtkinter as ctk
 from dvielle.gui import theme as T
 from dvielle.gui.observations import collector_state
 
+
 class LivingRadar(ctk.CTkFrame):
-    """Slow radar DV core — continuous presence without frantic spin."""
+    """Static radar instrument. The sweep does not move."""
 
     def __init__(self, master, size: int = 120, **kwargs) -> None:
         super().__init__(master, fg_color="transparent", **kwargs)
         self.size = size
-        self._angle = 0.0
-        self._pulse = 0.0
-        self._sweep = 0.0
         self._running = False
         self.canvas = tk.Canvas(
             self,
             width=size,
             height=size,
-            bg=T.BG_PANEL,
+            bg=T.hex_color("panel"),
             highlightthickness=0,
             bd=0,
         )
         self.canvas.pack()
+        T.subscribe(self._on_theme)
         self._redraw_radar()
-        self._tick()
+
+    def _on_theme(self, _mode: str) -> None:
+        try:
+            if not self.winfo_exists():
+                T.unsubscribe(self._on_theme)
+                return
+            self.canvas.configure(bg=T.hex_color("panel"))
+            self._redraw_radar()
+        except Exception:
+            T.unsubscribe(self._on_theme)
 
     def _redraw_radar(self) -> None:
         # Must not be named _draw — CTkFrame._draw(no_color_updates=...) owns that.
         self.canvas.delete("all")
         cx = cy = self.size // 2
         r = self.size // 2 - 6
-        # Soft bloom ring
-        bloom = 0.35 + 0.25 * (0.5 + 0.5 * math.sin(self._pulse))
-        bloom_hex = T.ACCENT_DIM if bloom < 0.5 else T.ACCENT
         self.canvas.create_oval(
             cx - r - 2, cy - r - 2, cx + r + 2, cy + r + 2,
-            outline=bloom_hex, width=1,
+            outline=T.hex_color("accent_dim"), width=1,
         )
-        # Range rings
         for frac in (0.35, 0.6, 0.85, 1.0):
             rr = int(r * frac)
             self.canvas.create_oval(
                 cx - rr, cy - rr, cx + rr, cy + rr,
-                outline=T.BORDER, width=1,
+                outline=T.hex_color("border"), width=1,
             )
-        # Crosshair
-        self.canvas.create_line(cx - r, cy, cx + r, cy, fill=T.BORDER, width=1)
-        self.canvas.create_line(cx, cy - r, cx, cy + r, fill=T.BORDER, width=1)
-        # Sweep wedge (subtle arc)
+        self.canvas.create_line(cx - r, cy, cx + r, cy, fill=T.hex_color("border"), width=1)
+        self.canvas.create_line(cx, cy - r, cx, cy + r, fill=T.hex_color("border"), width=1)
+        # Fixed arcs so the mark still reads as a radar. They do not sweep.
         self.canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
-            start=self._sweep, extent=48,
-            style=tk.ARC, outline=T.ACCENT_GLOW, width=2,
+            start=300, extent=48,
+            style=tk.ARC, outline=T.hex_color("accent_hot"), width=2,
         )
-        # Secondary arc opposite
         self.canvas.create_arc(
             cx - r + 8, cy - r + 8, cx + r - 8, cy + r - 8,
-            start=self._angle, extent=28,
-            style=tk.ARC, outline=T.ACCENT, width=2,
+            start=128, extent=28,
+            style=tk.ARC, outline=T.hex_color("accent"), width=2,
         )
         self.canvas.create_text(
-            cx, cy, text="DV" if self._running else "WAIT", fill=T.ACCENT_GLOW if self._running else T.TEXT_DIM, font=("Segoe UI", 16, "bold"),
+            cx,
+            cy,
+            text="DV" if self._running else "WAIT",
+            fill=T.hex_color("accent") if self._running else T.hex_color("mute"),
+            font=("Segoe UI", 16, "bold"),
         )
 
     def set_running(self, running: bool) -> None:
-        if self._running != bool(running):
-            self._running = bool(running)
-            self._redraw_radar()
-
-    def _tick(self) -> None:
-        try:
-            if not self.winfo_viewable() or not self._running:
-                self.after(500, self._tick)
-                return
-        except Exception:
-            pass
-        self._sweep = (self._sweep + 2.2) % 360
-        self._angle = (self._angle - 1.1) % 360
-        self._pulse += 0.12
+        running = bool(running)
+        if self._running == running:
+            return
+        self._running = running
         self._redraw_radar()
-        self.after(120, self._tick)
+
+    def destroy(self) -> None:
+        T.unsubscribe(self._on_theme)
+        super().destroy()
 
 
 class ActivityTicker(ctk.CTkFrame):
@@ -101,20 +98,17 @@ class ActivityTicker(ctk.CTkFrame):
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, height=36, **kwargs)
         self.pack_propagate(False)
-        self._phase = 0
         self._label = ctk.CTkLabel(
             self,
             text="Waiting for monitoring observations",
             font=T.FONT_MONO,
-            text_color=T.ACCENT,
+            text_color=T.TEXT,
             anchor="w",
         )
         self._label.pack(fill="x", padx=12, pady=6)
-        self._dot = ctk.CTkLabel(self, text="▸", font=T.FONT_MONO, text_color=T.ACCENT_GLOW)
-        self._dot.place(relx=0.97, rely=0.5, anchor="e")
 
     def push(self, line: str) -> None:
-        self._label.configure(text=line[:90], text_color=T.ACCENT_GLOW)
+        self._label.configure(text=line[:90], text_color=T.TEXT)
 
 
 class NerveRail(ctk.CTkFrame):
@@ -123,102 +117,140 @@ class NerveRail(ctk.CTkFrame):
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, fg_color="transparent", height=28, **kwargs)
         self.pack_propagate(False)
-        self._idx = 0
         self._cells: list[ctk.CTkLabel] = []
-        names = ("HB", "PULSE", "NET", "PRIV", "SEC", "AUTH", "DEEP")
-        self._collector_names = ("heartbeat", "pulse", "connections", "privacy_guard", "security", "attacks", "capability")
-        for name in names:
+        labels = ("Beat", "Pulse", "Net", "Privacy", "Shield", "Logons", "Scope")
+        self._collector_names = (
+            "heartbeat",
+            "pulse",
+            "connections",
+            "privacy_guard",
+            "security",
+            "attacks",
+            "capability",
+        )
+        for name in labels:
             cell = ctk.CTkLabel(
                 self,
                 text=name,
-                font=("Consolas", 11, "bold"),
+                font=("Consolas", 12, "bold"),
                 text_color=T.TEXT_DIM,
                 fg_color=T.BG_PANEL_ALT,
-                corner_radius=3,
-                width=64,
-                height=22,
+                corner_radius=4,
+                width=78,
+                height=24,
             )
             cell.pack(side="left", padx=3)
             self._cells.append(cell)
 
     def set_states(self, data: dict | None) -> None:
-        colors = {"ok": T.SUCCESS, "running": T.ACCENT, "error": T.DANGER,
-                  "deferred": T.WARNING, "partial": T.WARNING, "stale": T.WARNING}
+        colors = {
+            "ok": T.SUCCESS,
+            "running": T.ACCENT,
+            "error": T.DANGER,
+            "deferred": T.WARNING,
+            "partial": T.WARNING,
+            "stale": T.WARNING,
+        }
         for cell, name in zip(self._cells, self._collector_names):
-            cell.configure(text_color=colors.get(collector_state(data, name), T.TEXT_DIM), fg_color=T.BG_PANEL_ALT)
+            cell.configure(
+                text_color=colors.get(collector_state(data, name), T.TEXT_DIM),
+                fg_color=T.BG_PANEL_ALT,
+            )
 
 
 class PressureGauge(ctk.CTkFrame):
-    """Large arc meter — value reads before label (Phosphor Deck grammar)."""
+    """Arc meter. The needle jumps to the measured value; it does not ease."""
 
     def __init__(self, master, title: str, **kwargs) -> None:
-        super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, **kwargs)
+        super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=6, **kwargs)
         self.title = title
         self._value: float | None = None
         self._display = 0.0
+        self._tone = "mute"
         self._size = 108
         self.canvas = tk.Canvas(
-            self, width=self._size, height=self._size - 8,
-            bg=T.BG_PANEL_ALT, highlightthickness=0, bd=0,
+            self,
+            width=self._size,
+            height=self._size - 8,
+            bg=T.hex_color("panel_alt"),
+            highlightthickness=0,
+            bd=0,
         )
         self.canvas.pack(pady=(8, 0))
-        self.val_lbl = ctk.CTkLabel(self, text="—", font=("Segoe UI", 22, "bold"), text_color=T.ACCENT_GLOW)
+        self.val_lbl = ctk.CTkLabel(
+            self, text="—", font=("Segoe UI", 22, "bold"), text_color=T.TEXT_DIM,
+        )
         self.val_lbl.pack()
         ctk.CTkLabel(self, text=title, font=T.FONT_TAGLINE, text_color=T.TEXT_DIM).pack(pady=(0, 8))
+        T.subscribe(self._on_theme)
         self._redraw_gauge()
-        self._ease()
+
+    def _on_theme(self, _mode: str) -> None:
+        try:
+            if not self.winfo_exists():
+                T.unsubscribe(self._on_theme)
+                return
+            self.canvas.configure(bg=T.hex_color("panel_alt"))
+            self._redraw_gauge()
+        except Exception:
+            T.unsubscribe(self._on_theme)
 
     def set_value(self, percent: float | None) -> None:
-        self._value = max(0.0, min(100.0, percent)) if isinstance(percent, (int, float)) and not isinstance(percent, bool) and math.isfinite(percent) else None
-        self.val_lbl.configure(text="—" if self._value is None else f"{self._value:.0f}", text_color=T.TEXT_DIM if self._value is None else self._color_for(self._value))
-        if self._value is None:
+        if isinstance(percent, (int, float)) and not isinstance(percent, bool):
+            try:
+                numeric = float(percent)
+            except (TypeError, ValueError):
+                numeric = None
+            else:
+                if numeric != numeric or numeric in (float("inf"), float("-inf")):
+                    numeric = None
+                else:
+                    numeric = max(0.0, min(100.0, numeric))
+        else:
+            numeric = None
+        self._value = numeric
+        if numeric is None:
             self._display = 0.0
-            self._redraw_gauge()
+            self._tone = "mute"
+            self.val_lbl.configure(text="—", text_color=T.TEXT_DIM)
+        else:
+            self._display = numeric
+            self._tone = self._tone_for(numeric)
+            self.val_lbl.configure(text=f"{numeric:.0f}", text_color=T.pair(self._tone))
+        self._redraw_gauge()
 
-    def _color_for(self, p: float) -> str:
+    @staticmethod
+    def _tone_for(p: float) -> str:
         if p >= 90:
-            return T.DANGER
+            return "crit"
         if p >= 75:
-            return T.WARNING
-        return T.ACCENT
+            return "warn"
+        return "accent"
 
     def _redraw_gauge(self) -> None:
         self.canvas.delete("all")
         cx = self._size // 2
         cy = self._size // 2 + 4
         r = 42
-        # Track
         self.canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
-            start=200, extent=-220, style=tk.ARC, outline=T.BORDER, width=8,
+            start=200, extent=-220, style=tk.ARC, outline=T.hex_color("border"), width=8,
         )
         extent = -220 * (self._display / 100.0) if self._value is not None else 0
-        color = self._color_for(self._display)
         self.canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
-            start=200, extent=extent, style=tk.ARC, outline=color, width=8,
+            start=200, extent=extent, style=tk.ARC,
+            outline=T.hex_color(self._tone if self._value is not None else "border"),
+            width=8,
         )
 
-    def _ease(self) -> None:
-        try:
-            if not self.winfo_viewable():
-                self.after(500, self._ease)
-                return
-        except Exception:
-            pass
-        # Ease toward target so meters feel alive
-        if self._value is None:
-            self.after(500, self._ease)
-            return
-        delta = self._value - self._display
-        if abs(delta) > 0.15:
-            self._display += delta * 0.18
-            self._redraw_gauge()
-        self.after(150, self._ease)
+    def destroy(self) -> None:
+        T.unsubscribe(self._on_theme)
+        super().destroy()
 
 
 class ScanFeed(ctk.CTkFrame):
-    """Intelligence feed with moving scan line overlay for presence."""
+    """Intelligence feed. Text only — no moving scan line."""
 
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_DARK, **kwargs)
@@ -226,17 +258,12 @@ class ScanFeed(ctk.CTkFrame):
             self,
             font=T.FONT_MONO,
             fg_color=T.BG_DARK,
-            text_color=T.ACCENT_GLOW,
+            text_color=T.TEXT,
             border_width=0,
             wrap="word",
         )
         self.text.pack(fill="both", expand=True)
         self.text.configure(state="disabled")
-        self._scan = tk.Canvas(self, height=2, bg=T.BG_DARK, highlightthickness=0, bd=0)
-        self._scan.place(relx=0, rely=0.08, relwidth=1, height=2)
-        self._y = 0.06
-        self._dir = 1
-        self._animate_scan()
 
     def append(self, line: str) -> None:
         self.text.configure(state="normal")
@@ -247,36 +274,24 @@ class ScanFeed(ctk.CTkFrame):
         self.text.see("end")
         self.text.configure(state="disabled")
 
-    def _animate_scan(self) -> None:
-        try:
-            if not self.winfo_viewable():
-                self.after(500, self._animate_scan)
-                return
-        except Exception:
-            pass
-        self._y += 0.012 * self._dir
-        if self._y > 0.92:
-            self._dir = -1
-        elif self._y < 0.06:
-            self._dir = 1
-        self._scan.configure(bg=T.ACCENT if self._dir > 0 else T.ACCENT_DIM)
-        self._scan.place(relx=0, rely=self._y, relwidth=1, height=2)
-        self.after(55, self._animate_scan)
-
 
 class MatrixRow(ctk.CTkFrame):
-    """Protection-matrix row bound to a REAL signal via set_state().
+    """Protection-matrix row bound to a real signal via set_state().
 
     No fake cycling: the state is only ever what the caller sets from the twin /
-    capability report / collector status (audit C3 honesty). Defaults to an
-    honest 'unknown' until data arrives.
+    capability report / collector status. Defaults to an honest blank until data
+    arrives. The dot uses the same color as the state word and does not blink.
     """
 
     def __init__(self, master, name: str, **kwargs) -> None:
         super().__init__(master, fg_color=T.BG_PANEL_ALT, corner_radius=4, **kwargs)
         self.name = name
+        self.pip = ctk.CTkLabel(
+            self, text="●", font=T.FONT_BODY, text_color=T.TEXT_DIM, width=18,
+        )
+        self.pip.pack(side="left", padx=(8, 0), pady=8)
         ctk.CTkLabel(self, text=name, font=T.FONT_BODY, text_color=T.TEXT).pack(
-            side="left", padx=10, pady=8
+            side="left", padx=(4, 10), pady=8
         )
         self.state_lbl = ctk.CTkLabel(
             self, text="—", font=T.FONT_MONO, text_color=T.TEXT_DIM,
@@ -285,10 +300,11 @@ class MatrixRow(ctk.CTkFrame):
 
     def set_state(self, text: str, color: str) -> None:
         self.state_lbl.configure(text=text, text_color=color)
+        self.pip.configure(text_color=color)
 
 
 class ClockMono(ctk.CTkLabel):
-    """UTC / local ticking clock for ops credibility."""
+    """Local and UTC clock. The digits change; the label does not move."""
 
     def __init__(self, master, **kwargs) -> None:
         super().__init__(master, text="", font=T.FONT_MONO, text_color=T.TEXT_DIM, **kwargs)
@@ -297,6 +313,11 @@ class ClockMono(ctk.CTkLabel):
     def _tick(self) -> None:
         from datetime import datetime, timezone
 
+        try:
+            if not self.winfo_exists():
+                return
+        except Exception:
+            return
         local = datetime.now().strftime("%H:%M:%S")
         utc = datetime.now(timezone.utc).strftime("%H:%M:%S")
         self.configure(text=f"LOCAL {local}  ·  UTC {utc}")

@@ -1,4 +1,4 @@
-"""DVielle Mission Console — living Phosphor Void presence."""
+"""DVielle Mission Console — calm phosphor instruments, logo motion only."""
 
 from __future__ import annotations
 
@@ -21,9 +21,10 @@ from agent.modules.resource_advisor import (
 from agent.store.db import AgentStore
 from agent.utils import PROJECT_ROOT, load_yaml
 from dvielle import APP_NAME, TAGLINE, VERSION
-from dvielle.brand import apply_tk_window_icon, brand_png, configure_windows_app_identity
+from dvielle.brand import apply_tk_window_icon, configure_windows_app_identity
 from dvielle.gui import theme as T
 from dvielle.gui.attacks_window import AttacksWindow
+from dvielle.gui.logo_mark import LogoMark
 from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
 from dvielle.gui.observations import (
@@ -42,6 +43,7 @@ from dvielle.gui.presence import (
     PressureGauge,
     ScanFeed,
 )
+from dvielle.gui.theme_store import load_appearance, save_appearance
 from dvielle.gui.tray import notify_tray, setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
 from dvielle.gui.why_window import WhyWindow
@@ -74,7 +76,6 @@ class DVielleApp:
         )
         self._agent_started = False
         self._minimized = False
-        self._pulse_on = True
         self._close_buttons: list[ctk.CTkButton] = []
         self._greeting_idx = 0
         self._seen_events: set[str] = set()
@@ -86,7 +87,7 @@ class DVielleApp:
         # Identity before first window (also set in __main__; safe to call twice).
         configure_windows_app_identity()
 
-        ctk.set_appearance_mode("dark")
+        T.apply(load_appearance(self.data_dir))
         self.root = ctk.CTk()
         self.root.title(f"{APP_NAME} — {TAGLINE}")
         self.root.geometry("1360x900")
@@ -112,7 +113,6 @@ class DVielleApp:
         self._tick_stats()
         self._tick_close_panel()
         self._tick_logs()
-        self._pulse_status()
         self._tick_mission_presence()
         self._drain_ui()
         self.root.after(0, self._on_start_agent)
@@ -124,7 +124,7 @@ class DVielleApp:
 
     def _build_ui(self) -> None:
         # —— NOW strip (full bleed) ——
-        now = ctk.CTkFrame(self.root, fg_color=T.BG_PANEL, height=148, corner_radius=0)
+        now = ctk.CTkFrame(self.root, fg_color=T.BG_PANEL, height=168, corner_radius=0)
         now.pack(fill="x")
         now.pack_propagate(False)
 
@@ -133,33 +133,13 @@ class DVielleApp:
 
         brand_row = ctk.CTkFrame(left, fg_color="transparent")
         brand_row.pack(anchor="w")
-        brand_frame = ctk.CTkFrame(brand_row, fg_color="transparent", width=72, height=72)
-        brand_frame.pack(side="left")
-        brand_frame.pack_propagate(False)
-        logo_path = brand_png(72)
-        if logo_path.exists():
-            try:
-                from PIL import Image
-
-                self._brand_photo = ctk.CTkImage(
-                    light_image=Image.open(logo_path),
-                    dark_image=Image.open(logo_path),
-                    size=(68, 68),
-                )
-                ctk.CTkLabel(brand_frame, text="", image=self._brand_photo).pack(expand=True)
-            except Exception:
-                ctk.CTkLabel(
-                    brand_frame, text="DV", font=T.FONT_DISPLAY, text_color=T.ACCENT_GLOW
-                ).pack(expand=True)
-        else:
-            ctk.CTkLabel(
-                brand_frame, text="DV", font=T.FONT_DISPLAY, text_color=T.ACCENT_GLOW
-            ).pack(expand=True)
+        self.logo = LogoMark(brand_row, size=68)
+        self.logo.pack(side="left")
 
         titles = ctk.CTkFrame(brand_row, fg_color="transparent")
         titles.pack(side="left", padx=12)
         ctk.CTkLabel(
-            titles, text=APP_NAME.upper(), font=T.FONT_DISPLAY, text_color=T.ACCENT_GLOW
+            titles, text=APP_NAME.upper(), font=T.FONT_DISPLAY, text_color=T.ACCENT
         ).pack(anchor="w")
         ctk.CTkLabel(
             titles, text=TAGLINE, font=T.FONT_TAGLINE, text_color=T.TEXT_DIM
@@ -168,7 +148,7 @@ class DVielleApp:
         self.mission_lbl = ctk.CTkLabel(
             left,
             text="",
-            font=("Segoe UI", 18, "bold"),
+            font=("Segoe UI", 16, "bold"),
             text_color=T.TEXT,
             wraplength=620,
             anchor="w",
@@ -188,15 +168,29 @@ class DVielleApp:
         # Right: arm + status
         right = ctk.CTkFrame(now, fg_color="transparent")
         right.pack(side="right", padx=20, pady=12)
+        self.theme_btn = ctk.CTkButton(
+            right,
+            text=f"Theme: {T.current_mode().title()}",
+            width=156,
+            height=32,
+            command=self._toggle_theme,
+            fg_color=T.BG_PANEL_ALT,
+            hover_color=T.BORDER,
+            text_color=T.TEXT,
+            border_color=T.ACCENT,
+            border_width=1,
+            font=T.FONT_TAGLINE,
+        )
+        self.theme_btn.pack(anchor="e", pady=(0, 8))
         self.start_btn = ctk.CTkButton(
             right,
-            text="▶  START AGENT",
-            font=T.FONT_TITLE,
-            width=240,
-            height=44,
+            text="Start agent",
+            font=T.FONT_BODY,
+            width=300,
+            height=40,
             fg_color=T.ACCENT,
-            hover_color=T.ACCENT_GLOW,
-            text_color=T.BG_DARK,
+            hover_color=T.ACCENT_DIM,
+            text_color=T.ON_ACCENT,
             border_width=0,
             command=self._on_start_agent,
         )
@@ -204,7 +198,7 @@ class DVielleApp:
         status_row = ctk.CTkFrame(right, fg_color="transparent")
         status_row.pack(anchor="e", pady=(10, 0))
         self.status_dot = ctk.CTkLabel(
-            status_row, text="●", font=T.FONT_STATUS_DOT, text_color=T.ACCENT
+            status_row, text="●", font=T.FONT_STATUS_DOT, text_color=T.WARNING
         )
         self.status_dot.pack(side="left", padx=(0, 6))
         self.status_label = ctk.CTkLabel(
@@ -225,7 +219,7 @@ class DVielleApp:
         rail_wrap.pack(fill="x", padx=16, pady=(8, 0))
         rail_wrap.pack_propagate(False)
         ctk.CTkLabel(
-            rail_wrap, text="NERVE", font=("Consolas", 11, "bold"), text_color=T.ACCENT_DIM
+            rail_wrap, text="Collectors", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM
         ).pack(side="left", padx=(4, 8))
         self.nerve_rail = NerveRail(rail_wrap)
         self.nerve_rail.pack(side="left", fill="x", expand=True)
@@ -257,21 +251,27 @@ class DVielleApp:
             font=T.FONT_TAGLINE,
             text_color=T.TEXT_DIM,
         ).pack(side="left", padx=4)
-        for text, cmd, fg in (
-            ("Work Log", self._view_work_log, T.BG_PANEL_ALT),
-            ("Why", self._open_why, T.ACCENT_DIM),
-            ("Attacks Console", self._open_attacks, T.DANGER),
-            ("Clear Log", self._clear_work_log, T.BG_PANEL_ALT),
+        for text, cmd, role in (
+            ("Work Log", self._view_work_log, "panel_alt"),
+            ("Why", self._open_why, "accent_dim"),
+            ("Attacks Console", self._open_attacks, "crit"),
+            ("Clear Log", self._clear_work_log, "panel_alt"),
         ):
+            if role == "accent_dim":
+                text_color = T.ON_ACCENT
+            elif role == "crit":
+                text_color = T.ON_CRIT
+            else:
+                text_color = T.TEXT
             ctk.CTkButton(
                 left_footer,
                 text=text,
-                width=130,
+                width=140,
                 height=36,
                 command=cmd,
-                fg_color=fg,
+                fg_color=T.pair(role),
                 hover_color=T.BORDER,
-                text_color=T.BG_DARK if fg == T.ACCENT_DIM else T.TEXT,
+                text_color=text_color,
                 font=T.FONT_BODY,
             ).pack(side="left", padx=4)
 
@@ -305,8 +305,11 @@ class DVielleApp:
 
     def _panel(self, parent, title: str, subtitle: str = "") -> ctk.CTkFrame:
         frame = ctk.CTkFrame(
-            parent, fg_color=T.BG_PANEL, border_color=T.BORDER, border_width=1, corner_radius=4
+            parent, fg_color=T.BG_PANEL, border_color=T.BORDER, border_width=1, corner_radius=6
         )
+        rule = ctk.CTkFrame(frame, fg_color=T.ACCENT, height=3, corner_radius=0)
+        rule.pack_propagate(False)
+        rule.pack(fill="x")
         head = ctk.CTkFrame(frame, fg_color="transparent")
         head.pack(fill="x", padx=14, pady=(10, 4))
         ctk.CTkLabel(head, text=title, font=T.FONT_TITLE, text_color=T.ACCENT).pack(side="left")
@@ -317,7 +320,7 @@ class DVielleApp:
         return frame
 
     def _build_network_panel(self, parent) -> None:
-        panel = self._panel(parent, "TRAFFIC", "LIVE")
+        panel = self._panel(parent, "Network", "current")
         panel.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=14, pady=(0, 14))
@@ -325,7 +328,7 @@ class DVielleApp:
         self.network_panel.pack(fill="both", expand=True)
 
     def _build_vitals_panel(self, parent) -> None:
-        panel = self._panel(parent, "PRESSURE", "VECTOR")
+        panel = self._panel(parent, "This PC", "load")
         panel.grid(row=0, column=1, sticky="nsew", padx=4)
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=10, pady=(0, 8))
@@ -357,13 +360,13 @@ class DVielleApp:
         self.cycle_lbl.pack(anchor="w", pady=(8, 0), padx=4)
 
         ctk.CTkLabel(
-            inner, text="SMART CLOSE", font=T.FONT_TITLE, text_color=T.WARNING
+            inner, text="Apps you can close", font=T.FONT_TITLE, text_color=T.WARNING
         ).pack(anchor="w", pady=(12, 4), padx=4)
         self.close_panel = ctk.CTkFrame(inner, fg_color=T.BG_PANEL_ALT, corner_radius=4)
         self.close_panel.pack(fill="x", pady=(0, 8))
         self.close_hint = ctk.CTkLabel(
             self.close_panel,
-            text="Scanning app groups…",
+            text="Checking which apps are open…",
             font=T.FONT_TAGLINE,
             text_color=T.TEXT_DIM,
             wraplength=300,
@@ -371,13 +374,13 @@ class DVielleApp:
         self.close_hint.pack(padx=8, pady=8)
 
     def _build_log_panel(self, parent) -> None:
-        panel = self._panel(parent, "INTELLIGENCE", "FEED")
+        panel = self._panel(parent, "Findings", "log")
         panel.grid(row=0, column=2, sticky="nsew", padx=4)
         self.scan_feed = ScanFeed(panel)
         self.scan_feed.pack(fill="both", expand=True, padx=10, pady=(0, 12))
 
     def _build_shield_panel(self, parent) -> None:
-        panel = self._panel(parent, "SURFACE", "MATRIX")
+        panel = self._panel(parent, "Protection", "status")
         panel.grid(row=0, column=3, sticky="nsew", padx=(6, 0))
         inner = ctk.CTkFrame(panel, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=12, pady=(0, 12))
@@ -407,7 +410,7 @@ class DVielleApp:
         self.jarvis_line.pack(side="bottom", pady=(12, 0))
         ctk.CTkButton(
             inner,
-            text="🔊 Replay greeting",
+            text="Replay greeting",
             width=180,
             command=self._replay_greeting,
             fg_color=T.BG_PANEL_ALT,
@@ -417,7 +420,7 @@ class DVielleApp:
         if self.controller.status.ownership in {"starting", "owner", "attached"}:
             return
         self._agent_started = True
-        self.start_btn.configure(state="disabled", text="CONNECTING…")
+        self.start_btn.configure(state="disabled", text="Connecting…")
         self.mission_lbl.configure(text="Connecting to the monitoring owner…")
         self._store.log_work("START_REQUEST", "Requested monitoring start or attachment")
         self.controller.start()
@@ -650,23 +653,24 @@ class DVielleApp:
         running = status.running and snapshot_fresh(data)
         label = "MONITORING" if running else status.ownership.upper()
         self.status_label.configure(text=label, text_color=T.SUCCESS if running else T.WARNING)
+        self.status_dot.configure(text_color=T.SUCCESS if running else T.WARNING)
         self.agent_status_lbl.configure(text=f"{status.ownership.upper()} · {status.message}", text_color=T.SUCCESS if running else T.WARNING)
         self.mission_lbl.configure(text=status.message)
         self.ticker.push(activity_summary(data))
         self.nerve_rail.set_states(data)
         self.radar.set_running(running)
         if status.ownership == "attached":
-            self.start_btn.configure(text="ATTACHED TO BACKGROUND AGENT", state="disabled")
+            self.start_btn.configure(text="Attached to background agent", state="disabled")
             self.vigilance_btn.configure(text="Background owner", state="disabled")
             self.mission_lbl.configure(text=status.message + ". Pause is controlled by the background owner.")
         elif status.ownership == "owner":
-            self.start_btn.configure(text="MONITORING OWNER", state="disabled")
+            self.start_btn.configure(text="Monitoring", state="disabled")
             self.vigilance_btn.configure(text="Pause Agent", state="normal" if running else "disabled")
         elif status.ownership == "starting":
-            self.start_btn.configure(text="CONNECTING…", state="disabled")
+            self.start_btn.configure(text="Connecting…", state="disabled")
             self.vigilance_btn.configure(state="disabled")
         else:
-            self.start_btn.configure(text="START / RECONNECT", state="normal")
+            self.start_btn.configure(text="Start / reconnect", state="normal")
             self.vigilance_btn.configure(text="Resume Agent", state="normal")
         self.root.after(2000, self._tick_mission_presence)
 
@@ -711,45 +715,50 @@ class DVielleApp:
             self.close_hint.configure(text="No notable apps to manage.")
             return
 
-        self.close_hint.configure(text="Smart groups — tap for advice + confirm:")
+        self.close_hint.configure(text="Choose an app. You will see options before anything closes.")
         for g in groups:
             n = len(g.pids)
             if g.risk == "protected":
-                # On the user's never_close list — shown for awareness, never closable.
-                label = f"[PROTECTED] {g.display_name} ×{n} ({g.memory_mb:.0f}MB)"
-                btn = ctk.CTkButton(
-                    self.close_panel,
-                    text=label,
-                    height=34,
-                    command=lambda grp=g: self._explain_protected(grp),
-                    fg_color=T.BG_DARK,
-                    hover_color=T.BG_DARK,
-                    text_color=T.TEXT_DIM,
-                    font=T.FONT_BODY,
-                    anchor="w",
+                label = f"Protected  {g.display_name}  ×{n}  ({g.memory_mb:.0f} MB)"
+                btn = self._close_choice(
+                    label,
+                    lambda grp=g: self._explain_protected(grp),
+                    T.BORDER,
+                    T.TEXT_DIM,
                 )
                 btn.pack(fill="x", padx=6, pady=2)
                 self._close_buttons.append(btn)
                 continue
             if g.risk == "danger_active":
-                color, prefix = T.DANGER, "USING"
+                border, prefix = T.DANGER, "In use"
             elif g.risk == "caution":
-                color, prefix = T.WARNING, "LINKED"
+                border, prefix = T.WARNING, "Linked"
             else:
-                color, prefix = T.TEXT_DIM, "BACKGROUND"
-            label = f"[{prefix}] {g.display_name} ×{n} ({g.memory_mb:.0f}MB)"
-            btn = ctk.CTkButton(
-                self.close_panel,
-                text=label,
-                height=34,
-                command=lambda grp=g: self._smart_close(grp),
-                fg_color=T.BG_DARK,
-                hover_color=color,
-                font=T.FONT_BODY,
-                anchor="w",
+                border, prefix = T.BORDER, "Background"
+            label = f"{prefix}  {g.display_name}  ×{n}  ({g.memory_mb:.0f} MB)"
+            btn = self._close_choice(
+                label,
+                lambda grp=g: self._smart_close(grp),
+                border,
+                T.TEXT,
             )
             btn.pack(fill="x", padx=6, pady=2)
             self._close_buttons.append(btn)
+
+    def _close_choice(self, label: str, command, border, text_color) -> ctk.CTkButton:
+        return ctk.CTkButton(
+            self.close_panel,
+            text=label,
+            height=34,
+            command=command,
+            fg_color=T.BG_PANEL,
+            hover_color=T.BORDER,
+            text_color=text_color,
+            border_color=border,
+            border_width=2,
+            font=T.FONT_BODY,
+            anchor="w",
+        )
 
     def _explain_protected(self, group: AppGroup) -> None:
         """Protected rows have no close affordance — tapping just explains why."""
@@ -780,7 +789,7 @@ class DVielleApp:
             pass
 
         ctk.CTkLabel(
-            dlg, text=group.display_name, font=T.FONT_TITLE, text_color=T.ACCENT_GLOW
+            dlg, text=group.display_name, font=T.FONT_TITLE, text_color=T.ACCENT
         ).pack(pady=(16, 4), padx=16, anchor="w")
         ctk.CTkLabel(
             dlg,
@@ -917,7 +926,7 @@ class DVielleApp:
             pass
 
         ctk.CTkLabel(
-            dlg, text=group.display_name, font=T.FONT_TITLE, text_color=T.ACCENT_GLOW
+            dlg, text=group.display_name, font=T.FONT_TITLE, text_color=T.ACCENT
         ).pack(pady=(16, 4), padx=16, anchor="w")
         ctk.CTkLabel(
             dlg, text=reason, font=T.FONT_BODY, text_color=T.TEXT,
@@ -976,17 +985,12 @@ class DVielleApp:
         self._greeting_idx = (self._greeting_idx + 1) % len(GREETINGS)
         self.root.after(30000, self._tick_greeting)
 
-    def _pulse_status(self) -> None:
-        self._pulse_on = not self._pulse_on
-        if self._agent_started and self.controller.status.running:
-            self.status_dot.configure(
-                text_color=T.SUCCESS if self._pulse_on else T.ACCENT_DIM
-            )
-        else:
-            self.status_dot.configure(
-                text_color=T.ACCENT_GLOW if self._pulse_on else T.ACCENT_DIM
-            )
-        self.root.after(700, self._pulse_status)
+    def _toggle_theme(self) -> None:
+        nxt = "light" if T.current_mode() == "dark" else "dark"
+        T.apply(nxt)
+        save_appearance(self.data_dir, nxt)
+        self.theme_btn.configure(text=f"Theme: {nxt.title()}")
+        self._store.log_work("THEME", f"Appearance set to {nxt}")
 
     def _toggle_vigilance(self) -> None:
         if self.controller.status.ownership in {"attached", "starting"}:

@@ -14,7 +14,7 @@ The interface is a **mission console for a living machine**, not a SaaS dashboar
 - One composition per viewport  
 - Brand mark is a hero signal (radar DV), not a favicon afterthought  
 - Type does the hierarchy; chrome stays almost invisible  
-- Motion only for state change (pressure, workload shift, decision)  
+- Motion is the logo only (a short rotate-in, then a slow pulse). Status changes by color and text, not by animation  
 - Readable at a glance with glasses on (large type scale)
 
 **Anti-patterns (banned):** purple-on-white gradients, cream+terracotta “AI default,” broadsheet newspaper UI, emoji icon rows, pill-stat strips, glassmorphism blobs, multi-layer shadows.
@@ -78,18 +78,32 @@ Borders: 1px `stroke` only when structure needs it
 
 ---
 
-## Motion (alive presence — still intentional)
+## Motion (2.4.0)
 
-The console must feel **continuously engaged**, not idle chrome. Prefer mission-ops motion over decorative storms.
+Only the brand mark animates.
 
-1. **Phosphor pulse** on LIVE / armed status (≤0.7s opacity/color flip)  
-2. **Living radar** — slow sweep + soft bloom (brand core; not frantic spin)  
-3. **Nerve rail chase** — collector LEDs cycle to show Adaptive Nerve cadence  
-4. **Activity ticker** — rotating truthful Nerve/Twin verbs (not fake threats)  
-5. **Pressure gauge ease** — meters lerp toward new values  
-6. **Scan line** on Intelligence feed (subtle, one moving hairline)  
+1. **Logo** — a short rotate-in when the console opens, then a slow brightness pulse (about once a second). That is the only motion.
+2. **Clock** — the local/UTC digits update once a second. The label does not move.
+3. **Measurements** — gauges, collector chips, and the findings log update when new observations arrive. They do not ease, sweep, or blink.
 
-No parallax, no particle storms, no purple glow stacks. Radar may animate continuously; it must stay **slow and legible**.
+No parallax, no particle storms, no scan line, no pulsing status dot, no animated tabs or buttons.
+
+## Light palette — Dayglass
+
+Dark above remains the default. Light is optional and stored locally.
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `void` | `#F3F6F8` | App background |
+| `panel` | `#FFFFFF` | Primary surfaces |
+| `panel-2` | `#E7EEF3` | Nested / inset |
+| `stroke` | `#D2DCE3` | Hairlines |
+| `phosphor` | `#0C6B5C` | Primary accent, dark enough to read on white |
+| `ink` | `#132028` | Primary text |
+| `ink-mute` | `#4A5C6A` | Secondary text |
+| `ok` / `warn` / `crit` | `#0C7040` / `#8A5600` / `#B4233A` | Status only |
+
+Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `light`. Missing or invalid file means dark. CustomTkinter color arguments are `(light, dark)` tuples so a switch repaints widgets. Tk canvases redraw from the active hex. `system` appearance mode is not used: on Linux, CustomTkinter documents that system mode stays light.
 
 ---
 

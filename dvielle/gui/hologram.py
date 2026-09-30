@@ -1,4 +1,4 @@
-"""Legacy ring — prefer LivingRadar in presence.py for Mission Console."""
+"""Legacy name for the static radar instrument. The logo is the only animation."""
 
 from dvielle.gui.presence import LivingRadar as HologramRing
 

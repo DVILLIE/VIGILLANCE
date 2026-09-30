@@ -40,6 +40,10 @@ class AttacksWindow(ctk.CTkToplevel):
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         apply_tk_window_icon(self)
 
+        rule = ctk.CTkFrame(self, fg_color=T.DANGER, height=3, corner_radius=0)
+        rule.pack_propagate(False)
+        rule.pack(fill="x")
+
         header = ctk.CTkFrame(self, fg_color=T.BG_PANEL, height=90)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -57,8 +61,21 @@ class AttacksWindow(ctk.CTkToplevel):
         )
         self.summary_lbl.pack(anchor="w", padx=16, pady=(10, 4))
 
-        tabs = ctk.CTkTabview(self, fg_color=T.BG_PANEL, border_color=T.BORDER, border_width=1)
+        tabs = ctk.CTkTabview(
+            self,
+            fg_color=T.BG_PANEL,
+            border_color=T.BORDER,
+            border_width=1,
+            segmented_button_fg_color=T.BG_PANEL_ALT,
+            segmented_button_selected_color=T.ACCENT,
+            segmented_button_selected_hover_color=T.ACCENT_DIM,
+            segmented_button_unselected_color=T.BG_PANEL_ALT,
+            segmented_button_unselected_hover_color=T.BORDER,
+            text_color=T.TEXT,
+            command=self._paint_tabs,
+        )
         tabs.pack(fill="both", expand=True, padx=16, pady=8)
+        self.tabs = tabs
         self.tab_live = tabs.add("Live threats")
         self.tab_logons = tabs.add("Failed logons")
         self.tab_browser = tabs.add("Browser watch")
@@ -68,12 +85,13 @@ class AttacksWindow(ctk.CTkToplevel):
         self.logon_box = self._make_box(self.tab_logons)
         self.browser_box = self._make_box(self.tab_browser)
         self.conn_box = self._make_box(self.tab_conn)
+        self._paint_tabs()
 
         foot = ctk.CTkFrame(self, fg_color="transparent")
         foot.pack(fill="x", padx=16, pady=(0, 12))
         ctk.CTkButton(
             foot, text="Refresh now", width=140, height=40, command=self.refresh,
-            fg_color=T.ACCENT_DIM, hover_color=T.ACCENT, text_color=T.BG_DARK,
+            fg_color=T.ACCENT_DIM, hover_color=T.ACCENT, text_color=T.ON_ACCENT,
             font=T.FONT_BODY,
         ).pack(side="left")
         ctk.CTkButton(
@@ -84,9 +102,16 @@ class AttacksWindow(ctk.CTkToplevel):
         self.refresh()
         self.after(5000, self._auto_refresh)
 
+    def _paint_tabs(self) -> None:
+        from dvielle.gui.theme import paint_selected_segment
+
+        if getattr(self, "tabs", None) is None:
+            return
+        paint_selected_segment(self.tabs)
+
     def _make_box(self, parent) -> ctk.CTkTextbox:
         box = ctk.CTkTextbox(
-            parent, font=T.FONT_MONO, fg_color=T.BG_DARK, text_color=T.ACCENT_GLOW,
+            parent, font=T.FONT_MONO, fg_color=T.BG_DARK, text_color=T.TEXT,
             border_color=T.BORDER, border_width=1,
         )
         box.pack(fill="both", expand=True, padx=8, pady=8)
