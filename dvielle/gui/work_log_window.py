@@ -46,6 +46,10 @@ class WorkLogWindow(ctk.CTkToplevel):
         self.configure(fg_color=T.BG_DARK)
         apply_tk_window_icon(self)
 
+        rule = ctk.CTkFrame(self, fg_color=T.ACCENT, height=3, corner_radius=0)
+        rule.pack_propagate(False)
+        rule.pack(fill="x")
+
         ctk.CTkLabel(
             self, text="WORK LOG REPORT", font=T.FONT_TITLE, text_color=T.ACCENT,
         ).pack(pady=(12, 4))
@@ -55,7 +59,7 @@ class WorkLogWindow(ctk.CTkToplevel):
         ).pack(pady=(0, 8))
 
         self.text = ctk.CTkTextbox(
-            self, font=T.FONT_MONO, fg_color=T.BG_PANEL, text_color=T.ACCENT_GLOW,
+            self, font=T.FONT_MONO, fg_color=T.BG_PANEL, text_color=T.TEXT,
             border_color=T.BORDER, border_width=1,
         )
         self.text.pack(fill="both", expand=True, padx=16, pady=8)

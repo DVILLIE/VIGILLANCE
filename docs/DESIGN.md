@@ -14,7 +14,7 @@ The interface is a **mission console for a living machine**, not a SaaS dashboar
 - One composition per viewport  
 - Brand mark is a hero signal (radar DV), not a favicon afterthought  
 - Type does the hierarchy; chrome stays almost invisible  
-- Motion only for state change (pressure, workload shift, decision)  
+- Motion is the logo only (a short rotate-in, then a slow pulse). Status changes by color and text, not by animation  
 - Readable at a glance with glasses on (large type scale)
 
 **Anti-patterns (banned):** purple-on-white gradients, cream+terracotta “AI default,” broadsheet newspaper UI, emoji icon rows, pill-stat strips, glassmorphism blobs, multi-layer shadows.
@@ -65,31 +65,53 @@ Rules:
 
 ---
 
-## Layout grammar
+## Layout grammar (2.4.0 Clear Deck)
 
-1. **NOW strip** (full bleed top): brand mark + one sentence + workload pill  
-2. **Pressure field**: 3–4 large meters (not 12 widgets)  
-3. **Secondary rail**: Traffic / Surface tabs — one job  
-4. **Why drawer**: evidence chain, not a chat wall  
+The console is a shell, not a four-column instrument panel.
 
-Spacing scale: 8 / 12 / 16 / 24 / 40  
-Radius: 0–6px max (architectural, not bubbly)  
-Borders: 1px `stroke` only when structure needs it  
+1. **Header** — logo, product name, one status sentence, the day's color name, Dark/Light, start.
+2. **Left pages** — Now, This PC, Network, Findings, Protection, Apps. One page is visible.
+3. **Now** — three still load rings (processor, memory, disk), a still network map, latest notes as cards (severity glyph, color bar, and a plain word: Noted, Caution, Needs a look, Settled), a small static watch mark, collector chips. Page icons and a header status orb are drawn, not typed bullets.
+4. **This PC** — full-width load bars (processor, memory, disk).
+5. **Apps** — noticed, you choose, then it can close. The choice dialogs are unchanged.
+6. **Footer** — work log, why, attacks, pause, hide. Why stays one click away.
+
+Spacing scale: 8 / 12 / 16 / 20 / 24  
+Radius: 8–14 on cards. The header, rail, and footer stay square.  
+Borders: 1px stroke on cards. Accent marks the selected page and healthy/pressure state.  
 
 ---
 
-## Motion (alive presence — still intentional)
+## Motion (2.4.0)
 
-The console must feel **continuously engaged**, not idle chrome. Prefer mission-ops motion over decorative storms.
+Only the brand mark animates.
 
-1. **Phosphor pulse** on LIVE / armed status (≤0.7s opacity/color flip)  
-2. **Living radar** — slow sweep + soft bloom (brand core; not frantic spin)  
-3. **Nerve rail chase** — collector LEDs cycle to show Adaptive Nerve cadence  
-4. **Activity ticker** — rotating truthful Nerve/Twin verbs (not fake threats)  
-5. **Pressure gauge ease** — meters lerp toward new values  
-6. **Scan line** on Intelligence feed (subtle, one moving hairline)  
+1. **Logo** — a short rotate-in when the console opens, then a slow brightness pulse (about once a second). That is the only motion.
+2. **Clock** — the local/UTC digits update once a second. The label does not move.
+3. **Measurements** — gauges, collector chips, and the findings log update when new observations arrive. They do not ease, sweep, or blink.
 
-No parallax, no particle storms, no purple glow stacks. Radar may animate continuously; it must stay **slow and legible**.
+No parallax, no particle storms, no scan line, no pulsing status dot, no animated tabs or buttons.
+
+The day's accent is chosen once, from the local date, when the console opens. Orbits, the second color, and card-corner marks use that seed and stay still. Dark and Light remain the saved choice in `console_ui.json`. The five day names are Violet, Coral, Gold, Sky, and Rose. On Light those hues are cooled (soft sky, mint, lilac, dusty rose) so they do not glare on white. Dark keeps the richer pair. Green, amber, and red stay the status colors.
+
+The header mark is a drawn D/V orbital emblem. It scales and turns in, the orbits complete during that short intro, then the whole mark brightens slightly about once a second. That is the only motion.
+
+## Light palette — Dayglass
+
+Dark above remains the default. Light is optional and stored locally.
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `void` | `#F4F7FA` | Cool paper |
+| `panel` | `#FFFFFF` | Primary surfaces |
+| `panel-2` | `#E8EEF4` | Nested / inset |
+| `stroke` | `#D2DCE6` | Hairlines |
+| `phosphor` | day's cool accent | Calm sky, mint, or lilac. No neon on white |
+| `ink` | `#1A2733` | Primary text |
+| `ink-mute` | `#526070` | Secondary text |
+| `ok` / `warn` / `crit` | `#0C7040` / `#8A5600` / `#B4233A` | Status only |
+
+Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `light`. Missing or invalid file means dark. CustomTkinter color arguments are `(light, dark)` tuples so a switch repaints widgets. Tk canvases redraw from the active hex. `system` appearance mode is not used: on Linux, CustomTkinter documents that system mode stays light.
 
 ---
 
@@ -122,8 +144,8 @@ Evolve `dvielle/gui/theme.py` toward Phosphor Void tokens and the large type sca
 ## Design QA checklist
 
 - [ ] First viewport readable as VIGILLANCE without reading nav  
-- [ ] One accent color dominates  
+- [ ] The day's accent plus one orbit color, status colors unchanged  
 - [ ] Body ≥15px  
-- [ ] No purple gradient skin  
+- [ ] Orbits and field marks are still. Only the logo moves  
 - [ ] Mission sentence visible in NOW  
 - [ ] Evidence “Why” reachable in ≤2 clicks  
