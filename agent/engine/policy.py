@@ -53,13 +53,27 @@ class PolicyGate:
         self.experience = experience
         self._issued: set[tuple[str, str, str]] = set()
 
-    def issue(self, finding_id: str, handler: str, *, auto: bool, subject: str = "") -> AuthToken:
+    def issue(
+        self,
+        finding_id: str,
+        handler: str,
+        *,
+        auto: bool,
+        subject: str = "",
+        severity: str | None = None,
+    ) -> AuthToken:
         if handler_is_denied(handler):
             raise PolicyDenied("that action is on the denylist")
         if auto and self.experience is not None:
             from agent.experiences import experience_allows_auto
 
-            allowed, reason = experience_allows_auto(self.experience, handler)
+            # Omitting severity must not skip the experience floor. An empty
+            # severity is below every published floor, so the token is refused.
+            allowed, reason = experience_allows_auto(
+                self.experience,
+                handler,
+                severity="" if severity is None else str(severity),
+            )
             if not allowed:
                 raise PolicyDenied(reason)
         subject = str(subject or "")

@@ -102,7 +102,7 @@ def _write(directory: Path, name: str, payload: dict) -> None:
 
 
 def test_version_is_2_2_0():
-    assert get_version() == "2.3.1"
+    assert get_version() == "2.3.2"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 

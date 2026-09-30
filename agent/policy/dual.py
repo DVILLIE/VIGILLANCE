@@ -140,7 +140,14 @@ class DualGate:
         if auto and self.experience is not None:
             from agent.experiences import experience_allows_auto
 
-            allowed, reason = experience_allows_auto(self.experience, handler_name)
+            # The finding severity is the floor input. A missing severity is
+            # below every published floor, so auto-protect fails closed here
+            # even if a token was issued without one.
+            allowed, reason = experience_allows_auto(
+                self.experience,
+                handler_name,
+                severity=str(finding.get("severity") or ""),
+            )
             if not allowed:
                 raise PolicyDenied(reason)
         if auto:

@@ -52,7 +52,7 @@ def _obs(severity: str, *, kind: str = "protection_off", action_class: str = "as
 
 
 def test_version_is_2_3_0() -> None:
-    assert get_version() == "2.3.1"
+    assert get_version() == "2.3.2"
 
 
 def test_shipped_config_is_everyday_and_locks_are_false() -> None:
@@ -199,6 +199,61 @@ def test_sensitive_cannot_auto_mutate_close_process(tmp_path: Path) -> None:
             mutator=mutator,
         )
     assert called["ran"] is False
+
+
+def test_sensitive_gate_refuses_auto_temp_delete_below_critical(tmp_path: Path) -> None:
+    """The mutate gate itself enforces the critical floor, not only the evaluate pre-check."""
+    contract = resolve_experience({"experiences": {"active": "sensitive"}})
+    engine = ResolutionEngine(
+        AgentStore(tmp_path / "agent.db"),
+        learn_dir=tmp_path / "learn",
+        log_dir=tmp_path / "logs",
+        auto_enabled=True,
+        experience=contract,
+    )
+    with pytest.raises(PolicyDenied, match="auto-protect eligibility is tighter"):
+        engine.policy.issue(
+            "f-temp",
+            "storage.free_safe_temp",
+            auto=True,
+            subject="temp:safe",
+            severity="high",
+        )
+    with pytest.raises(PolicyDenied, match="auto-protect eligibility is tighter"):
+        engine.policy.issue("f-temp", "storage.free_safe_temp", auto=True, subject="temp:safe")
+
+    from agent.engine.models import AuthToken
+
+    token = AuthToken("f-temp", "storage.free_safe_temp", "nonce", auto=True, subject="temp:safe")
+    engine.policy._issued.add((token.finding_id, token.handler, token.nonce))
+    called = {"ran": False}
+
+    def mutator() -> dict:
+        called["ran"] = True
+        return {"performed": True, "message": "deleted"}
+
+    with pytest.raises(PolicyDenied, match="auto-protect eligibility is tighter"):
+        engine.dual.perform(
+            handler_name="storage.free_safe_temp",
+            finding={
+                "id": "f-temp",
+                "subject_identity": "temp:safe",
+                "severity": "high",
+                "title_simple": "Temp",
+                "evidence_refs": ["fixture"],
+            },
+            token=token,
+            mutator=mutator,
+        )
+    assert called["ran"] is False
+    issued = engine.policy.issue(
+        "f-temp-ok",
+        "storage.free_safe_temp",
+        auto=True,
+        subject="temp:safe",
+        severity="critical",
+    )
+    assert issued.auto is True
 
 
 def test_sensitive_auto_protect_is_tighter_than_high(tmp_path: Path) -> None:

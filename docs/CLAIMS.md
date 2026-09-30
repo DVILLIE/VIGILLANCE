@@ -1,6 +1,6 @@
 # Claims, assumptions, and evidence
 
-Version 2.3.1. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief).
+Version 2.3.2. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief). 2.3.2 does not add a protection promise. A finished collector, including a partial collection, is due again at last-run plus its interval. That is scheduling, not a new control.
 
 An empty box in [TRUST_GATES.md](TRUST_GATES.md) is UNCHECKED. A green box is a check that was actually run. An AMTSO Security Features Check, if one is ever run, proves wiring. It is not a malware-efficacy percentage. https://www.amtso.org/security-features-check/
 
