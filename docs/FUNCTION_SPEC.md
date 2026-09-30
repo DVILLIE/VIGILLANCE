@@ -10,7 +10,7 @@
 
 ## 1. One-sentence promise
 
-DVielle watches this machine, **finds real problems, and drives them to a resolution** — safety, speed, privacy/internet abuse, AI data shipping, disk junk, online footprint exposure, and camera misuse — in simple English. The user decides what is **OK to keep on**; DVielle **learns** those choices, stays quiet when activity matches, and when something looks wrong or unexpected shows an **options card** — the user selects, then DVielle performs. Auto-protect may finish a tiny published set of emergencies if opted in. Every finding is a ticket: Found → Fix → Resolved / Monitoring. We do not steal data, do not attack other systems, and we prefer working solutions (local fixes + trusted partner services) over empty warnings.
+DVielle watches this machine, **finds real problems, and drives them to a resolution** — safety, speed, privacy/internet abuse, AI data shipping, disk junk, online footprint exposure, and camera misuse — in simple English. The user decides what is **OK to keep on**; DVielle **learns** those choices, stays quiet when activity matches, and when something looks wrong or unexpected shows an **options card** — the user selects, then DVielle performs. Auto-protect may finish a tiny published set of emergencies if opted in. Every finding is a ticket: Found → Fix → Resolved / Monitoring. We do not steal data, do not attack other systems, and we prefer a working local fix or a checklist the user finishes over an empty warning.
 
 ### Shipped honesty (1.7)
 
@@ -493,7 +493,7 @@ Every user, work pattern, installed software set, and usage rhythm is different.
 
 ### Why this is “intelligent”
 - First week: mostly observe + gentle learning; fewer aggressive alerts.  
-- Over time: “Chrome using 2 GB at 9pm is normal for you” vs “unknown helper uploading 800 MB at 3am is not.”  
+- Over time: “a browser using 2 GB at 9pm is normal for you” vs “an unknown helper uploading 800 MB at 3am is not.”  
 - Server profile: learn service baselines; almost no consumer-style popups.
 
 ### Learning store format: `.txt` (space-first)
@@ -779,12 +779,12 @@ High-level only; details at implement time:
 
 **Current build:** `collect_footprint_facts()` returns no rows. Remote kinds (breach, broker, public search, dark web) are drill tickets only and must be marked synthetic before a ticket opens. The collector does not invent hits.
 
-**Product stance:** Users want **find → fix → verify**, not a lecture. DVielle’s job is to drive **resolutions**. Specialized websites/services already do deep broker scanning, opt-outs, and dark-web *monitoring* (Aura, LifeLock/Norton, DeleteMe, Incogni, REMOVE, and similar). We treat those as **solution partners**, not competitors we dismiss — and as the engines for heavy internet-side research a local free app cannot rebuild overnight.
+**Product stance:** Users want **find → fix → verify**, not a lecture. DVielle’s job is to drive **resolutions on this PC**. Broker scanning, opt-outs, and exposure monitoring are cloud work a local free app does not rebuild. DVielle does not endorse a vendor, does not require an account, and does not call those services.
 
-**How the industry actually solves this (so we solve with them):**  
-- Broker removal services scan large known broker/people-search catalogs, submit opt-outs (API/forms/CCPA-style demands), and **rescan** because data reappears (Aura, LifeLock, DeleteMe, Incogni, REMOVE, etc.).  
-- Dark-web / exposure monitors watch identifiers the user enrolls and **alert + remediation steps**; they do not magically delete every copy on earth (Aura’s own help notes that once data is out, removal from the dark web itself often isn’t possible — the solution is lock down accounts, freeze credit, change credentials).  
-DVielle’s unique free value: **local machine control + simple English + a Resolution Center that tracks every fix to done**, and opens the best next solution (local action or partner service).
+**What those services actually do (so this app does not pretend to):**  
+- A removal service can scan known people-search catalogs, submit opt-outs, and rescan because listings come back.  
+- An exposure monitor watches identifiers the user enrolls and sends alerts. It does not delete every copy on the internet. Once data is out, the practical fix is to lock accounts, freeze credit, and change credentials.  
+DVielle’s free value: **local machine control + simple English + a Resolution Center that tracks every fix to done**, plus a checklist the user finishes. An optional public page is something the user opens. It is not a DVielle partnership.
 
 ### Resolution pipeline (what we ship)
 Every footprint item is a ticket: **Found → Recommended fix → In progress → Resolved / Monitoring**.
@@ -793,22 +793,22 @@ Every footprint item is a ticket: **Found → Recommended fix → In progress �
 |-------|-------------------------|
 | **This PC** | Sign-out unused accounts, revoke app sessions, tighten browser/OS privacy — DVielle can open settings and walk the user to **done**. |
 | **Breaches (HIBP / similar)** | Opt-in email check → for each hit: change password, turn on 2FA, stop reuse — checklist marked resolved when user confirms. |
-| **Public web (DIY)** | Guided self-search + Google Alerts; each finding gets a remove/opt-out/request-takedown step with status. |
-| **Account dashboards** | Deep-link Google / Microsoft / Apple privacy tools; track “opened / completed checkup.” |
-| **Brokers & people-search** | **Resolution path:** connect user to a removal partner (DeleteMe, Incogni, Aura, LifeLock, REMOVE, etc.) OR a built-in broker checklist for free DIY opt-outs where links are stable. Prefer partnership/API when available so DVielle shows **removal status**, not only “go elsewhere.” |
-| **Dark-web style exposure** | Do not fake our own dark-web crawler on day one. **Solution:** partner monitor (or user-chosen service) + DVielle turns every alert into local resolutions (password, bank, credit freeze links, session revoke). |
+| **Public web (DIY)** | Guided self-search and a search alert the user sets; each finding gets a remove/opt-out/request-takedown step with status. |
+| **Account dashboards** | Open the privacy pages for accounts the user already has; track “opened / completed checkup.” DVielle does not sign in. |
+| **Brokers & people-search** | **Resolution path:** a do-it-yourself opt-out checklist, or a removal service the user opens. DVielle does not enroll an account and does not show another company's removal status. |
+| **Dark-web style exposure** | Do not fake a dark-web crawler. The user may open a monitor they already use. DVielle turns that alert into local resolutions (password, credit freeze, session revoke). |
 | **Ongoing** | Rescan schedule + “still exposed?” so the app keeps working after the first cleanup. |
 
 ### Build order (solutions, not theater)
 1. Resolution Center UI/data model + local PC + HIBP resolutions.  
 2. Official dashboard deep-links with completion tracking.  
 3. Broker DIY opt-out playbooks where free removal links exist.  
-4. Partner integrations for automated broker removal / monitoring (so we deliver the same class of outcome those websites sell — through them or with them).  
+4. Optional pages the user opens for removal or monitoring. No vendor API in this build.  
 
 ### Still refuse (ethics, not defeatism)
 - Looking up **other people** (stalkerware).  
 - Storing user PII on our servers by default.  
-- Marketing “we scrape and erase the entire internet alone inside this free local binary.” That isn’t how DeleteMe/Aura/LifeLock work either — they are cloud ops + lists + rescans. We win by **orchestrating real resolutions**, including those engines.
+- Marketing “we scrape and erase the entire internet alone inside this free local binary.” Removal and monitoring are cloud operations. DVielle tracks the local fix. It does not operate those clouds.
 
 ### Log
 `data/logs/footprint.txt` — findings and **resolution outcomes**.  
@@ -980,9 +980,9 @@ Everything decided since kickoff, rewritten as **problems we solve** and **how w
 |---------|------------|
 | Local account residue | Options: Open sign-out / revoke steps / Not now / Show why → Resolved |
 | Breach hit (opt-in email) | Options: Password+2FA checklist / Open partner monitor / Not now → Resolved |
-| Public search hit | Options: Takedown / DIY opt-out / Google Alert / Partner / Not now → In progress → Resolved / Monitoring |
-| Broker listings | Options: DIY opt-out **and/or** partner removal (DeleteMe, Incogni, Aura, LifeLock, REMOVE, etc.) → track → Monitoring |
-| Dark-web style alert | Options: Partner monitor + local lockdown / Not now → Resolved / Monitoring |
+| Public search hit | Options: Takedown / DIY opt-out / search alert the user sets / optional external page / Not now → In progress → Resolved / Monitoring |
+| Broker listings | Options: DIY opt-out and/or a removal service the user opens → track → Monitoring |
+| Dark-web style alert | Options: a monitor the user already uses + local lockdown / Not now → Resolved / Monitoring |
 
 ### 30.8 Camera Guard
 | Finding | Resolution |
@@ -993,15 +993,14 @@ Everything decided since kickoff, rewritten as **problems we solve** and **how w
 | User wants maximum safety | Guide: shutter/cover + OS camera off → Resolved |
 | IP / network cameras | Out of v1 Camera Guard; later LAN module — until then, do not claim covered |
 
-### 30.9 Partner solutions (when local alone isn’t enough)
-DVielle **orchestrates** specialized services instead of pretending one free binary replaced them:
+### 30.9 External services (when local alone isn’t enough)
+DVielle does not replace a cloud removal or monitoring service, and it does not endorse one.
 
-- Breach intelligence: Have I Been Pwned (and similar)  
-- Broker removal / continuous opt-out: DeleteMe, Incogni, Aura, LifeLock, REMOVE, etc.  
-- Exposure / dark-web **monitoring**: Aura, Norton/LifeLock, Identity Guard-class tools — DVielle turns their alerts into local resolutions  
-- Vendor privacy consoles: Google, Microsoft, Apple  
+- An opt-in breach check is refused until the user chooses it. With no checker connected, nothing is sent.
+- Broker removal and exposure monitoring stay pages the user may open. This build does not call them.
+- Privacy pages for accounts the user already has can be opened as a checklist. DVielle does not sign in.
 
-Partners are chosen at implement/release time; Resolution Center stays partner-agnostic in data model.
+The Resolution Center stores progress only. It does not store a vendor account.
 
 ### 30.10 What “done” looks like for the free app
 A non-technical user can open DVielle and see: **open issues**, **fixes in progress**, **resolved**, **still monitoring** — across Safety, Speed, Privacy, AI, Storage, Footprint, and Camera — without reading jargon. That is the product.

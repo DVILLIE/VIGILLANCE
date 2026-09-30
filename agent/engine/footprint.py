@@ -90,7 +90,7 @@ class FootprintProgress:
 
 def partner_playbook() -> str:
     lines = [
-        "Partner removal and monitoring is optional. Examples, not a required account:",
+        "Optional public pages for removal or monitoring. Not a DVielle partnership, and no account is required:",
     ]
     for item in PARTNERS:
         lines.append(f"- {item['name']} ({item['role']}): {item['url']}")

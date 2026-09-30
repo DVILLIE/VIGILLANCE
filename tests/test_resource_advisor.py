@@ -209,16 +209,16 @@ def test_is_protected_workload_family_and_same_name():
 
 def test_never_close_from_config_lowercases_and_drops_empty():
     nc = ra.never_close_from_config(
-        {"resource_advisor": {"never_close": ["Claude.exe", "", None, "Notepad.exe"]}}
+        {"resource_advisor": {"never_close": ["Keeper.exe", "", None, "Notepad.exe"]}}
     )
-    assert nc == frozenset({"claude.exe", "notepad.exe"})
+    assert nc == frozenset({"keeper.exe", "notepad.exe"})
     assert ra.never_close_from_config({}) == frozenset()
     assert ra.never_close_from_config(None) == frozenset()
 
 
 def test_is_protected_honours_never_close_case_insensitive():
-    nc = frozenset({"claude.exe"})
-    assert ra._is_protected("Claude.exe", is_fg_pid=False, fg_name="notepad.exe", never_close=nc) is True
+    nc = frozenset({"keeper.exe"})
+    assert ra._is_protected("Keeper.exe", is_fg_pid=False, fg_name="notepad.exe", never_close=nc) is True
     assert ra._is_protected("discord.exe", is_fg_pid=False, fg_name="notepad.exe", never_close=nc) is False
     # foreground family still wins with an empty never_close list
     assert ra._is_protected("chrome.exe", is_fg_pid=False, fg_name="chrome.exe", never_close=frozenset()) is True

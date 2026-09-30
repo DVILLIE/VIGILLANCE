@@ -40,10 +40,10 @@ budget:
 workload:
   busy_cpu_percent: 80
   idle_after_seconds: 120
-  # Names only guide conservative scheduling, never grant security trust.
-  protected_foreground_processes:
-    - ollama.exe
-    - claude.exe
+  # Optional .exe names. An entry only defers optional collection while that
+  # process is in the foreground. It does not grant security trust and it is
+  # not a product endorsement. The default list is empty.
+  protected_foreground_processes: []
 
 network:
   allow_public_ip_lookup: false # opt in to an external public-IP service
@@ -83,14 +83,12 @@ retention:
 resource_advisor:
   enabled: true
   toast_cooldown_seconds: 300
-  # Apps here are NEVER offered for closing and NEVER counted as pulse offenders,
-  # even when they are the heaviest process. Foreground apps + their family are
-  # already protected automatically; this is for background tools you want kept
-  # alive regardless (agents, editors, long-running jobs). Case-insensitive, .exe
-  # names. Suggestions: powershell.exe, pwsh.exe, python.exe, node.exe, ollama.exe,
-  # Docker Desktop.exe, wsl.exe.
-  never_close:
-    - claude.exe
+  # Process names the operator adds here are never offered for closing and
+  # never counted as pulse offenders, even when they are the heaviest process.
+  # Foreground apps and their helper processes are already protected while
+  # they are the foreground. Case-insensitive .exe names. The default list is
+  # empty. An entry is not a product endorsement.
+  never_close: []
 
 # Privacy adapter — remediation flags are OBSERVE→RECOMMEND only until Cortex+Executor (P0)
 microsoft_guard:

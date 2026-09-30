@@ -180,7 +180,7 @@ class AttacksWindow(ctk.CTkToplevel):
         if not browser_rows:
             browser_txt = (
                 "Browser watch has not reported yet.\n"
-                "Open Chrome/Edge/Firefox and keep the agent STARTED — "
+                "Open a web browser you already use and keep the agent STARTED — "
                 "DVielle checks each cycle for lookalike browsers, stealer/adware "
                 "process names, and non-browser ad-network connections.\n\n"
                 "Honest limit: this is heuristic defense, not a full antivirus or EDR. "

@@ -55,7 +55,7 @@ def test_flagged_peer_dedup_and_latest_reason(store: AgentStore) -> None:
         _insert_conn(
             store,
             ts=(now - timedelta(minutes=10 - i)).isoformat(),
-            process="claude.exe",
+            process="sample.exe",
             ip="160.79.104.10",
             reason=f"reason-{i}",
         )
@@ -79,8 +79,8 @@ def test_flagged_peer_dedup_and_latest_reason(store: AgentStore) -> None:
     rows = store.recent_suspicious_connections(50, window_hours=24)
     assert len(rows) == 2
     by_proc = {r["process_name"]: r for r in rows}
-    assert by_proc["claude.exe"]["hits"] == 5
-    assert by_proc["claude.exe"]["reason"] == "reason-4"  # MAX(id) / latest
+    assert by_proc["sample.exe"]["hits"] == 5
+    assert by_proc["sample.exe"]["reason"] == "reason-4"  # MAX(id) / latest
     assert by_proc["evil.exe"]["hits"] == 1
     assert "old.exe" not in by_proc
 
