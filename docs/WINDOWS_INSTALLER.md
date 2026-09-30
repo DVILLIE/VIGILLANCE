@@ -41,7 +41,7 @@ If Inno Setup 6.4.0 or newer is already installed, the script uses `C:\Program F
 
 ## Build in GitHub Actions
 
-`.github/workflows/windows-installer.yml` runs on `windows-latest` for pull requests, pushes to `main`, and manual dispatch. The job checks out the repo, runs the script above, and uploads `dist\DVielle-Setup-*.exe` as the artifact `DVielle-Setup`.
+`.github/workflows/windows-installer.yml` runs on `windows-latest` for pull requests into `main`, pushes to `main` and `cursor/**`, and manual dispatch. The `cursor/**` push is there so the compile can run before a collaborator opens the pull request. The job checks out the repo, runs the script above, and uploads `dist\DVielle-Setup-*.exe` as the artifact `DVielle-Setup`.
 
 The workflow permission is `contents: read`. It does not create a Release and it does not attach the exe to an existing Release. The job does not run the setup on the runner, so it does not prove a resident heartbeat. That field install stays UNCHECKED. See the leftover list in [CLAIMS.md](CLAIMS.md).
 
