@@ -21,6 +21,7 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Windows edition | 10/11 Home & Pro | Same agent; Home registry/`auditpol`; Pro may use GPO |
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |
 | Install path | Default **`C:\DVILLIE`** | A selected `-InstallDir` is that installation's only config and data root |
+| Windows setup executable | Buildable wrapper. The Release download stays the zip until the exe is listed | `scripts/build_windows_installer.ps1` produces `DVielle-Setup-2.4.0.exe`. It checks the official Python 3.12.10 amd64 installer (last python.org 3.12 binary; later 3.12 releases are source-only) and calls `install-dvielle.ps1 -RunLevel Limited`. Not a PyInstaller freeze. Unsigned. No Defender exclusion. Chat stays removed. |
 | Runtime | Headless `agent.main` + attached optional GUI | One OS lock per data directory; shared atomic snapshot |
 | Cadence authority | **Future Architecture § Adaptive Nerve only** | No duplicate cadence docs; per-collector, not global “2–5s full scan” |
 | Review discipline | Master § Architecture Review Rules | CURRENT / REGRESSION / HISTORICAL labels; audit named refs |

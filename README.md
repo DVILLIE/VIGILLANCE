@@ -25,8 +25,11 @@ The pictures above are the 2.4.0 console (Dark and Light) with labeled sample no
 | [DVielle-2.4.0-windows-installer.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-installer.zip) | Unzip, then run `installer\Install-DVielle.bat` as administrator |
 | [DVielle-2.4.0-windows-source.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-source.zip) | The same tree, named as source, if you want to read it before installing |
 | GitHub source archive on the release | Created automatically from the `v2.4.0` tag |
+| `DVielle-Setup-2.4.0.exe` | **Not on this Release.** A Windows build can produce it. It is not the download yet. |
 
-There is **no standalone .exe**. This project does not ship a PyInstaller build. You need **Windows 10 or 11 (64-bit)** and **Python 3.12**. Steps are in [docs/USER_GUIDE.md](docs/USER_GUIDE.md) and in `installer/INSTALL.txt` inside the zip.
+The file to install today is the **zip**, on **Windows 10 or 11 (64-bit)**, with **Python 3.12**. Steps are in [docs/USER_GUIDE.md](docs/USER_GUIDE.md) and in `installer/INSTALL.txt` inside the zip.
+
+`DVielle-Setup-2.4.0.exe` is a setup wrapper the `windows-installer` job can compile. If Python 3.12 is missing, it runs the official Python 3.12.10 installer, then the same Limited install as the zip. It is not a PyInstaller freeze of the agent. It is unsigned, so SmartScreen can warn. It does not turn Defender off. It is not listed on the v2.4.0 Release. An Actions artifact is not a substitute for that Release file. How to build it, and what is still unchecked, is [docs/WINDOWS_INSTALLER.md](docs/WINDOWS_INSTALLER.md).
 
 ## What it does
 
@@ -103,6 +106,7 @@ Local-first. Notes, keep-on choices, and the theme file stay on this PC. Public-
 | Doc | Purpose |
 |-----|---------|
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Install, first open, theme, notes, uninstall |
+| [docs/WINDOWS_INSTALLER.md](docs/WINDOWS_INSTALLER.md) | How to build the setup exe; the zip stays the download until a Release lists it |
 | [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) | Pillars, what shipped, honesty limits |
 | [docs/CLAIMS.md](docs/CLAIMS.md) | Promises, assumptions, and what stays unchecked |
 | [docs/TRUST_GATES.md](docs/TRUST_GATES.md) | Pass/fail checks |
