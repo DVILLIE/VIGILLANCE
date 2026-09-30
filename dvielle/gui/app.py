@@ -40,7 +40,8 @@ from dvielle.gui.presence import (
     PressureGauge,
     ScanFeed,
 )
-from dvielle.gui.shell import PAGES, FindingCards, NumberCard
+from dvielle.gui.graphics import rule_pair
+from dvielle.gui.shell import PAGES, FindingCards, NetworkMap, RingCard, StatusOrb, nav_icon
 from dvielle.gui.theme_store import load_appearance, save_appearance
 from dvielle.gui.tray import setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
@@ -122,9 +123,11 @@ class DVielleApp:
 
     def _build_ui(self) -> None:
         self._build_header()
-        hairline = ctk.CTkFrame(self.root, fg_color=T.BORDER, height=1, corner_radius=0)
-        hairline.pack(fill="x")
-        hairline.pack_propagate(False)
+        rule = ctk.CTkLabel(self.root, text="", height=3)
+        light_rule, dark_rule = rule_pair()
+        self._rule_photo = ctk.CTkImage(light_image=light_rule, dark_image=dark_rule, size=(1360, 3))
+        rule.configure(image=self._rule_photo)
+        rule.pack(fill="x")
 
         shell = ctk.CTkFrame(self.root, fg_color="transparent")
         shell.pack(fill="both", expand=True)
@@ -202,10 +205,8 @@ class DVielleApp:
 
         status_row = ctk.CTkFrame(controls, fg_color="transparent")
         status_row.pack(anchor="e", pady=(8, 0))
-        self.status_dot = ctk.CTkLabel(
-            status_row, text="●", font=T.FONT_STATUS_DOT, text_color=T.WARNING,
-        )
-        self.status_dot.pack(side="left", padx=(0, 4))
+        self.status_orb = StatusOrb(status_row)
+        self.status_orb.pack(side="left", padx=(0, 8))
         self.status_label = ctk.CTkLabel(
             status_row, text="Connecting", font=T.FONT_BODY, text_color=T.TEXT,
         )
@@ -304,9 +305,12 @@ class DVielleApp:
         mark = ctk.CTkFrame(row, width=4, fg_color=T.BG_PANEL, corner_radius=2)
         mark.pack(side="left", fill="y", pady=6)
         mark.pack_propagate(False)
+        icon = nav_icon(key)
         button = ctk.CTkButton(
             row,
             text=label,
+            image=icon,
+            compound="left",
             anchor="w",
             height=42,
             corner_radius=8,
@@ -316,6 +320,7 @@ class DVielleApp:
             text_color=T.TEXT_DIM,
             command=lambda name=key: self._show_page(name),
         )
+        button._nav_icon = icon
         button.pack(side="left", fill="both", expand=True, padx=(6, 0))
         self._nav_marks[key] = mark
         self._nav_buttons[key] = button
@@ -357,25 +362,27 @@ class DVielleApp:
         )
         ctk.CTkLabel(
             page, text=lede, font=T.FONT_BODY, text_color=T.TEXT_DIM, wraplength=820, justify="left",
-        ).pack(anchor="w", pady=(2, 14))
+        ).pack(anchor="w", pady=(2, 8))
 
     def _build_now_page(self, page) -> None:
         self._page_head(
             page,
             "Now",
-            "A short picture of this PC. Open a page on the left for the detail.",
+            "Rings show how busy this PC is. Notes are what was noticed.",
         )
         self.ticker = ActivityTicker(page)
-        self.ticker.pack(fill="x", pady=(0, 12))
+        self.ticker.pack(fill="x", pady=(0, 6))
 
         stats = ctk.CTkFrame(page, fg_color="transparent")
-        stats.pack(fill="x", pady=(0, 14))
-        self.now_cpu = NumberCard(stats, "Processor")
-        self.now_cpu.pack(side="left", fill="x", expand=True, padx=(0, 8))
-        self.now_mem = NumberCard(stats, "Memory")
-        self.now_mem.pack(side="left", fill="x", expand=True, padx=8)
-        self.now_disk = NumberCard(stats, "Disk")
-        self.now_disk.pack(side="left", fill="x", expand=True, padx=(8, 0))
+        stats.pack(fill="x", pady=(0, 6))
+        self.now_cpu = RingCard(stats, "Processor")
+        self.now_cpu.pack(side="left", padx=(0, 8))
+        self.now_mem = RingCard(stats, "Memory")
+        self.now_mem.pack(side="left", padx=8)
+        self.now_disk = RingCard(stats, "Disk")
+        self.now_disk.pack(side="left", padx=(8, 0))
+        self.link_map = NetworkMap(page)
+        self.link_map.pack(fill="x", pady=(0, 6))
 
         split = ctk.CTkFrame(page, fg_color="transparent")
         split.pack(fill="both", expand=True)
@@ -403,7 +410,7 @@ class DVielleApp:
         self.radar = LivingRadar(watch, size=120)
         self.radar.pack(padx=14, pady=(4, 8))
 
-        ctk.CTkLabel(page, text="Checks", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(16, 6))
+        ctk.CTkLabel(page, text="Checks", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(8, 4))
         self.nerve_rail = NerveRail(page)
         self.nerve_rail.pack(fill="x", pady=(0, 8))
 
@@ -440,6 +447,8 @@ class DVielleApp:
             "Network",
             "Addresses and adapters DVielle can see. A VPN-like name is not proof of a private route.",
         )
+        self.route_map = NetworkMap(page)
+        self.route_map.pack(fill="x", pady=(0, 10))
         card = ctk.CTkFrame(page, fg_color=T.BG_PANEL, corner_radius=14, border_width=1, border_color=T.BORDER)
         card.pack(fill="both", expand=True)
         self.network_panel = NetworkPanel(card)
@@ -605,6 +614,28 @@ class DVielleApp:
         self._store.log_work("CLEAR", f"Work log cleared ({n} entries removed)")
         self._append_log(f"[DVIELLE] Work log cleared ({n} entries).")
 
+    def _paint_link_maps(self, net: dict | None) -> None:
+        if net:
+            local_ips = net.get("local_ips") or []
+            dns = net.get("dns_servers") or []
+            nodes = (
+                ("This PC", str(net.get("hostname") or "here")[:22], "accent"),
+                ("Local", str(local_ips[0]) if local_ips else "—", "ok" if local_ips else "mute"),
+                ("Gateway", str(net.get("gateway") or "—")[:22], "accent" if net.get("gateway") else "mute"),
+                ("DNS", str(dns[0]) if dns else "—", "ok" if dns else "mute"),
+            )
+        else:
+            nodes = (
+                ("This PC", "here", "accent"),
+                ("Local", "—", "mute"),
+                ("Gateway", "—", "mute"),
+                ("DNS", "—", "mute"),
+            )
+        for name in ("link_map", "route_map"):
+            widget = getattr(self, name, None)
+            if widget is not None:
+                widget.set_nodes(nodes)
+
     def _refresh_network_async(self) -> None:
         # The console reads the owner's observations; opening it never adds network probes.
         if not self._minimized:
@@ -617,6 +648,7 @@ class DVielleApp:
             else:
                 self.network_panel.update_snapshot(None)
             self.network_panel.set_observation_state(collector_state(data, "network_info"), net.get("sampled_at"))
+            self._paint_link_maps(net if section_current(data, "network_info") else None)
         self.root.after(5000, self._refresh_network_async)
 
     def _replay_greeting(self) -> None:
@@ -781,7 +813,7 @@ class DVielleApp:
         running = status.running and snapshot_fresh(data)
         label = "MONITORING" if running else status.ownership.upper()
         self.status_label.configure(text=label, text_color=T.SUCCESS if running else T.WARNING)
-        self.status_dot.configure(text_color=T.SUCCESS if running else T.WARNING)
+        self.status_orb.set_tone("ok" if running else "warn")
         self.agent_status_lbl.configure(text=f"{status.ownership.upper()} · {status.message}", text_color=T.SUCCESS if running else T.WARNING)
         self.mission_lbl.configure(text=status.message)
         self.ticker.push(activity_summary(data))

@@ -12,6 +12,7 @@ import tkinter as tk
 import customtkinter as ctk
 
 from dvielle.gui import theme as T
+from dvielle.gui.graphics import dial_pair
 from dvielle.gui.observations import collector_state
 
 
@@ -186,15 +187,20 @@ class PressureGauge(ctk.CTkFrame):
         self.title = title
         self._value: float | None = None
         self._tone = "mute"
-        top = ctk.CTkFrame(self, fg_color="transparent")
-        top.pack(fill="x", padx=18, pady=(14, 4))
+        self._dial_photo = None
+        self.dial = ctk.CTkLabel(self, text="")
+        self.dial.pack(side="left", padx=(14, 4), pady=12)
+        body = ctk.CTkFrame(self, fg_color="transparent")
+        body.pack(side="left", fill="both", expand=True)
+        top = ctk.CTkFrame(body, fg_color="transparent")
+        top.pack(fill="x", padx=(8, 18), pady=(14, 4))
         ctk.CTkLabel(top, text=title, font=T.FONT_BODY, text_color=T.TEXT).pack(side="left")
         self.val_lbl = ctk.CTkLabel(
             top, text="—", font=("Segoe UI", 28, "bold"), text_color=T.TEXT,
         )
         self.val_lbl.pack(side="right")
-        self.track = ctk.CTkFrame(self, fg_color=T.BORDER, height=8, corner_radius=4)
-        self.track.pack(fill="x", padx=18, pady=(8, 16))
+        self.track = ctk.CTkFrame(body, fg_color=T.BORDER, height=8, corner_radius=4)
+        self.track.pack(fill="x", padx=(8, 18), pady=(8, 16))
         self.track.pack_propagate(False)
         self.fill = ctk.CTkFrame(self.track, fg_color=T.ACCENT, corner_radius=4, height=8)
         self.fill.place(x=0, y=0, relheight=1, relwidth=0)
@@ -202,6 +208,9 @@ class PressureGauge(ctk.CTkFrame):
     def set_value(self, percent: float | None) -> None:
         numeric = bounded_percent(percent)
         self._value = numeric
+        light, dark = dial_pair(numeric, 56)
+        self._dial_photo = ctk.CTkImage(light_image=light, dark_image=dark, size=(56, 56))
+        self.dial.configure(image=self._dial_photo)
         if numeric is None:
             self._tone = "mute"
             self.val_lbl.configure(text="—", text_color=T.TEXT_DIM)

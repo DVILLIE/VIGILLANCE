@@ -29,6 +29,21 @@ def _luminance(hex_color: str) -> float:
     return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue)
 
 
+def _near(image, color: tuple[int, int, int], slack: int = 36) -> int:
+    count = 0
+    pixels = image.get_flattened_data() if hasattr(image, "get_flattened_data") else image.getdata()
+    for pixel in pixels:
+        if len(pixel) < 3:
+            continue
+        if all(abs(pixel[i] - color[i]) <= slack for i in range(3)):
+            count += 1
+    return count
+
+
+def _accent_pixels(image) -> int:
+    return _near(image, (61, 232, 200))
+
+
 def _contrast(left: str, right: str) -> float:
     lighter = max(_luminance(left), _luminance(right))
     darker = min(_luminance(left), _luminance(right))
@@ -145,8 +160,22 @@ def test_only_the_logo_animates() -> None:
         assert label in app
 
     from dvielle.gui.shell import CARD_HEIGHT, line_status
+    from dvielle.gui import graphics as drawings
 
     assert CARD_HEIGHT <= 64
+    assert "self.after" not in (ROOT / "dvielle" / "gui" / "shell.py").read_text(encoding="utf-8")
+    assert "after(" not in inspect.getsource(drawings)
+    quiet = drawings.ring_pair("Processor", None)[1]
+    busy = drawings.ring_pair("Processor", 40)[1]
+    assert busy.size == drawings.RING_SIZE
+    assert _accent_pixels(busy) > _accent_pixels(quiet)
+    for name in ("now", "pc", "network", "findings", "protection", "apps"):
+        icon = drawings.icon_pair(name)[1]
+        assert icon.size == (drawings.NAV_ICON, drawings.NAV_ICON)
+        assert _accent_pixels(icon) > 8
+    assert "RingCard" in app
+    assert "StatusOrb" in app
+    assert "link_map" in app
     assert line_status("[WARN] One check is only partial.")[0] == "Caution"
     assert line_status("[sample] Layout preview.")[0] == "Noted"
     assert line_status("CRITICAL hold")[0] == "Needs a look"
