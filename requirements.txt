@@ -1,4 +1,4 @@
 # One dependency definition: pyproject.toml [project].dependencies plus these extras.
 # cryptography is a core dependency there, not an extra. Install-DVielle.bat
 # syncs this selector into the install-root .venv before the resident starts.
--e .[windows,chat]
+-e .[windows]

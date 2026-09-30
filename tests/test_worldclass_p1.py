@@ -151,7 +151,7 @@ def _invoke(tmp_path: Path, prefs: _Prefs, handler: str, signals: dict):
 
 
 def test_version_is_past_the_1_9_0_prevention_release():
-    assert get_version() == "2.3.2"
+    assert get_version() == "2.3.3"
     text = (ROOT / "docs" / "FUNCTION_SPEC.md").read_text(encoding="utf-8")
     assert "1.9.0" in text
 

@@ -27,7 +27,7 @@ A second headless launch exits without duplicating collectors. A console can acq
 - Authentication counts use source event time and record identity. Successful 4776 events are excluded; a 4776 workstation is a hostname, not a blockable source IP.
 - Unknown peers, familiar process names, reverse DNS and cloud hosting do not establish trust or maliciousness.
 - Windows Home and Pro have a Required diagnostic-data floor. Registry settings alone do not prove that traffic stopped.
-- Public-IP lookup, cloud chat, cloud speech and web search require separate opt-ins. Core monitoring does not need a model.
+- Public-IP lookup requires a separate opt-in. Core monitoring does not need a model. There is no chat assistant. Console close and confirm lines stay local speech.
 - DVielle complements Windows security. It cannot prove a machine is free of threats.
 - Windows Home has no Windows Sandbox and no App Control authoring. The console evidence strip shows edition support, not a guess that a feature is on. Pass/fail checks are in [docs/TRUST_GATES.md](docs/TRUST_GATES.md). Promises, assumptions, and unchecked items are in [docs/CLAIMS.md](docs/CLAIMS.md). The FREE roadmap is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) §1.1.
 
@@ -36,7 +36,7 @@ See [implemented autonomy and verification](docs/AUTONOMY.md), [architecture](do
 ## Development checks
 
 ```bat
-py -3.12 -m pip install -e ".[windows,chat,dev]"
+py -3.12 -m pip install -e ".[windows,dev]"
 py -3.12 scripts\smoke_test.py
 py -3.12 -m pytest -q
 py -3.12 -m ruff check agent dvielle scripts/smoke_test.py --select E9,F63,F7,F82
@@ -61,6 +61,6 @@ See [docs/DEV.md](docs/DEV.md). The installer smoke checks imports and package m
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Product defaults |
 | [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md) | Install on the PC, not cloud |
 | [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md) | Home vs Pro telemetry honesty |
-| [docs/CHAT_DEFERRED.md](docs/CHAT_DEFERRED.md) | Why chat/demo waits |
+| [docs/CHAT_REMOVED.md](docs/CHAT_REMOVED.md) | Chat assistant removed in 2.3.3 |
 | [docs/AUTONOMY.md](docs/AUTONOMY.md) | What the resident agent does and does not do |
 | [docs/DEV.md](docs/DEV.md) | Local checks |

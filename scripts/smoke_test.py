@@ -36,7 +36,15 @@ def main() -> int:
 
     check("Python 3.12", _python_version)
 
+    def _chat_removed():
+        try:
+            importlib.import_module("agent.chat")
+        except ModuleNotFoundError:
+            return
+        raise RuntimeError("agent.chat must stay removed")
+
     check("import dvielle", lambda: importlib.import_module("dvielle"))
+    check("chat assistant removed", _chat_removed)
     check("import agent.main", lambda: importlib.import_module("agent.main"))
     check("import agent.controller", lambda: importlib.import_module("agent.controller"))
     check("import agent.store.db", lambda: importlib.import_module("agent.store.db"))

@@ -52,7 +52,7 @@ def _obs(severity: str, *, kind: str = "protection_off", action_class: str = "as
 
 
 def test_version_is_2_3_0() -> None:
-    assert get_version() == "2.3.2"
+    assert get_version() == "2.3.3"
 
 
 def test_shipped_config_is_everyday_and_locks_are_false() -> None:

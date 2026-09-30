@@ -30,7 +30,7 @@ Differentiator: **workload-aware** protection of performance, privacy, and secur
 5. VIGILLANCE itself must stay inside a hard **resource budget** (never become the slowdown).
 6. Destructive / irreversible actions require **confidence threshold + policy / explicit approval**.
 7. Every decision leaves an **evidence chain** (explainability / digital forensics).
-8. Chat / TTS / demo are **optional surfaces**, not the product core.
+8. Console voice toasts for close and confirm stay. The chat assistant was removed in 2.3.3 and is not a product surface. The browser snapshot viewer is not the product core.
 
 ### Action hierarchy
 
@@ -166,7 +166,7 @@ Binding for audits, PRs, and engineering passes:
 |-------|--------|-------|
 | `dvielle/gui/app.py` | **REDESIGN** | Evolve from “START + Smart Close + feed” toward Explain/Recommend consoles per engine. |
 | `attacks_window.py` | **RENAME/EXPAND** | Becomes Security + Network Review console (not only “attacks”). |
-| Chat / demo | **DEFER** | `docs/CHAT_DEFERRED.md` still correct. |
+| Chat assistant | **REMOVED** | 2.3.3 deleted the console control, `dvielle/gui/chat_window.py`, and `agent/chat/`. See `docs/CHAT_REMOVED.md`. `dvielle/gui/voice.py` stays. |
 
 ### Explicit GAPs (not in repo yet)
 
@@ -291,7 +291,7 @@ When reviewing code, also ask:
 - Keylogging / password capture / content sniffing  
 - Blind EmptyStandbyList loops  
 - Auto-disable arbitrary Windows services  
-- Chat-first product definition  
+- A chat assistant (removed in 2.3.3; not deferred work)  
 
 ---
 

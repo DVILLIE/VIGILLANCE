@@ -263,30 +263,3 @@ def activity_summary(data: dict | None) -> str:
         state = collector_state(data, name)
         counts[state] = counts.get(state, 0) + 1
     return "Collectors: " + (" · ".join(f"{count} {state}" for state, count in sorted(counts.items())) or "waiting")
-
-
-def chat_stats(data: dict | None, running: bool, cycles: int) -> dict[str, Any]:
-    data = data or {}
-    mem, system, network = (data.get(k) or {} for k in ("memory", "system", "network"))
-    ram_ok = section_current(data, "heartbeat", mem.get("sampled_at"))
-    cpu_ok = section_current(data, "heartbeat", system.get("cpu_sampled_at"))
-    disk_ok = section_current(data, "disk")
-    net_ok = section_current(data, "network_info")
-    return {
-        "agent_started": running and snapshot_fresh(data), "agent_cycles": cycles,
-        "observation_status": activity_summary(data),
-        "cpu_percent": system.get("cpu_percent") if cpu_ok else None,
-        "ram_percent": mem.get("memory_load_percent") if ram_ok else None,
-        "ram_available_gb": mem.get("avail_phys_mb") / 1024 if ram_ok and mem.get("avail_phys_mb") is not None else None,
-        "commit_percent": mem.get("commit_percent") if ram_ok else None,
-        "disk_percent_used": system.get("disk_percent") if disk_ok else None,
-        "disk_free_gb": system.get("disk_free_gb") if disk_ok else None,
-        "hostname": network.get("hostname") if net_ok else None,
-        "local_ips": network.get("local_ips", []) if net_ok else [],
-        "public_ip": network.get("public_ip") if net_ok else None,
-        "vpn_active": network.get("vpn_active") if net_ok else None,
-        "vpn_name": network.get("vpn_adapter") if net_ok else None,
-        "vpn_ip": network.get("vpn_ip") if net_ok else None,
-        "dns_servers": network.get("dns_servers", []) if net_ok else [],
-        "gateway": network.get("gateway") if net_ok else None,
-    }

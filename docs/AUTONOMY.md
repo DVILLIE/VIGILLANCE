@@ -42,7 +42,7 @@ Network classification uses domain-label boundaries and separates topology/name 
 
 Resource recommendations preserve PID creation times. Closing requires confirmation of the current identity, foreground and protected-family checks, and a recorded decision. Stale or missing identity is refused. File cleanup and automatic RAM trimming remain disabled. Privacy policy readings distinguish unavailable, configured and verified states; registry policy is not proof of effective traffic suppression.
 
-The native console uses shared measured state and explicit collector freshness. Headless and tray modes retain critical notifications. Optional chat obeys its enabled flag, and speech/web/cloud requests have separate consent flags. The browser entry point imports actual snapshots locally; it does not generate system metrics or run microphone/model/network lookups.
+The native console uses shared measured state and explicit collector freshness. Headless and tray modes retain critical notifications. Console voice for close and confirm stays local. The chat assistant is not part of the product. The browser entry point imports actual snapshots locally; it does not generate system metrics or run microphone, model, or network lookups.
 
 SQLite observation tables and work logs have scheduled retention. Twin history rotates with one backup. Decision/action audit evidence remains durable, so its size still needs operational review.
 
@@ -55,7 +55,7 @@ Verified on 2026-09-14 with Python 3.12 and Node 24:
 - Selected Ruff checks across agent, console, tests and verification scripts passed; changed browser entry/parser lint passed.
 - Import/configuration smoke passed. Browser file selection and rendering were checked against an actual isolated-runtime snapshot: stopped owner, measured memory, disabled collectors and unavailable security values were displayed accurately, with no browser console errors.
 
-The repository-wide browser lint also reports pre-existing React warnings in legacy, unmounted `ChatPanel.tsx`; those components are outside the active snapshot viewer.
+Unmounted demo chat sources were removed with the product assistant. Other unused demo files stay outside the snapshot viewer.
 
 Regression coverage includes stalled providers, reserved core capacity, scheduling deferral/recovery, retry backoff, real cross-process ownership, graceful shutdown, missing measurements, source-time authentication, identity-bound process actions and installer helper contracts. The browser is checked with its TypeScript production build.
 

@@ -17,7 +17,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[windows,chat,dev]"
+          python -m pip install -e ".[windows,dev]"
       - name: Installation smoke (no host collection)
         run: python scripts/smoke_test.py
       - name: Ruff (selected)

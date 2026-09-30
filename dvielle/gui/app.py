@@ -10,7 +10,6 @@ from pathlib import Path
 
 import psutil
 
-from agent.chat.assistant import ChatAssistant
 from agent.controller import AgentController
 from agent.modules.network_info import NetworkSnapshot
 from agent.runtime import runtime_paths
@@ -29,7 +28,6 @@ from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
 from dvielle.gui.observations import (
     activity_summary,
-    chat_stats,
     collector_state,
     prevention_evidence_line,
     section_current,
@@ -46,7 +44,6 @@ from dvielle.gui.presence import (
 )
 from dvielle.gui.tray import notify_tray, setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
-from dvielle.gui.chat_window import ChatWindow
 from dvielle.gui.why_window import WhyWindow
 from dvielle.gui.work_log_window import WorkLogWindow
 
@@ -82,8 +79,6 @@ class DVielleApp:
         self._greeting_idx = 0
         self._seen_events: set[str] = set()
         self._last_network_key: str | None = None
-        self._chat: ChatAssistant | None = None
-        self._chat_win: ChatWindow | None = None
         self._attacks_win: AttacksWindow | None = None
         self._why_win: WhyWindow | None = None
         self._mission_verbs = 0
@@ -267,7 +262,6 @@ class DVielleApp:
             ("Why", self._open_why, T.ACCENT_DIM),
             ("Attacks Console", self._open_attacks, T.DANGER),
             ("Clear Log", self._clear_work_log, T.BG_PANEL_ALT),
-            ("Chat" if self._config.get("chat", {}).get("enabled") is True else "Chat disabled", self._open_chat, T.ACCENT_DIM),
         ):
             ctk.CTkButton(
                 left_footer,
@@ -427,42 +421,6 @@ class DVielleApp:
         self.mission_lbl.configure(text="Connecting to the monitoring owner…")
         self._store.log_work("START_REQUEST", "Requested monitoring start or attachment")
         self.controller.start()
-
-    def _open_chat(self) -> None:
-        try:
-            cfg = load_yaml(self.config_dir / "config.yaml")
-            configured_chat = ChatAssistant.from_config(cfg)
-        except (OSError, TypeError, ValueError) as exc:
-            self._append_log(f"[CHAT] Configuration unavailable: {exc}")
-            return
-        if cfg.get("chat", {}).get("enabled") is not True:
-            self._append_log("[CHAT] Chat is disabled in configuration.")
-            return
-        if self._chat_win is not None and self._chat_win.winfo_exists():
-            self._chat_win.lift()
-            return
-        # Reopening applies current privacy options instead of retaining old opt-ins.
-        self._chat = configured_chat
-
-        def stats() -> dict:
-            twin = self.controller.twin
-            return chat_stats(twin.as_dict() if twin else None,
-                              self.controller.status.running, self.controller.status.cycle_count)
-
-        self._chat_win = ChatWindow(
-            self.root,
-            self._chat,
-            agent_started=lambda: self.controller.status.running,
-            cycle_count=lambda: self.controller.status.cycle_count if self._agent_started else 0,
-            stats_provider=stats,
-            on_cloud_use=self._on_chat_cloud_use,
-        )
-
-    def _on_chat_cloud_use(self) -> None:
-        """Record to the work log whenever a chat answer left the machine."""
-        raw = getattr(self._chat, "allow_cloud_raw", False)
-        detail = "RAW context sent" if raw else "network identity redacted"
-        self._store.log_work("CHAT_CLOUD", f"Chat answered via Groq cloud LLM ({detail})")
 
     def _view_work_log(self) -> None:
         WorkLogWindow(self.root, self._store)
