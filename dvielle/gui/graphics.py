@@ -45,8 +45,12 @@ def tone_name(percent: float | None) -> str:
     return "accent"
 
 
+_SLOTS = {"Processor": 0, "Memory": 1, "Disk": 2}
+
+
 def ring_pair(title: str, percent: float | None) -> tuple[Image.Image, Image.Image]:
-    return _ring("light", title, percent), _ring("dark", title, percent)
+    slot = _SLOTS.get(title, 0)
+    return _ring("light", title, percent, slot), _ring("dark", title, percent, slot)
 
 
 def icon_pair(name: str, size: int = NAV_ICON) -> tuple[Image.Image, Image.Image]:
@@ -108,40 +112,58 @@ def _vertical_gradient(size: tuple[int, int], top: str, bottom: str) -> Image.Im
     return image
 
 
-def _glass(mode: str, width: int, height: int, radius: int = 18) -> Image.Image:
-    """Soft panel: vertical fade, corner glow, hairline, dot grid."""
+def _mix(left: str, right: str, amount: float) -> str:
+    a, b = _rgb(left), _rgb(right)
+    mixed = tuple(int(a[i] * (1 - amount) + b[i] * amount) for i in range(3))
+    return "#{:02X}{:02X}{:02X}".format(*mixed)
+
+
+def _corner_orbits(draw: ImageDraw.ImageDraw, width: int, height: int, mode: str, slot: int) -> None:
+    """Static orbits in the free corner. The angle comes from the day's seed."""
+    book = _book(mode)
+    motif = T.current_motif()
+    phase = int(motif["phase"]) + slot * 47
+    accent = _rgba(book["accent"], 200)
+    orbit = _rgba(book["orbit"], 220)
+    draw.arc((width - 78, -8, width + 10, 62), phase, phase + 130, fill=orbit, width=2)
+    if slot % 2 == 0:
+        draw.arc((width - 62, 4, width - 8, 50), phase + 24, phase + 100, fill=accent, width=2)
+    else:
+        draw.arc((width - 96, 6, width - 18, 68), phase + 12, phase + 90, fill=accent, width=1)
+    ang = math.radians(phase)
+    ex = width - 36 + 16 * math.cos(ang)
+    ey = 22 + 8 * math.sin(ang)
+    if 4 <= ex <= width - 4 and 4 <= ey <= height - 4:
+        draw.ellipse((ex - 2.5, ey - 2.5, ex + 2.5, ey + 2.5), fill=orbit)
+    if height >= 140 and slot % 3 == 1:
+        base = height - 28
+        for wave in range(int(motif["waves"])):
+            y = base - wave * 4
+            color = orbit if wave % 2 else accent
+            draw.arc((8, y, width - 8, y + 22), 200, 340, fill=color, width=1)
+
+
+def _glass(mode: str, width: int, height: int, radius: int = 18, slot: int = 0) -> Image.Image:
+    """Soft panel tinted with the day's accent, plus a still orbit mark."""
     book = _book(mode)
     if mode == "dark":
-        top, bottom = "#1A3348", book["panel"]
+        top = _mix(book["panel"], book["accent"], 0.38)
     else:
-        top, bottom = "#FFFFFF", "#E5EEF3"
-    gradient = _vertical_gradient((width, height), top, bottom)
+        top = _mix("#FFFFFF", book["accent"], 0.14)
+    gradient = _vertical_gradient((width, height), top, book["panel"])
     mask = Image.new("L", (width, height), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, width - 1, height - 1), radius=radius, fill=255)
     panel = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     panel.paste(gradient, (0, 0), mask)
-
-    glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    accent = _rgb(book["accent"])
-    for step in range(36):
-        alpha = int(22 * (1 - step / 36))
-        glow_draw.ellipse((-30, -36, 70 - step, 64 - step), fill=accent + (alpha,))
-    panel = Image.alpha_composite(panel, glow)
-
     draw = ImageDraw.Draw(panel)
-    dot = _rgba(book["accent"], 55 if mode == "dark" else 40)
-    for x in range(18, width - 10, 16):
-        for y in range(18, height - 10, 16):
-            draw.ellipse((x, y, x + 1, y + 1), fill=dot)
+    _corner_orbits(draw, width, height, mode, slot)
     draw.rounded_rectangle(
         (0, 0, width - 1, height - 1),
         radius=radius,
         outline=_rgba(book["border"]),
         width=1,
     )
-    # Top edge catch-light, so the panel reads as glass rather than a flat fill.
-    draw.arc((8, 1, width - 9, 22), 200, 340, fill=_rgba(book["accent_hot"], 90), width=1)
+    draw.arc((10, 1, width // 2, 18), 200, 340, fill=_rgba(book["accent"], 120), width=1)
     return panel
 
 
@@ -171,6 +193,16 @@ def _dial(mode: str, percent: float | None, diameter: int) -> Image.Image:
         )
     tone = tone_name(percent)
     color = book["accent"] if tone == "accent" else book[tone]
+    phase = int(T.current_motif()["phase"])
+    draw.ellipse(
+        (pad + 1, pad + 9, diameter - pad - 3, diameter - pad - 11),
+        outline=_rgba(book["orbit"], 230),
+        width=2,
+    )
+    ang = math.radians(phase)
+    ex = center + (radius - 8) * math.cos(ang)
+    ey = center + (radius - 12) * math.sin(ang)
+    draw.ellipse((ex - 3, ey - 3, ex + 3, ey + 3), fill=_rgba(book["orbit"]))
     if percent is not None and percent > 0:
         extent = max(4.0, 360.0 * percent / 100.0)
         draw.arc(box, -90, -90 + extent, fill=_rgba(color, 80), width=9)
@@ -178,9 +210,9 @@ def _dial(mode: str, percent: float | None, diameter: int) -> Image.Image:
     return image
 
 
-def _ring(mode: str, title: str, percent: float | None) -> Image.Image:
+def _ring(mode: str, title: str, percent: float | None, slot: int) -> Image.Image:
     width, height = RING_SIZE
-    panel = _glass(mode, width, height)
+    panel = _glass(mode, width, height, slot=slot)
     book = _book(mode)
     dial = _dial(mode, percent, 112)
     panel.alpha_composite(dial, (18, 24))
@@ -204,7 +236,7 @@ def _icon(name: str, mode: str, size: int) -> Image.Image:
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     ink = _rgba(book["accent"])
-    hot = _rgba(book["accent_hot"])
+    hot = _rgba(book["orbit"])
     edge = size - 1
     if name == "now":
         draw.ellipse((3, 3, edge - 3, edge - 3), outline=ink, width=2)
@@ -267,28 +299,29 @@ def _orb(tone: str, mode: str) -> Image.Image:
     size = ORB_SIZE
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    draw.ellipse((0, 0, size - 1, size - 1), outline=_rgba(book["border"]), width=1)
-    draw.ellipse((4, 4, size - 5, size - 5), outline=_rgba(color, 110), width=3)
+    draw.ellipse((1, 7, size - 2, size - 8), outline=_rgba(book["orbit"], 230), width=2)
     draw.ellipse((11, 11, size - 12, size - 12), fill=_rgba(color))
-    mid = size // 2
-    tick = _rgba(book["accent_hot"])
-    draw.line((2, mid, 6, mid), fill=tick, width=1)
-    draw.line((size - 7, mid, size - 3, mid), fill=tick, width=1)
-    draw.line((mid, 2, mid, 6), fill=tick, width=1)
-    draw.line((mid, size - 7, mid, size - 3), fill=tick, width=1)
+    phase = int(T.current_motif()["phase"])
+    mid = size / 2
+    for extra in (0, 170):
+        ang = math.radians(phase + extra)
+        ex = mid + (mid - 5) * math.cos(ang)
+        ey = mid + (mid - 10) * math.sin(ang)
+        draw.ellipse((ex - 2, ey - 2, ex + 2, ey + 2), fill=_rgba(book["orbit"]))
     return image
 
 
 def _network(mode: str, nodes: list[tuple[str, str, str]]) -> Image.Image:
     width, height = MAP_SIZE
-    panel = _glass(mode, width, height, radius=16)
+    panel = _glass(mode, width, height, radius=16, slot=0)
     book = _book(mode)
     draw = ImageDraw.Draw(panel)
     count = max(1, len(nodes))
     centers = [int(width * (index + 1) / (count + 1)) for index in range(count)]
     y = 46
-    for left, right in zip(centers, centers[1:]):
-        draw.line((left + 16, y, right - 16, y), fill=_rgba(book["accent"], 170), width=2)
+    for index, (left, right) in enumerate(zip(centers, centers[1:])):
+        color = book["orbit"] if index % 2 else book["accent"]
+        draw.arc((left, y - 16, right, y + 16), 206, 334, fill=_rgba(color, 220), width=2)
     ink = _rgba(book["ink"])
     mute = _rgba(book["mute"])
     for center, node in zip(centers, nodes):
@@ -306,7 +339,9 @@ def _rule(mode: str, width: int) -> Image.Image:
     image = Image.new("RGBA", (width, 3), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     accent = _rgb(book["accent"])
+    orbit = _rgb(book["orbit"])
     for x in range(width):
-        alpha = int(210 * (1 - x / max(1, width - 1)))
-        draw.line((x, 0, x, 2), fill=accent + (alpha,))
+        color = accent if x < width * 0.62 else orbit
+        alpha = 230 if x < width * 0.62 else 200
+        draw.line((x, 0, x, 2), fill=color + (alpha,))
     return image

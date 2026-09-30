@@ -41,7 +41,9 @@ def _near(image, color: tuple[int, int, int], slack: int = 36) -> int:
 
 
 def _accent_pixels(image) -> int:
-    return _near(image, (61, 232, 200))
+    raw = T.DARK["accent"].lstrip("#")
+    color = tuple(int(raw[i : i + 2], 16) for i in (0, 2, 4))
+    return _near(image, color)
 
 
 def _contrast(left: str, right: str) -> float:
@@ -52,8 +54,12 @@ def _contrast(left: str, right: str) -> float:
 
 @pytest.fixture(autouse=True)
 def _restore_dark_mode():
+    from datetime import date
+
+    T.install_day(date(2026, 1, 1))
     T.apply("dark")
     yield
+    T.install_day(date(2026, 1, 1))
     T.apply("dark")
 
 
@@ -99,16 +105,36 @@ def test_tuple_order_is_light_then_dark_and_apply_switches_canvas_hex() -> None:
         T.unsubscribe(seen.append)
 
 
-@pytest.mark.parametrize("book", [T.LIGHT, T.DARK])
-def test_body_and_status_colors_stay_readable(book: dict[str, str]) -> None:
-    assert _contrast(book["ink"], book["void"]) >= 7
-    assert _contrast(book["ink"], book["panel"]) >= 7
-    assert _contrast(book["accent"], book["panel"]) >= 4.5
-    assert _contrast(book["mute"], book["void"]) >= 4.5
-    assert _contrast(book["on_accent"], book["accent"]) >= 4.5
-    assert _contrast(book["on_accent"], book["accent_dim"]) >= 4.5
-    assert _contrast(book["on_crit"], book["crit"]) >= 4.5
-    assert book["ok"] != book["warn"] != book["crit"]
+def test_body_and_status_colors_stay_readable() -> None:
+    from datetime import date, timedelta
+
+    for offset in range(len(T.SPECTRA)):
+        T.install_day(date(2026, 1, 1) + timedelta(days=offset))
+        for book in (T.LIGHT, T.DARK):
+            assert _contrast(book["ink"], book["void"]) >= 7
+            assert _contrast(book["ink"], book["panel"]) >= 7
+            assert _contrast(book["accent"], book["panel"]) >= 4.5
+            assert _contrast(book["mute"], book["void"]) >= 4.5
+            assert _contrast(book["on_accent"], book["accent"]) >= 4.5
+            assert _contrast(book["on_accent"], book["accent_dim"]) >= 4.5
+            assert _contrast(book["on_crit"], book["crit"]) >= 4.5
+            assert book["ok"] != book["warn"] != book["crit"]
+            assert book["orbit"] != book["accent"]
+
+
+def test_the_day_changes_color_and_orbit() -> None:
+    from datetime import date
+
+    from dvielle.gui import graphics as drawings
+
+    first = T.install_day(date(2026, 9, 30))
+    rose = drawings.ring_pair("Processor", 40)[1]
+    second = T.install_day(date(2026, 10, 1))
+    nxt = drawings.ring_pair("Processor", 40)[1]
+    assert first["name"] != second["name"]
+    assert first["phase"] != second["phase"]
+    assert rose.tobytes() != nxt.tobytes()
+    assert "Today ·" in (ROOT / "dvielle" / "gui" / "app.py").read_text(encoding="utf-8")
 
 
 def test_selected_tab_label_uses_on_accent() -> None:

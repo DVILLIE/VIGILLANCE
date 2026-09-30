@@ -86,6 +86,7 @@ class DVielleApp:
         # Identity before first window (also set in __main__; safe to call twice).
         configure_windows_app_identity()
 
+        T.install_day()
         T.apply(load_appearance(self.data_dir))
         self.root = ctk.CTk()
         self.root.title(f"{APP_NAME} — {TAGLINE}")
@@ -191,6 +192,13 @@ class DVielleApp:
         controls.pack(side="right", padx=16, pady=14)
         theme_row = ctk.CTkFrame(controls, fg_color="transparent")
         theme_row.pack(anchor="e")
+        self.day_chip = ctk.CTkLabel(
+            theme_row,
+            text=f"Today · {T.current_motif()['name']}",
+            font=T.FONT_TAGLINE,
+            text_color=T.ACCENT,
+        )
+        self.day_chip.pack(side="left", padx=(0, 8))
         self.theme_dark = ctk.CTkButton(
             theme_row, text="Dark", width=76, height=32, corner_radius=8,
             font=T.FONT_TAGLINE, command=lambda: self._set_theme("dark"),

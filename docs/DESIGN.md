@@ -69,7 +69,7 @@ Rules:
 
 The console is a shell, not a four-column instrument panel.
 
-1. **Header** — logo, product name, one status sentence, Dark/Light, start.
+1. **Header** — logo, product name, one status sentence, the day's color name, Dark/Light, start.
 2. **Left pages** — Now, This PC, Network, Findings, Protection, Apps. One page is visible.
 3. **Now** — three still load rings (processor, memory, disk), a still network map, latest notes as cards (severity glyph, color bar, and a plain word: Noted, Caution, Needs a look, Settled), a small static watch mark, collector chips. Page icons and a header status orb are drawn, not typed bullets.
 4. **This PC** — full-width load bars (processor, memory, disk).
@@ -92,19 +92,21 @@ Only the brand mark animates.
 
 No parallax, no particle storms, no scan line, no pulsing status dot, no animated tabs or buttons.
 
+The day's accent is chosen once, from the local date, when the console opens. Orbits, the second color, and card-corner marks use that seed and stay still. Dark and Light remain the saved choice in `console_ui.json`. The five day names are Violet, Coral, Gold, Sky, and Rose. Green, amber, and red stay the status colors.
+
 ## Light palette — Dayglass
 
 Dark above remains the default. Light is optional and stored locally.
 
 | Token | Hex | Role |
 |-------|-----|------|
-| `void` | `#F3F6F8` | App background |
+| `void` | `#F6F2FB` | App background |
 | `panel` | `#FFFFFF` | Primary surfaces |
-| `panel-2` | `#E7EEF3` | Nested / inset |
-| `stroke` | `#D2DCE3` | Hairlines |
-| `phosphor` | `#0C6B5C` | Primary accent, dark enough to read on white |
-| `ink` | `#132028` | Primary text |
-| `ink-mute` | `#4A5C6A` | Secondary text |
+| `panel-2` | `#EFE8F8` | Nested / inset |
+| `stroke` | `#DDD3EA` | Hairlines |
+| `phosphor` | day's accent | Violet, Coral, Gold, Sky, or Rose. Dark enough to read on white |
+| `ink` | `#1B1426` | Primary text |
+| `ink-mute` | `#5A4E68` | Secondary text |
 | `ok` / `warn` / `crit` | `#0C7040` / `#8A5600` / `#B4233A` | Status only |
 
 Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `light`. Missing or invalid file means dark. CustomTkinter color arguments are `(light, dark)` tuples so a switch repaints widgets. Tk canvases redraw from the active hex. `system` appearance mode is not used: on Linux, CustomTkinter documents that system mode stays light.
@@ -140,8 +142,8 @@ Evolve `dvielle/gui/theme.py` toward Phosphor Void tokens and the large type sca
 ## Design QA checklist
 
 - [ ] First viewport readable as VIGILLANCE without reading nav  
-- [ ] One accent color dominates  
+- [ ] The day's accent plus one orbit color, status colors unchanged  
 - [ ] Body ≥15px  
-- [ ] No purple gradient skin  
+- [ ] Orbits and field marks are still. Only the logo moves  
 - [ ] Mission sentence visible in NOW  
 - [ ] Evidence “Why” reachable in ≤2 clicks  

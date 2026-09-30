@@ -63,10 +63,11 @@ class LivingRadar(ctk.CTkFrame):
         self.canvas.create_line(cx - r, cy, cx + r, cy, fill=T.hex_color("border"), width=1)
         self.canvas.create_line(cx, cy - r, cx, cy + r, fill=T.hex_color("border"), width=1)
         # Fixed arcs so the mark still reads as a radar. They do not sweep.
+        phase = int(T.current_motif()["phase"])
         self.canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
-            start=300, extent=48,
-            style=tk.ARC, outline=T.hex_color("accent_hot"), width=2,
+            start=phase, extent=48,
+            style=tk.ARC, outline=T.hex_color("orbit"), width=2,
         )
         self.canvas.create_arc(
             cx - r + 8, cy - r + 8, cx + r - 8, cy + r - 8,
