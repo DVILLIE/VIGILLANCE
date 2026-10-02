@@ -110,7 +110,7 @@ def test_readme_keeps_the_zip_as_the_download():
     readme = _text("README.md")
     guide = _text("docs/USER_GUIDE.md")
     notice = _text("installer/SETUP_NOTICE.txt")
-    assert "DVielle-2.4.1-windows-installer.zip" in readme
+    assert "DVielle-2.4.2-windows-installer.zip" in readme
     assert "Not on this Release" in readme
     assert "not a PyInstaller freeze" in readme
     assert "Chat is gone" in readme or "Not a chat assistant" in readme
@@ -119,5 +119,25 @@ def test_readme_keeps_the_zip_as_the_download():
     assert "not on the Release" in guide
     assert "not an antivirus" in notice.lower()
     assert "Limited" in notice
-    assert "DVielle-Setup-2.4.1.exe" in _text("docs/WINDOWS_INSTALLER.md")
+    assert "DVielle-Setup-2.4.2.exe" in _text("docs/WINDOWS_INSTALLER.md")
     assert "UNCHECKED" in _text("docs/CLAIMS.md")
+
+
+def test_rcedit_pin_matches_vendored_tool():
+    import hashlib
+    pin = _json("installer/rcedit-x64.pin.json")
+    assert pin["version"] == "2.0.0"
+    assert pin["filename"] == "rcedit-x64.exe"
+    assert pin["sha256"].upper() == "3E7801DB1A5EDBEC91B49A24A094AAD776CB4515488EA5A4CA2289C400EADE2A"
+    blob = (ROOT / "installer/tools/rcedit-x64.exe").read_bytes()
+    assert len(blob) == int(pin["size"])
+    assert hashlib.sha256(blob).hexdigest().upper() == pin["sha256"].upper()
+
+
+def test_claims_honest_about_resident_python_vs_gui_shim():
+    claims = _text("docs/CLAIMS.md")
+    installer_doc = _text("docs/WINDOWS_INSTALLER.md")
+    assert "DVielle.exe" in claims
+    assert "pythonw.exe -m agent.main" in claims or "pythonw.exe" in claims
+    assert "Branded console host" in installer_doc
+    assert "resident" in installer_doc.lower()

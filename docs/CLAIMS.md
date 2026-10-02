@@ -1,6 +1,6 @@
 # Claims, assumptions, and evidence
 
-Version 2.4.1. The console can show Dark (the default) or Light. That choice is appearance only, stored in the local data directory, and it does not add a protection promise. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief). 2.3.2 does not add a protection promise. A finished collector, including a partial collection, is due again at last-run plus its interval. That is scheduling, not a new control.
+Version 2.4.2. The console can show Dark (the default) or Light. That choice is appearance only, stored in the local data directory, and it does not add a protection promise. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief). 2.3.2 does not add a protection promise. A finished collector, including a partial collection, is due again at last-run plus its interval. That is scheduling, not a new control.
 
 An empty box in [TRUST_GATES.md](TRUST_GATES.md) is UNCHECKED. A green box is a check that was actually run. An AMTSO Security Features Check, if one is ever run, proves wiring. It is not a malware-efficacy percentage. https://www.amtso.org/security-features-check/
 
@@ -99,6 +99,7 @@ These are named so a later change cannot treat them as already done:
 8. **CFA read or exfiltration blocking.** Not claimed.
 9. **Full VPN and IPv6 leakproof behavior** for every client. UNKNOWN.
 10. **abuse.ch dumps inside the product.** Not shipped.
-11. **Setup executable field install.** `DVielle-Setup-2.4.1.exe` can be compiled by `scripts/build_windows_installer.ps1` and the `windows-installer` job. It checks the official Python 3.12.10 installer, then calls the existing installer at RunLevel Limited. A run of that file on a Windows PC, including SmartScreen and a resident heartbeat, is UNCHECKED. The v2.4.1 Release does not list that file. The zip plus Python 3.12 remains the download. The file is unsigned. It is not an antivirus claim.
+10b. **Console process identity in Task Manager.** Opening the desktop shortcut runs `.venv\Scripts\DVielle.exe -m dvielle` (branded pythonw copy). Task Manager Details should list **DVielle.exe** with the DVielle icon for that console. The resident monitor remains `pythonw.exe -m agent.main` and still shows as Python. Authenticode signing of the shim is UNCHECKED (unsigned OK; SmartScreen may warn for other binaries).
+11. **Setup executable field install.** `DVielle-Setup-2.4.2.exe` can be compiled by `scripts/build_windows_installer.ps1` and the `windows-installer` job. It checks the official Python 3.12.10 installer, then calls the existing installer at RunLevel Limited. A run of that file on a Windows PC, including SmartScreen and a resident heartbeat, is UNCHECKED. The v2.4.2 Release does not list that file. The zip plus Python 3.12 remains the download. The file is unsigned. It is not an antivirus claim.
 
 Core prevention stays free. No offensive tools.

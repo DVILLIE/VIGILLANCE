@@ -65,3 +65,22 @@ def test_block_ip_does_not_treat_a_name_match_as_protection():
     assert script.index("Test-DvielleBlockCoversAddress") < script.index("Verified existing inbound block")
     assert "does not block" in script
     assert "DualGate" in script or "not a DVielle product" in script.lower() or "Not a DVielle product" in script
+
+
+def test_install_builds_branded_gui_exe_before_shortcuts():
+    install = _text("installer/install-dvielle.ps1")
+    launch = _text("installer/Launch-DVielle.bat")
+    shim = _text("scripts/New-DvielleGuiExe.ps1")
+    common = _text("installer/common.ps1")
+    assert "New-DvielleGuiExe.ps1" in install
+    assert install.index("New-DvielleGuiExe.ps1") < install.index("CreateShortcut")
+    assert "$shortcut.TargetPath = $guiExe" in install
+    assert "DVielle.exe" in install
+    assert "DVielle.exe" in launch
+    assert "-m dvielle" in launch.lower() or "-m dvielle" in launch
+    assert "rcedit-x64.exe" in shim
+    assert "--set-icon" in shim
+    assert "DVielle.exe" in common
+    pin = _text("installer/rcedit-x64.pin.json")
+    assert "3E7801DB1A5EDBEC91B49A24A094AAD776CB4515488EA5A4CA2289C400EADE2A" in pin.upper()
+    assert (ROOT / "installer/tools/rcedit-x64.exe").is_file()

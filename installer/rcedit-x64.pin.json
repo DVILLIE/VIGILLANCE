@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "filename": "rcedit-x64.exe",
+  "url": "https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe",
+  "sha256": "3E7801DB1A5EDBEC91B49A24A094AAD776CB4515488EA5A4CA2289C400EADE2A",
+  "size": 1360384,
+  "license": "MIT",
+  "source": "https://github.com/electron/rcedit",
+  "purpose": "Stamp assets/brand/dvielle.ico and FileDescription onto the install-time DVielle.exe GUI shim (a same-folder copy of venv pythonw.exe)."
+}

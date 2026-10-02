@@ -93,6 +93,16 @@ try {
     Invoke-DvielleNative $python @('scripts\smoke_test.py')
 } finally { Pop-Location }
 
+# Branded console host: same-folder copy of pythonw with dvielle.ico (Task Manager process identity).
+# Resident logon task stays pythonw -m agent.main.
+$guiShimScript = Join-Path $InstallDir 'scripts\New-DvielleGuiExe.ps1'
+if (-not (Test-Path -LiteralPath $guiShimScript -PathType Leaf)) {
+    throw 'Missing scripts\New-DvielleGuiExe.ps1; cannot brand the console host.'
+}
+& $guiShimScript -InstallDir $InstallDir
+$guiExe = Join-Path $venv 'Scripts\DVielle.exe'
+if (-not (Test-Path -LiteralPath $guiExe -PathType Leaf)) { throw 'Branded DVielle.exe GUI shim was not created.' }
+
 # GUIDs avoid localized Logon and Credential Validation display names (4625 and 4776).
 foreach ($subcategory in @('{0CCE9215-69AE-11D9-BED3-505054503030}', '{0CCE923F-69AE-11D9-BED3-505054503030}')) {
     Invoke-DvielleNative 'auditpol.exe' @('/set', ('/subcategory:' + $subcategory), '/failure:enable')
@@ -136,12 +146,13 @@ $shell = New-Object -ComObject WScript.Shell
 $startMenu = [Environment]::GetFolderPath('Programs')
 foreach ($directory in @($startMenu, [Environment]::GetFolderPath('Desktop'))) {
     $shortcut = $shell.CreateShortcut((Join-Path $directory 'DVielle - Deep Vigilance.lnk'))
-    $shortcut.TargetPath = $pythonw
+    $shortcut.TargetPath = $guiExe
     $shortcut.Arguments = '-m dvielle'
     $shortcut.WorkingDirectory = $InstallDir
     $shortcut.Description = 'DVielle - Deep Vigilance'
     $icon = Join-Path $InstallDir 'assets\brand\dvielle.ico'
     if (Test-Path -LiteralPath $icon) { $shortcut.IconLocation = "$icon,0" }
+    else { $shortcut.IconLocation = "$guiExe,0" }
     $shortcut.Save()
 }
 $uninstall = $shell.CreateShortcut((Join-Path $startMenu 'Uninstall DVielle.lnk'))
@@ -154,7 +165,8 @@ $version = [regex]::Match($metadata, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].V
 Set-ItemProperty -Path $regPath -Name DisplayName -Value 'DVielle - Deep Vigilance'
 Set-ItemProperty -Path $regPath -Name DisplayVersion -Value $version
 $iconPath = Join-Path $InstallDir 'assets\brand\dvielle.ico'
-if (Test-Path -LiteralPath $iconPath) { Set-ItemProperty -Path $regPath -Name DisplayIcon -Value ($iconPath + ',0') }
+if (Test-Path -LiteralPath $guiExe) { Set-ItemProperty -Path $regPath -Name DisplayIcon -Value ($guiExe + ',0') }
+elseif (Test-Path -LiteralPath $iconPath) { Set-ItemProperty -Path $regPath -Name DisplayIcon -Value ($iconPath + ',0') }
 Set-ItemProperty -Path $regPath -Name Publisher -Value 'DVielle'
 Set-ItemProperty -Path $regPath -Name InstallLocation -Value $InstallDir
 Set-ItemProperty -Path $regPath -Name UninstallString -Value ('"' + (Join-Path $InstallDir 'installer\Uninstall-DVielle.bat') + '"')
