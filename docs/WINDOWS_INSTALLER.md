@@ -1,8 +1,10 @@
 # Windows setup executable
 
-Version 2.4.0. This page is how to produce `DVielle-Setup-2.4.0.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
+![DVielle logo](images/dvielle-logo.png)
 
-The public download on the v2.4.0 Release stays the zip. Unzip it and run `installer\Install-DVielle.bat` after Python 3.12 is installed. Use that path until a GitHub Release lists `DVielle-Setup-2.4.0.exe` by name. A GitHub Actions artifact is a build product. It expires, it is unsigned, and it is not that Release file.
+Version 2.4.1. This page is how to produce `DVielle-Setup-2.4.1.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
+
+The public download on the v2.4.1 Release stays the zip. Unzip it and run `installer\Install-DVielle.bat` after Python 3.12 is installed. Use that path until a GitHub Release lists `DVielle-Setup-2.4.1.exe` by name. A GitHub Actions artifact is a build product. It expires, it is unsigned, and it is not that Release file.
 
 ## What the setup file does
 
@@ -35,7 +37,7 @@ Windows 10 or 11, 64-bit. PowerShell 5.1. Network access to python.org and GitHu
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_windows_installer.ps1
 ```
 
-Output: `dist\DVielle-Setup-2.4.0.exe`. `dist\` is gitignored. The script does not upload the file.
+Output: `dist\DVielle-Setup-2.4.1.exe`. `dist\` is gitignored. The script does not upload the file.
 
 If Inno Setup 6.4.0 or newer is already installed, the script uses `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Pass `-Iscc` to point at another compiler. The script still refuses a Python installer whose hash or size does not match the pin.
 
@@ -51,7 +53,7 @@ The exe is unsigned. Windows can show “Windows protected your PC” for an unr
 
 ## Follow-up (not in this version)
 
-1. Publish `DVielle-Setup-2.4.0.exe` on a GitHub Release only after one Windows PC has installed it and `verify_runtime` has seen a fresh heartbeat. Until that file is listed on the Release, the zip plus Python 3.12 remains the download.
+1. Publish `DVielle-Setup-2.4.1.exe` on a GitHub Release only after one Windows PC has installed it and `verify_runtime` has seen a fresh heartbeat. Until that file is listed on the Release, the zip plus Python 3.12 remains the download.
 2. Authenticode signing, so SmartScreen is not the normal first-run experience.
 3. A frozen `pythonw`-compatible agent, only if the task-owner check and `verify_runtime` are updated on purpose and still default to Limited. Not a silent swap to PyInstaller.
 4. An ARM64 setup. This pin is the amd64 official installer.

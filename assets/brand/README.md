@@ -1,7 +1,12 @@
 # DVielle brand assets
 
-- `dvielle_logo.png` — source brand / radar DV mark (in-window header)
-- `dvielle_64.png` / `dvielle_88.png` / `dvielle_128.png` — UI sizes
-- `dvielle.ico` — **canonical** Windows icon (window title bar, taskbar, tray, shortcuts)
+Canonical Windows / console mark for **DVielle** (product spelling; UI text never says "diville").
 
-Used by: GUI header (PNG), and one standard icon path via `dvielle.brand.apply_tk_window_icon` + tray (`load_brand_pil_image` from the `.ico`). Windows AppUserModelID is set before UI create so the taskbar does not show the Python interpreter icon.
+| File | Use |
+|------|-----|
+| `dvielle-logo-animated.gif` | Console header animation (Pillow frame loop) |
+| `dvielle-logo-still.png` | Full-resolution still (512×512) |
+| `dvielle.ico` | Window title bar, taskbar, tray, desktop / Start Menu shortcuts |
+| `dvielle_logo.png` / `dvielle_64.png` / `dvielle_88.png` / `dvielle_128.png` | UI sizes derived from the still |
+
+Wired by `dvielle.brand` (`apply_tk_window_icon`, `load_brand_pil_image`, `load_brand_gif_frames`) and `dvielle.gui.logo_mark.LogoMark`. Docs preview copies live under `docs/images/`.

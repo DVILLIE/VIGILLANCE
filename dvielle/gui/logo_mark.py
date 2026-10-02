@@ -1,16 +1,13 @@
 """DVielle emblem. This is the only animated widget in the console.
 
-The mark is a deep disc, two orbits, and a D/V monogram with a nucleus.
-Startup scales and turns it in, and the orbits draw themselves during that
-short intro. Then a slow brightness pulse runs about once a second.
+Prefers the shipped brand GIF (chrome D + orbital ring) when present under
+``assets/brand/dvielle-logo-animated.gif``. Falls back to a drawn D/V monogram
+with intro orbits when the GIF is missing.
 
-The intro does not run while the window is withdrawn. On Windows,
-CustomTkinter paints the title bar by withdrawing the window and calling
-``update()`` (``CTk._windows_set_titlebar_color`` in CustomTkinter 5.2/6).
-That hidden ``update()`` delivers ``after`` callbacks before the console is
-on screen, and Tk does not reliably paint image changes made in that state.
-Frames advance only once the mark is viewable, then keep going. Nothing else
-in the console moves.
+Frames advance only once the mark is viewable (CustomTkinter title-bar setup
+withdraws the window and calls ``update()`` first). Nothing else in the console
+moves. Product spelling in UI text is always **DVielle**; the GIF is the visual
+mark only.
 """
 
 from __future__ import annotations
@@ -22,17 +19,17 @@ import customtkinter as ctk
 
 from dvielle.gui import theme as T
 
-# Six frames, then idle. Idle is intentionally slow so the pulse stays cheap.
+# Drawn-fallback intro (used only when the brand GIF is absent).
 INTRO_ANGLES = (-16, -11, -7, -4, -2, 0)
 INTRO_REVEAL = (0.34, 0.52, 0.68, 0.82, 0.93, 1.0)
 INTRO_SCALES = (0.74, 0.84, 0.91, 0.96, 0.99, 1.0)
 INTRO_MS = 70
 IDLE_MS = 1100
-# 1.12 is still a soft breathe, and it survives the 56px downsample.
 IDLE_GAINS = (1.0, 1.12)
-# While the console is withdrawn (title bar, tray), poll slowly. Map pulls
-# the intro forward as soon as the window is shown.
 HIDDEN_MS = 200
+# Brand GIF: short intro from the first frames, then loop the rest.
+GIF_INTRO_FRAMES = 6
+GIF_FRAME_MS = 70
 
 _INK = (236, 244, 246, 255)
 _MINT = (126, 196, 186, 235)
@@ -50,13 +47,16 @@ def motion_plan() -> dict:
         "idle_gains": IDLE_GAINS,
         "hidden_ms": HIDDEN_MS,
         "intro_frames": len(INTRO_ANGLES),
+        "gif_intro_frames": GIF_INTRO_FRAMES,
+        "gif_frame_ms": GIF_FRAME_MS,
         "animates": "logo",
         "starts_when": "viewable",
+        "source": "brand_gif_or_drawn",
     }
 
 
 def draw_emblem(size: int, reveal: float = 1.0):
-    """Still emblem. ``reveal`` only shortens the orbits for the intro frames."""
+    """Still drawn emblem. ``reveal`` only shortens the orbits for intro frames."""
     from PIL import Image, ImageDraw
 
     reveal = max(0.0, min(1.0, float(reveal)))
@@ -107,7 +107,6 @@ def _electron(draw, box, angle: float, src: int) -> None:
     rx = (box[2] - box[0]) / 2
     ry = (box[3] - box[1]) / 2
     theta = math.radians(angle)
-    # Pillow arcs run counter-clockwise from the 3 o'clock point.
     ex = cx + rx * math.cos(theta)
     ey = cy - ry * math.sin(theta)
     rad = max(2, src // 40)
@@ -130,7 +129,7 @@ def _render_frame(base, image_module, enhance, angle: float, gain: float, scale:
 
 
 def build_frames(size: int) -> tuple[list, list]:
-    """Intro frames, then the two idle pulse frames. Raises if Pillow is missing."""
+    """Drawn intro + idle pulse. Used when the brand GIF is unavailable."""
     from PIL import Image, ImageEnhance
 
     intro: list = []
@@ -144,6 +143,19 @@ def build_frames(size: int) -> tuple[list, list]:
         _render_frame(settled, Image, ImageEnhance, 0, gain, 1.0)
         for gain in IDLE_GAINS
     ]
+    return intro, idle
+
+
+def build_brand_gif_frames(size: int) -> tuple[list, list] | None:
+    """Brand GIF split into a short intro and a looping idle. None if missing."""
+    from dvielle.brand import load_brand_gif_frames
+
+    frames = load_brand_gif_frames(size)
+    if not frames or len(frames) < 2:
+        return None
+    intro_n = min(GIF_INTRO_FRAMES, max(1, len(frames) // 4))
+    intro = frames[:intro_n]
+    idle = frames[intro_n:] if len(frames) > intro_n else frames
     return intro, idle
 
 
@@ -163,6 +175,9 @@ class LogoMark(ctk.CTkFrame):
         self._idle_i = 0
         self._intro: list = []
         self._idle: list = []
+        self._using_gif = False
+        self._frame_ms = INTRO_MS
+        self._idle_ms = IDLE_MS
         self._current = None
         self._photo = None
         self._image_item = None
@@ -210,6 +225,17 @@ class LogoMark(ctk.CTkFrame):
 
     def _prepare(self) -> None:
         try:
+            gif = build_brand_gif_frames(self.size)
+        except Exception:
+            gif = None
+        if gif is not None:
+            self._intro, self._idle = gif
+            self._using_gif = True
+            self._frame_ms = GIF_FRAME_MS
+            self._idle_ms = GIF_FRAME_MS
+            self._using_text = False
+            return
+        try:
             intro, idle = build_frames(self.size)
         except Exception:
             self._using_text = True
@@ -221,6 +247,9 @@ class LogoMark(ctk.CTkFrame):
             return
         self._intro = intro
         self._idle = idle
+        self._using_gif = False
+        self._frame_ms = INTRO_MS
+        self._idle_ms = IDLE_MS
 
     def _paint_initial(self) -> None:
         if self._intro and not self._using_text:
@@ -249,7 +278,6 @@ class LogoMark(ctk.CTkFrame):
         else:
             self._canvas.coords(self._image_item, px // 2, px // 2)
             self._canvas.itemconfig(self._image_item, image=photo)
-        # Tk drops a PhotoImage that has no Python reference.
         self._photo = photo
         self._current = image
 
@@ -292,8 +320,6 @@ class LogoMark(ctk.CTkFrame):
             self._repaint()
         except Exception:
             pass
-        # A hidden poll may be hundreds of milliseconds out. The intro should
-        # start on the frame the window appears.
         if self._intro and self._intro_i < len(self._intro):
             self._schedule(1)
 
@@ -342,25 +368,25 @@ class LogoMark(ctk.CTkFrame):
     def _advance(self) -> None:
         if self._using_text or (not self._intro and not self._idle):
             self._pulse_text()
-            self._schedule(IDLE_MS)
+            self._schedule(self._idle_ms)
             return
         try:
             if self._intro and self._intro_i < len(self._intro):
                 self._show(self._intro[self._intro_i])
                 self._intro_i += 1
-                self._schedule(INTRO_MS)
+                self._schedule(self._frame_ms)
                 return
             if self._idle:
                 self._show(self._idle[self._idle_i % len(self._idle)])
                 self._idle_i += 1
-                self._schedule(IDLE_MS)
+                self._schedule(self._idle_ms)
                 return
         except Exception:
             self._give_up_to_text()
-            self._schedule(IDLE_MS)
+            self._schedule(self._idle_ms)
             return
         self._pulse_text()
-        self._schedule(IDLE_MS)
+        self._schedule(self._idle_ms)
 
     def _tick(self) -> None:
         self._job = None
@@ -388,7 +414,7 @@ class LogoMark(ctk.CTkFrame):
                 self._give_up_to_text()
             except Exception:
                 return
-            self._schedule(IDLE_MS)
+            self._schedule(self._idle_ms)
 
     def destroy(self) -> None:
         self._alive = False

@@ -39,6 +39,7 @@ Uninstallable=no
 CreateUninstallRegKey=no
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+SetupIconFile=..\assets\brand\dvielle.ico
 WizardStyle=modern
 SetupLogging=yes
 ChangesEnvironment=yes

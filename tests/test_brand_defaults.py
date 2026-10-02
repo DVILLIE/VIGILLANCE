@@ -62,3 +62,13 @@ def test_windows_agent_note_names_dvielle() -> None:
     text = (ROOT / "WINDOWS_SYSTEM_AGENT.md").read_text(encoding="utf-8")
     assert "cursor.com" not in text.lower()
     assert "DVielle" in text
+
+def test_brand_icon_and_gif_paths_resolve() -> None:
+    from dvielle.brand import ICON_ICO, LOGO_ANIMATED_GIF, LOGO_STILL_PNG, load_brand_pil_image
+
+    assert ICON_ICO.is_file()
+    assert LOGO_ANIMATED_GIF.is_file()
+    assert LOGO_STILL_PNG.is_file()
+    img = load_brand_pil_image(32)
+    assert img is not None
+    assert img.size == (32, 32)

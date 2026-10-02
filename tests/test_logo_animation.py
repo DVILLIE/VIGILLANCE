@@ -1,4 +1,4 @@
-"""Header emblem motion. The Watch card and hologram module stay gone."""
+"""Header emblem motion. Brand GIF preferred; drawn fallback kept. Watch/hologram stay gone."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from dvielle.gui import theme as T
 from dvielle.gui.logo_mark import IDLE_GAINS, build_frames, motion_plan
 
 ROOT = Path(__file__).resolve().parents[1]
+BRAND = ROOT / "assets" / "brand"
 
 
 def _changed_pixels(left, right) -> int:
@@ -19,6 +20,17 @@ def _changed_pixels(left, right) -> int:
         if any(a[i] != b[i] for i in range(min(len(a), len(b), 4))):
             count += 1
     return count
+
+
+def test_brand_assets_present() -> None:
+    assert (BRAND / "dvielle.ico").is_file()
+    assert (BRAND / "dvielle-logo-still.png").is_file()
+    assert (BRAND / "dvielle-logo-animated.gif").is_file()
+    assert (BRAND / "dvielle.ico").stat().st_size > 10_000
+    assert (BRAND / "dvielle-logo-animated.gif").stat().st_size > 100_000
+    docs = ROOT / "docs" / "images"
+    assert (docs / "dvielle-logo.png").is_file()
+    assert (docs / "github-social-preview.png").is_file()
 
 
 def test_motion_plan_waits_until_the_mark_is_visible() -> None:
@@ -31,6 +43,7 @@ def test_motion_plan_waits_until_the_mark_is_visible() -> None:
     assert plan["hidden_ms"] >= 50
     assert IDLE_GAINS[0] == 1.0
     assert IDLE_GAINS[1] > 1.05
+    assert plan["source"] == "brand_gif_or_drawn"
 
 
 def test_intro_turns_and_idle_pulse_changes_pixels() -> None:
@@ -42,7 +55,6 @@ def test_intro_turns_and_idle_pulse_changes_pixels() -> None:
     assert _changed_pixels(idle[0], idle[1]) > 400
     assert intro[0].getextrema()[3][1] > 200
     assert idle[1].getextrema()[3][1] > 200
-    # Orbits stay visible on a dark header, not only a flat disc.
     mint = 0
     for pixel in idle[0].getdata():
         if pixel[1] > pixel[0] + 20 and pixel[1] > 140 and pixel[3] > 180:
@@ -50,11 +62,33 @@ def test_intro_turns_and_idle_pulse_changes_pixels() -> None:
     assert mint > 20
 
 
+def test_brand_gif_builds_intro_and_idle() -> None:
+    from dvielle.gui.logo_mark import build_brand_gif_frames
+
+    pair = build_brand_gif_frames(56)
+    assert pair is not None
+    intro, idle = pair
+    assert len(intro) >= 2
+    assert len(idle) >= 2
+    assert intro[0].size == (56, 56)
+    assert _changed_pixels(intro[0], idle[min(5, len(idle) - 1)]) > 50
+
+
 def test_logo_module_does_not_use_the_removed_radar() -> None:
     source = (ROOT / "dvielle" / "gui" / "logo_mark.py").read_text(encoding="utf-8")
     assert "hologram" not in source
     assert "LivingRadar" not in source
     assert not (ROOT / "dvielle" / "gui" / "hologram.py").exists()
+
+
+def test_readme_and_docs_use_dvielle_spelling_and_logo() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "docs/images/dvielle-logo.png" in readme
+    assert "DVielle" in readme
+    # Forbidden product misspellings as UI/docs text (GIF baked wordmark is not markdown).
+    assert "diville" not in readme.lower().replace("dvielle", "")
+    ug = (ROOT / "docs" / "USER_GUIDE.md").read_text(encoding="utf-8")
+    assert "images/dvielle-logo.png" in ug
 
 
 def _pump(root, seconds: float) -> None:
@@ -94,6 +128,7 @@ def test_intro_waits_for_a_visible_window_then_plays(monkeypatch, emblem_root) -
     monkeypatch.setattr(logo_mark, "INTRO_MS", 20)
     monkeypatch.setattr(logo_mark, "IDLE_MS", 30)
     monkeypatch.setattr(logo_mark, "HIDDEN_MS", 10)
+    monkeypatch.setattr(logo_mark, "GIF_FRAME_MS", 20)
 
     mark = logo_mark.LogoMark(emblem_root, size=56)
     mark.pack()
@@ -108,7 +143,7 @@ def test_intro_waits_for_a_visible_window_then_plays(monkeypatch, emblem_root) -
     emblem_root.lift()
     emblem_root.update()
     assert mark.winfo_viewable()
-    _pump(emblem_root, 0.35)
+    _pump(emblem_root, 0.45)
     assert mark._intro_i >= 3
     assert mark._current.tobytes() != hidden
     assert mark._photo is not None
@@ -124,6 +159,7 @@ def test_dark_and_light_keep_the_emblem(monkeypatch, emblem_root) -> None:
 
     monkeypatch.setattr(logo_mark, "INTRO_MS", 20)
     monkeypatch.setattr(logo_mark, "HIDDEN_MS", 10)
+    monkeypatch.setattr(logo_mark, "GIF_FRAME_MS", 20)
     mark = logo_mark.LogoMark(emblem_root, size=56)
     mark.pack()
     emblem_root.deiconify()
@@ -151,6 +187,7 @@ def test_missing_image_falls_back_to_letters(monkeypatch, emblem_root) -> None:
     def _boom(_size: int):
         raise OSError("brand image missing")
 
+    monkeypatch.setattr(logo_mark, "build_brand_gif_frames", lambda _size: None)
     monkeypatch.setattr(logo_mark, "build_frames", _boom)
     monkeypatch.setattr(logo_mark, "IDLE_MS", 20)
     monkeypatch.setattr(logo_mark, "HIDDEN_MS", 10)
