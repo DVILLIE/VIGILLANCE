@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dvielle"
-version = "2.4.0"
+version = "2.4.1"
 description = "DVielle — DEEP VIGILLANCE, a free local Windows guardian"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

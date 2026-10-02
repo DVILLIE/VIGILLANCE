@@ -1,4 +1,4 @@
-DVielle 2.4.0 — Windows install
+DVielle 2.4.1 — Windows install
 DEEP VIGILLANCE
 
 This zip is the install bundle. It is source plus the installer, not a
@@ -12,7 +12,7 @@ standalone .exe. Python 3.12 is required.
    only contains the installer scripts.
 3. Right-click installer\Install-DVielle.bat and choose Run as administrator.
 4. Approve the Windows prompt. The default destination is C:\DVILLIE.
-   The unzip folder name (for example VIGILLANCE-2.4.0 or VIGILLANCE-main)
+   The unzip folder name (for example VIGILLANCE-2.4.1 or VIGILLANCE-main)
    is only the source. It is not where the resident copy lives.
 5. Open the desktop shortcut "DVielle - Deep Vigilance", or run
    installer\Launch-DVielle.bat from C:\DVILLIE.
@@ -31,8 +31,8 @@ Files stay unless you type DELETE for that exact folder.
 There is no cloud install. Put DVielle on the PC you want watched.
 Full steps: docs\USER_GUIDE.md
 
-A setup executable (DVielle-Setup-2.4.0.exe) can be built separately.
-It is not inside this zip, and it is not the v2.4.0 Release download.
+A setup executable (DVielle-Setup-2.4.1.exe) can be built separately.
+It is not inside this zip, and it is not the v2.4.1 Release download.
 This zip still needs Python 3.12, or the setup file once a Release lists it.
 See docs\WINDOWS_INSTALLER.md.
 Author: Ravikant R. T. · kt.tradingsystem@gmail.com

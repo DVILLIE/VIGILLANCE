@@ -6,12 +6,14 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# C:\DVILLIE\assets\brand\...  (this file lives at dvielle/brand.py)
+# Repo root assets/brand/...  (this file lives at dvielle/brand.py)
 BRAND_DIR = Path(__file__).resolve().parents[1] / "assets" / "brand"
 LOGO_PNG = BRAND_DIR / "dvielle_logo.png"
 LOGO_88_PNG = BRAND_DIR / "dvielle_88.png"
 LOGO_64_PNG = BRAND_DIR / "dvielle_64.png"
 LOGO_128_PNG = BRAND_DIR / "dvielle_128.png"
+LOGO_STILL_PNG = BRAND_DIR / "dvielle-logo-still.png"
+LOGO_ANIMATED_GIF = BRAND_DIR / "dvielle-logo-animated.gif"
 ICON_ICO = BRAND_DIR / "dvielle.ico"
 
 # Stable Windows identity so the taskbar does not inherit the Python interpreter icon.
@@ -28,6 +30,8 @@ def brand_png(preferred: int = 88) -> Path:
     path = candidates.get(preferred, LOGO_88_PNG)
     if path.exists():
         return path
+    if LOGO_STILL_PNG.exists():
+        return LOGO_STILL_PNG
     if LOGO_PNG.exists():
         return LOGO_PNG
     return path
@@ -60,7 +64,6 @@ def load_brand_pil_image(size: int = 64):
     if ICON_ICO.exists():
         try:
             with Image.open(ICON_ICO) as ico:
-                # Prefer the largest embedded size, then scale cleanly.
                 best = None
                 for i in range(getattr(ico, "n_frames", 1)):
                     ico.seek(i)
@@ -74,7 +77,7 @@ def load_brand_pil_image(size: int = 64):
         except Exception:
             pass
 
-    for path in (LOGO_64_PNG, LOGO_128_PNG, brand_png(64), LOGO_PNG):
+    for path in (LOGO_STILL_PNG, LOGO_64_PNG, LOGO_128_PNG, brand_png(64), LOGO_PNG):
         if path.exists():
             try:
                 img = Image.open(path).convert("RGBA")
@@ -84,6 +87,35 @@ def load_brand_pil_image(size: int = 64):
             except Exception:
                 continue
     return None
+
+
+def load_brand_gif_frames(size: int) -> list | None:
+    """Load animated logo GIF frames scaled to ``size``. None if missing/unreadable."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    if not LOGO_ANIMATED_GIF.exists():
+        return None
+    try:
+        frames: list = []
+        with Image.open(LOGO_ANIMATED_GIF) as im:
+            n = int(getattr(im, "n_frames", 1) or 1)
+            duration = int(im.info.get("duration", 70) or 70)
+            for i in range(n):
+                im.seek(i)
+                frame = im.convert("RGBA")
+                if frame.size != (size, size):
+                    frame = frame.resize((size, size), Image.Resampling.LANCZOS)
+                frames.append(frame.copy())
+        if not frames:
+            return None
+        # Attach per-load metadata for the GUI scheduler.
+        for frame in frames:
+            frame.info["dvielle_duration_ms"] = max(40, min(120, duration))
+        return frames
+    except Exception:
+        return None
 
 
 def apply_tk_window_icon(window: Any) -> None:
@@ -106,7 +138,6 @@ def apply_tk_window_icon(window: Any) -> None:
     except Exception:
         pass
 
-    # iconphoto is what many Windows/Tk builds actually push to the taskbar button.
     try:
         from PIL import Image, ImageTk
 
@@ -116,7 +147,6 @@ def apply_tk_window_icon(window: Any) -> None:
         if img is None:
             return
         photo = ImageTk.PhotoImage(img)
-        # Prevent GC; also keep a list if multiple windows call this.
         refs = getattr(window, "_dvielle_icon_refs", None)
         if refs is None:
             refs = []

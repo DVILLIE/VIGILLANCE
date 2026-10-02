@@ -3,9 +3,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Download](https://img.shields.io/github/v/release/DVILLIE/VIGILLANCE?label=Download&color=6b4cff)](https://github.com/DVILLIE/VIGILLANCE/releases/latest)
 
+
+<p align="center">
+  <img alt="DVielle logo" src="docs/images/dvielle-logo.png" width="160" />
+</p>
+
+<p align="center"><strong>DVielle</strong> — DEEP VIGILLANCE</p>
+
+
 DVielle is a free, local guardian for a Windows PC. It watches that computer, explains what it noticed in plain language, and shows options. It changes the PC only after you choose. A finding is a ticket: **Found → Fix → Resolved** (or still monitoring).
 
-It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.0**.
+It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.1**.
 
 <p>
   <img alt="DVielle console in Dark" src="docs/images/console-dark.png" width="720" />
@@ -14,22 +22,22 @@ It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.0**.
   <img alt="DVielle console in Light" src="docs/images/console-light.png" width="720" />
 </p>
 
-The pictures above are the 2.4.0 console (Dark and Light) with labeled sample notes. A sample line is not a live Windows reading. On your PC the same window shows this computer’s measurements, and it says when a check is missing or only partial.
+The pictures above are the 2.4.1 console (Dark and Light) with labeled sample notes. A sample line is not a live Windows reading. On your PC the same window shows this computer’s measurements, and it says when a check is missing or only partial.
 
 ## Download
 
-**[Download DVielle 2.4.0](https://github.com/DVILLIE/VIGILLANCE/releases/latest)**
+**[Download DVielle 2.4.1](https://github.com/DVILLIE/VIGILLANCE/releases/latest)**
 
 | File | What it is |
 |------|------------|
-| [DVielle-2.4.0-windows-installer.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-installer.zip) | Unzip, then run `installer\Install-DVielle.bat` as administrator |
-| [DVielle-2.4.0-windows-source.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.0/DVielle-2.4.0-windows-source.zip) | The same tree, named as source, if you want to read it before installing |
-| GitHub source archive on the release | Created automatically from the `v2.4.0` tag |
-| `DVielle-Setup-2.4.0.exe` | **Not on this Release.** A Windows build can produce it. It is not the download yet. |
+| [DVielle-2.4.1-windows-installer.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.1/DVielle-2.4.1-windows-installer.zip) | Unzip, then run `installer\Install-DVielle.bat` as administrator |
+| [DVielle-2.4.1-windows-source.zip](https://github.com/DVILLIE/VIGILLANCE/releases/download/v2.4.1/DVielle-2.4.1-windows-source.zip) | The same tree, named as source, if you want to read it before installing |
+| GitHub source archive on the release | Created automatically from the `v2.4.1` tag |
+| `DVielle-Setup-2.4.1.exe` | **Not on this Release.** A Windows build can produce it. It is not the download yet. |
 
 The file to install today is the **zip**, on **Windows 10 or 11 (64-bit)**, with **Python 3.12**. Steps are in [docs/USER_GUIDE.md](docs/USER_GUIDE.md) and in `installer/INSTALL.txt` inside the zip.
 
-`DVielle-Setup-2.4.0.exe` is a setup wrapper the `windows-installer` job can compile. If Python 3.12 is missing, it runs the official Python 3.12.10 installer, then the same Limited install as the zip. It is not a PyInstaller freeze of the agent. It is unsigned, so SmartScreen can warn. It does not turn Defender off. It is not listed on the v2.4.0 Release. An Actions artifact is not a substitute for that Release file. How to build it, and what is still unchecked, is [docs/WINDOWS_INSTALLER.md](docs/WINDOWS_INSTALLER.md).
+`DVielle-Setup-2.4.1.exe` is a setup wrapper the `windows-installer` job can compile. If Python 3.12 is missing, it runs the official Python 3.12.10 installer, then the same Limited install as the zip. It is not a PyInstaller freeze of the agent. It is unsigned, so SmartScreen can warn. It does not turn Defender off. It is not listed on the v2.4.1 Release. An Actions artifact is not a substitute for that Release file. How to build it, and what is still unchecked, is [docs/WINDOWS_INSTALLER.md](docs/WINDOWS_INSTALLER.md).
 
 ## What it does
 
@@ -83,7 +91,7 @@ Windows 10/11 and Python 3.12. From the unzipped release:
 2. The installer copies the tree to **`C:\DVILLIE`** (that path is the default in `installer\install-dvielle.ps1`), builds `C:\DVILLIE\.venv`, installs the dependencies from `pyproject.toml`, registers the Limited logon task, and checks that it started.
 3. Open **DVielle - Deep Vigilance** on the desktop.
 
-The folder you unzipped is only the source. GitHub may call it `VIGILLANCE-2.4.0` or `VIGILLANCE-main`. DVielle does not install itself into `C:\DVILLIE-main`. A custom destination is `installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'` from an Administrator PowerShell window. Drive roots and shared Windows folders are rejected.
+The folder you unzipped is only the source. GitHub may call it `VIGILLANCE-2.4.1` or `VIGILLANCE-main`. DVielle does not install itself into `C:\DVILLIE-main`. A custom destination is `installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'` from an Administrator PowerShell window. Drive roots and shared Windows folders are rejected.
 
 | Action | From the install folder (default `C:\DVILLIE`) |
 |--------|--------------------------------------------------|

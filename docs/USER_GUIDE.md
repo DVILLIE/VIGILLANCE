@@ -1,6 +1,8 @@
 # DVielle user guide
 
-Version 2.4.0. DVielle (DEEP VIGILLANCE) is a free local guardian for a Windows PC. It watches that PC, explains what it noticed, and waits for you before it changes anything important.
+![DVielle logo](images/dvielle-logo.png)
+
+Version 2.4.1. DVielle (DEEP VIGILLANCE) is a free local guardian for a Windows PC. It watches that PC, explains what it noticed, and waits for you before it changes anything important.
 
 This guide is the install and day-to-day page. Promises and limits are in [CLAIMS.md](CLAIMS.md). Pass and fail checks are in [TRUST_GATES.md](TRUST_GATES.md).
 
@@ -18,15 +20,15 @@ DVielle is not a cloud service and not a server product. Install it on the PC yo
 ## Install
 
 1. Download the latest release from [github.com/DVILLIE/VIGILLANCE/releases/latest](https://github.com/DVILLIE/VIGILLANCE/releases/latest).
-   - `DVielle-2.4.0-windows-installer.zip` is the bundle to unzip and install.
-   - `DVielle-2.4.0-windows-source.zip` is the same tree under a source name, plus the GitHub source archive that a tag creates automatically.
-   - `DVielle-Setup-2.4.0.exe` is not on the Release. The project can build that setup wrapper. It bootstraps official Python 3.12.10 and then runs the same Limited installer. It is not a PyInstaller binary. Use the zip until a Release lists the exe by name. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
+   - `DVielle-2.4.1-windows-installer.zip` is the bundle to unzip and install.
+   - `DVielle-2.4.1-windows-source.zip` is the same tree under a source name, plus the GitHub source archive that a tag creates automatically.
+   - `DVielle-Setup-2.4.1.exe` is not on the Release. The project can build that setup wrapper. It bootstraps official Python 3.12.10 and then runs the same Limited installer. It is not a PyInstaller binary. Use the zip until a Release lists the exe by name. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
 2. Install Python 3.12 if it is not already on the PC.
 3. Unzip the archive. You should see `installer`, `agent`, `dvielle`, `config`, and `pyproject.toml` in one folder.
 4. Right-click `installer\Install-DVielle.bat` and choose **Run as administrator**.
 5. Wait until the window says the install finished. It creates `C:\DVILLIE`, a private Python environment at `C:\DVILLIE\.venv`, a desktop shortcut, and one logon task named `DVielle`.
 
-The unzip folder is the **source**. GitHub may name it `VIGILLANCE-2.4.0` or `VIGILLANCE-main`. That name is not the install location. The installer default destination is **`C:\DVILLIE`**. There is no second default such as `C:\DVILLIE-main`.
+The unzip folder is the **source**. GitHub may name it `VIGILLANCE-2.4.1` or `VIGILLANCE-main`. That name is not the install location. The installer default destination is **`C:\DVILLIE`**. There is no second default such as `C:\DVILLIE-main`.
 
 For a different folder, open Administrator PowerShell in the unzipped tree and run:
 

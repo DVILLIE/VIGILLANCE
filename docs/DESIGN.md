@@ -3,7 +3,7 @@
 **Product:** DVielle / VIGILLANCE Mission Console  
 **Date:** 2026-08-24  
 **Aesthetic name:** **Phosphor Void**  
-**Mood reference:** `assets/` brand radar mark and the generated mood image `vigillance-design-mood.png`
+**Mood reference:** `assets/brand/` chrome D + ring (`dvielle-logo-still.png`) and `docs/images/github-social-preview.png`
 
 ---
 
@@ -12,7 +12,7 @@
 The interface is a **mission console for a living machine**, not a SaaS dashboard and not a neon “hacker” costume.
 
 - One composition per viewport  
-- Brand mark is a hero signal (radar DV), not a favicon afterthought  
+- Brand mark is a hero signal (animated chrome D + ring), not a favicon afterthought  
 - Type does the hierarchy; chrome stays almost invisible  
 - Motion is the logo only (a short rotate-in, then a slow pulse). Status changes by color and text, not by animation  
 - Readable at a glance with glasses on (large type scale)
@@ -65,7 +65,7 @@ Rules:
 
 ---
 
-## Layout grammar (2.4.0 Clear Deck)
+## Layout grammar (2.4.1 Clear Deck)
 
 The console is a shell, not a four-column instrument panel.
 
@@ -82,11 +82,11 @@ Borders: 1px stroke on cards. Accent marks the selected page and healthy/pressur
 
 ---
 
-## Motion (2.4.0)
+## Motion (2.4.1)
 
 Only the brand mark animates.
 
-1. **Logo** — a short rotate-in when the console opens, then a slow brightness pulse (about once a second). That is the only motion.
+1. **Logo** — brand GIF loops in the header after the window is viewable (drawn emblem fallback if the GIF is missing). That is the only motion.
 2. **Clock** — the local/UTC digits update once a second. The label does not move.
 3. **Measurements** — gauges, collector chips, and the findings log update when new observations arrive. They do not ease, sweep, or blink.
 
@@ -117,7 +117,7 @@ Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `l
 
 ## Iconography & brand
 
-- Primary brand: radar **DV** mark (`assets/brand/dvielle_logo.png` / `.ico`)  
+- Primary brand: chrome **D** + orbital ring (`assets/brand/dvielle-logo-animated.gif`, `dvielle-logo-still.png`, `dvielle.ico`). UI/docs spelling is **DVielle**.
 - Prefer geometric line icons (stroke 1.5) over filled skeuomorphism  
 - No emoji in chrome  
 

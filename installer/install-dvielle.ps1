@@ -153,6 +153,8 @@ if (-not (Test-Path -LiteralPath $regPath)) { New-Item -Path $regPath | Out-Null
 $version = [regex]::Match($metadata, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
 Set-ItemProperty -Path $regPath -Name DisplayName -Value 'DVielle - Deep Vigilance'
 Set-ItemProperty -Path $regPath -Name DisplayVersion -Value $version
+$iconPath = Join-Path $InstallDir 'assets\brand\dvielle.ico'
+if (Test-Path -LiteralPath $iconPath) { Set-ItemProperty -Path $regPath -Name DisplayIcon -Value ($iconPath + ',0') }
 Set-ItemProperty -Path $regPath -Name Publisher -Value 'DVielle'
 Set-ItemProperty -Path $regPath -Name InstallLocation -Value $InstallDir
 Set-ItemProperty -Path $regPath -Name UninstallString -Value ('"' + (Join-Path $InstallDir 'installer\Uninstall-DVielle.bat') + '"')
