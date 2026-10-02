@@ -1,4 +1,4 @@
-"""P3: Windows Sandbox open-unfamiliar, offline TUF verification, ACL'd pipe."""
+﻿"""P3: Windows Sandbox open-unfamiliar, offline TUF verification, ACL'd pipe."""
 
 from __future__ import annotations
 
@@ -205,7 +205,7 @@ def _fresh(security: dict) -> dict:
 
 
 def test_version_is_2_1_0():
-    assert get_version() == "2.4.1"
+    assert get_version() == "2.4.2"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 

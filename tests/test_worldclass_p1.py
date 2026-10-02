@@ -1,4 +1,4 @@
-"""P1 ASR, CFA, and recovery. Fixtures only — no live Defender and no live processes."""
+﻿"""P1 ASR, CFA, and recovery. Fixtures only â€” no live Defender and no live processes."""
 
 from __future__ import annotations
 
@@ -151,7 +151,7 @@ def _invoke(tmp_path: Path, prefs: _Prefs, handler: str, signals: dict):
 
 
 def test_version_is_past_the_1_9_0_prevention_release():
-    assert get_version() == "2.4.1"
+    assert get_version() == "2.4.2"
     text = (ROOT / "docs" / "FUNCTION_SPEC.md").read_text(encoding="utf-8")
     assert "1.9.0" in text
 
