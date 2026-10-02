@@ -1,19 +1,18 @@
-# DVielle — DEEP VIGILLANCE
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Download](https://img.shields.io/github/v/release/DVILLIE/VIGILLANCE?label=Download&color=6b4cff)](https://github.com/DVILLIE/VIGILLANCE/releases/latest)
-
-
 <p align="center">
   <img alt="DVielle logo" src="docs/images/dvielle-logo.png" width="160" />
 </p>
 
-<p align="center"><strong>DVielle</strong> — DEEP VIGILLANCE</p>
+<h1 align="center">DVielle — DEEP VIGILLANCE</h1>
 
+<p align="center">
+  <a href="https://github.com/DVILLIE/VIGILLANCE/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/DVILLIE/VIGILLANCE?label=Latest%20Release&color=6b4cff" /></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+  <a href="https://github.com/DVILLIE/VIGILLANCE/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/DVILLIE/VIGILLANCE?style=social" /></a>
+</p>
 
 DVielle is a free, local guardian for a Windows PC. It watches that computer, explains what it noticed in plain language, and shows options. It changes the PC only after you choose. A finding is a ticket: **Found → Fix → Resolved** (or still monitoring).
 
-It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.2**.
+It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.2**. Local-only by design — no cloud dashboard.
 
 <p>
   <img alt="DVielle console in Dark" src="docs/images/console-dark.png" width="720" />
