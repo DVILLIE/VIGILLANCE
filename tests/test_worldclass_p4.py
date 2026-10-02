@@ -1,4 +1,4 @@
-"""P4: local CISA KEV and OSV intel, and a Defender-safe privacy assistant."""
+﻿"""P4: local CISA KEV and OSV intel, and a Defender-safe privacy assistant."""
 
 from __future__ import annotations
 
@@ -102,7 +102,7 @@ def _write(directory: Path, name: str, payload: dict) -> None:
 
 
 def test_version_is_2_2_0():
-    assert get_version() == "2.4.1"
+    assert get_version() == "2.4.2"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 

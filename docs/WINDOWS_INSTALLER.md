@@ -2,24 +2,28 @@
 
 ![DVielle logo](images/dvielle-logo.png)
 
-Version 2.4.1. This page is how to produce `DVielle-Setup-2.4.1.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
+Version 2.4.2. This page is how to produce `DVielle-Setup-2.4.2.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
 
-The public download on the v2.4.1 Release stays the zip. Unzip it and run `installer\Install-DVielle.bat` after Python 3.12 is installed. Use that path until a GitHub Release lists `DVielle-Setup-2.4.1.exe` by name. A GitHub Actions artifact is a build product. It expires, it is unsigned, and it is not that Release file.
+The public download on the v2.4.2 Release stays the zip. Unzip it and run `installer\Install-DVielle.bat` after Python 3.12 is installed. Use that path until a GitHub Release lists `DVielle-Setup-2.4.2.exe` by name. A GitHub Actions artifact is a build product. It expires, it is unsigned, and it is not that Release file.
 
 ## What the setup file does
 
 1. Windows shows one Administrator prompt. That prompt is for the setup. It does not change the resident task to Highest.
 2. If `py -3.12` is missing, the setup runs the official Python **3.12.10** 64-bit installer from python.org. The file is checked against `installer/python-3.12.10.pin.json` (SHA-256 and size) before it runs. An existing Python 3.12 is left in place.
-3. The setup then runs `installer\install-dvielle.ps1 -RunLevel Limited`. The logon task is still `.venv\Scripts\pythonw.exe -m agent.main`. The desktop shortcut is still `pythonw.exe -m dvielle`.
+3. The setup then runs `installer\install-dvielle.ps1 -RunLevel Limited`. The logon task is still `.venv\Scripts\pythonw.exe -m agent.main`. The desktop / Start Menu shortcut targets `.venv\Scripts\DVielle.exe -m dvielle` (branded GUI shim; see below).
 4. Uninstall stays `installer\Uninstall-DVielle.bat`. The setup wrapper does not register its own uninstall entry and does not take ownership of `C:\DVILLIE`.
 
 The wrapper has no switch for a Highest task. `-RunLevel Highest` remains the existing explicit script, and only after the install tree is locked. This setup does not call it.
 
 The setup does not add a Defender exclusion. It is not an antivirus product. Chat stays removed.
 
-## Why this is not a frozen .exe
+## Branded console host (`DVielle.exe`)
 
-PyInstaller, cx_Freeze, and Briefcase can wrap CustomTkinter, but they replace `pythonw.exe -m agent.main` with a bootloader. The resident task owner check accepts only `python.exe` or `pythonw.exe` with arguments `-m agent.main` or `-m dvielle` (`installer/common.ps1`, `Test-DvielleTaskOwner`). `scripts/verify_runtime.py` still expects a venv interpreter, including the Windows redirector case where the living image is under `sys.base_prefix`. A freeze would be a second runtime. It is follow-up work, not this installer.
+Install builds `.venv\Scripts\DVielle.exe` as a **same-folder copy** of `pythonw.exe`, then stamps `assets/brand/dvielle.ico` and FileDescription via vendored `installer/tools/rcedit-x64.exe` (`scripts/New-DvielleGuiExe.ps1`). That process name and icon are what Task Manager shows for the **console**. It is still the venv Python interpreter (not Electron, not PyInstaller). The **resident** logon task stays `pythonw.exe -m agent.main` and still appears as Python in Task Manager. The shim is unsigned; SmartScreen may warn on first run of a future frozen host — this copy inherits the same local trust as the venv pythonw it was copied from.
+
+## Why the resident agent is not a frozen .exe
+
+PyInstaller, cx_Freeze, and Briefcase can wrap CustomTkinter, but they replace `pythonw.exe -m agent.main` with a bootloader. The resident task owner check accepts only `python.exe` or `pythonw.exe` with arguments `-m agent.main` or `-m dvielle` (`installer/common.ps1`, `Test-DvielleTaskOwner`). `scripts/verify_runtime.py` still expects a venv interpreter, including the Windows redirector case where the living image is under `sys.base_prefix`. A freeze of the resident agent would be a second runtime. It is follow-up work, not this installer. The GUI shim above does not change that contract.
 
 The embeddable zip is also the wrong bundle. Python’s Windows docs say that package omits Tcl/Tk and pip ([Using Python on Windows, 3.12, section 4.4](https://docs.python.org/3.12/using/windows.html)). CustomTkinter needs Tcl/Tk. The full installer is the one that can supply it (`Include_tcltk`). Quiet installs of 3.12.5 and later have skipped that component unless `Include_tcltk=1` is passed ([python/cpython#123195](https://github.com/python/cpython/issues/123195)), so the pin passes it even though the documented default is 1.
 
@@ -37,7 +41,7 @@ Windows 10 or 11, 64-bit. PowerShell 5.1. Network access to python.org and GitHu
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_windows_installer.ps1
 ```
 
-Output: `dist\DVielle-Setup-2.4.1.exe`. `dist\` is gitignored. The script does not upload the file.
+Output: `dist\DVielle-Setup-2.4.2.exe`. `dist\` is gitignored. The script does not upload the file.
 
 If Inno Setup 6.4.0 or newer is already installed, the script uses `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Pass `-Iscc` to point at another compiler. The script still refuses a Python installer whose hash or size does not match the pin.
 
@@ -53,8 +57,8 @@ The exe is unsigned. Windows can show “Windows protected your PC” for an unr
 
 ## Follow-up (not in this version)
 
-1. Publish `DVielle-Setup-2.4.1.exe` on a GitHub Release only after one Windows PC has installed it and `verify_runtime` has seen a fresh heartbeat. Until that file is listed on the Release, the zip plus Python 3.12 remains the download.
+1. Publish `DVielle-Setup-2.4.2.exe` on a GitHub Release only after one Windows PC has installed it and `verify_runtime` has seen a fresh heartbeat. Until that file is listed on the Release, the zip plus Python 3.12 remains the download.
 2. Authenticode signing, so SmartScreen is not the normal first-run experience.
-3. A frozen `pythonw`-compatible agent, only if the task-owner check and `verify_runtime` are updated on purpose and still default to Limited. Not a silent swap to PyInstaller.
+3. A frozen `pythonw`-compatible **resident** agent, only if the task-owner check and `verify_runtime` are updated on purpose and still default to Limited. Not a silent swap to PyInstaller. The console already uses the branded `DVielle.exe` shim (2.4.2).
 4. An ARM64 setup. This pin is the amd64 official installer.
 5. An offline `/layout` of every Python component, so a PC with no network can install Tcl/Tk. Today the bundled installer may still fetch optional components.

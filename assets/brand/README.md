@@ -10,3 +10,5 @@ Canonical Windows / console mark for **DVielle** (product spelling; UI text neve
 | `dvielle_logo.png` / `dvielle_64.png` / `dvielle_88.png` / `dvielle_128.png` | UI sizes derived from the still |
 
 Wired by `dvielle.brand` (`apply_tk_window_icon`, `load_brand_pil_image`, `load_brand_gif_frames`) and `dvielle.gui.logo_mark.LogoMark`. Docs preview copies live under `docs/images/`.
+
+Install also stamps this ICO into `.venv\Scripts\DVielle.exe` (console host) so Task Manager shows the same mark. The resident agent stays `pythonw.exe`.

@@ -105,10 +105,16 @@ function Test-DvielleTaskOwner {
 function Get-DvielleOwnedProcesses {
     param([string]$Root)
     $pythonDir = Join-Path $Root '.venv\Scripts'
+    $guiExe = Join-Path $pythonDir 'DVielle.exe'
     Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
-        $_.ExecutablePath -and $_.CommandLine -and
-        [IO.Path]::GetDirectoryName($_.ExecutablePath) -ieq $pythonDir -and
-        $_.CommandLine -match '(?:^|\s)-m\s+(?:agent\.main|dvielle)(?:\s|$)'
+        if (-not $_.ExecutablePath -or -not $_.CommandLine) { return $false }
+        $inScripts = [IO.Path]::GetDirectoryName($_.ExecutablePath) -ieq $pythonDir
+        $isGuiShim = $_.ExecutablePath -ieq $guiExe
+        if (-not ($inScripts -or $isGuiShim)) { return $false }
+        if ($isGuiShim) {
+            return ($_.CommandLine -match '(?:^|\s)-m\s+dvielle(?:\s|$)')
+        }
+        return ($_.CommandLine -match '(?:^|\s)-m\s+(?:agent\.main|dvielle)(?:\s|$)')
     }
 }
 
@@ -246,7 +252,7 @@ function Test-DvielleAclDeniesUserWrite {
 function Test-DvielleElevatedTree {
     param([Parameter(Mandatory)][string]$Root)
     $root = Resolve-DvielleRoot $Root
-    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe')) {
+    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe', '.venv\Scripts\DVielle.exe')) {
         $path = Join-Path $root $relative
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
         if (-not (Test-DvielleAclDeniesUserWrite (Get-Acl -LiteralPath $path))) { return $false }
@@ -262,7 +268,7 @@ function Protect-DvielleInstallForElevation {
     param([Parameter(Mandatory)][string]$Root)
     if (-not (Test-DvielleAdmin)) { return $false }
     $root = Resolve-DvielleRoot $Root
-    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe')) {
+    foreach ($relative in @('agent\main.py', '.venv\Scripts\python.exe', '.venv\Scripts\pythonw.exe', '.venv\Scripts\DVielle.exe')) {
         if (-not (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf)) { return $false }
     }
     $pending = New-Object System.Collections.Generic.Queue[string]
