@@ -81,9 +81,11 @@ def setup_tray(
     return True
 
 
-def notify_tray(title: str, message: str) -> None:
-    if _tray_icon:
+def notify_tray(title: str, message: str) -> bool:
+    if _tray_icon and _tray_icon.visible:
         try:
-            _tray_icon.notify(message, title)
+            _tray_icon.notify(message[:255], title[:63])
+            return True
         except Exception:
             pass
+    return False

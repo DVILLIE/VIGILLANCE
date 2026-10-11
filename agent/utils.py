@@ -145,9 +145,9 @@ def show_toast(title: str, message: str, duration: int = 8, severity: str = "INF
         logging.getLogger("dvielle").info("TOAST [%s]: %s", title, message)
         return
     try:
-        from win10toast import ToastNotifier
+        from agent.notifications import submit_notification
 
-        ToastNotifier().show_toast(title, message, duration=duration, threaded=True)
+        submit_notification(title, message, duration)
     except Exception:
         logging.getLogger("dvielle").info("TOAST [%s]: %s", title, message)
 
