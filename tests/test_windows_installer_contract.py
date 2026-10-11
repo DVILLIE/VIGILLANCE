@@ -113,7 +113,7 @@ def test_readme_keeps_the_zip_as_the_download():
     readme = _text("README.md")
     guide = _text("docs/USER_GUIDE.md")
     notice = _text("installer/SETUP_NOTICE.txt")
-    assert "DVielle-2.4.2-windows-installer.zip" in readme
+    assert "DVielle-2.4.0-windows-installer.zip" in readme
     assert "Not on this Release" in readme
     assert "not a PyInstaller freeze" in readme
     assert "Chat is gone" in readme or "Not a chat assistant" in readme

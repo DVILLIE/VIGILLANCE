@@ -1,8 +1,8 @@
 # Telemetry limits and optional Windows hardening
 
-Updated 2026-09-13 for DVielle 1.6.0.
+Updated 2026-09-13 for D'Vielle 1.6.0.
 
-DVielle observes privacy settings and reports unavailable readings explicitly. The resident monitor does not rewrite registry values, edit hosts, add firewall rules, or remove applications. Those changes require a separately invoked script with `-Apply`.
+D'Vielle observes privacy settings and reports unavailable readings explicitly. The resident monitor does not rewrite registry values, edit hosts, add firewall rules, or remove applications. Those changes require a separately invoked script with `-Apply`.
 
 | Windows edition | Hardening policy target | Interpretation |
 | --- | --- | --- |

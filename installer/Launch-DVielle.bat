@@ -10,7 +10,7 @@ if not exist ".venv\Scripts\DVielle.exe" (
   echo Building the branded DVielle.exe console host...
   powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\scripts\New-DvielleGuiExe.ps1" -InstallDir "%cd%"
   if errorlevel 1 (
-    echo Could not build DVielle.exe. Re-run Install-DVielle.bat.
+    echo Could not build D'Vielle's console host (DVielle.exe). Re-run Install-DVielle.bat.
     pause
     exit /b 1
   )

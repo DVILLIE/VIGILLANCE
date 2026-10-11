@@ -1,4 +1,4 @@
-"""D\'Vielle — DEEP VIGILLANCE Windows security agent."""
+"""D\'Vielle — Intelligent Vigilance Windows security agent."""
 
 from agent.version import get_version
 

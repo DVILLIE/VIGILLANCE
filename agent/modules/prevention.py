@@ -280,7 +280,7 @@ class RecoveryReport:
     assumptions: list[str] = field(default_factory=lambda: [
         "BackupConfigured, BackupFresh, and RestoreVerified are separate states.",
         "A timestamp on a backup does not verify a restore.",
-        f"BackupFresh is yes only when a declared backup timestamp is within {BACKUP_FRESH_DAYS} days. That window is DVielle's, not a CISA number.",
+        f"BackupFresh is yes only when a declared backup timestamp is within {BACKUP_FRESH_DAYS} days. That window is D'Vielle's, not a CISA number.",
         f"RestoreVerified is yes only when a declared restore-test timestamp is within {RESTORE_VERIFIED_DAYS} days.",
         "This file is a user declaration. It is not a backup engine. Deleting it clears the declaration.",
         CISA_BACKUP_COPY,

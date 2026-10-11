@@ -1,4 +1,4 @@
-DVielle free-intel notices (2.2.0)
+D'Vielle free-intel notices (2.2.0)
 
 CISA Known Exploited Vulnerabilities catalog
 License: CC0 1.0
@@ -8,7 +8,7 @@ Catalog: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerab
 The KEV catalog may be used in any legal manner. Information at third-party links
 keeps the policies and licenses of those sites. Use of the catalog does not
 authorize the CISA logo or the DHS seal, and it is not an endorsement by CISA
-or DHS. DVielle does not ship those logos.
+or DHS. D'Vielle does not ship those logos.
 
 OSV schema and aggregated advisory records
 Schema license: Apache License, Version 2.0
@@ -21,10 +21,10 @@ https://google.github.io/osv.dev/data/
 Saved OSV caches retain full records and per-record source notices, including
 database identity and source references. Review source-specific redistribution
 terms before bundling or publishing data. Unknown source licenses remain unknown.
-DVielle does not claim ownership of advisory records.
+D'Vielle does not claim ownership of advisory records.
 
 abuse.ch
-DVielle does not bundle URLhaus, ThreatFox, or other abuse.ch dumps.
+D'Vielle does not bundle URLhaus, ThreatFox, or other abuse.ch dumps.
 A runtime fetch is off unless the operator turns it on and supplies their own
 Auth-Key. Community API use is fair-use and is not a commercial license.
 https://threatfox.abuse.ch/api/

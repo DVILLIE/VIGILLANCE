@@ -10,7 +10,7 @@ are earlier version records. See [the current boundary](REPAIR_INSTALL_PRIVILEGE
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
 **Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0; v0.9.4 records that P4 shipped in 2.2.0; v0.9.5 records that P5 shipped in 2.3.0. The v0.8 keep-on loop remains in force.)  
-**Product:** D'Vielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
+**Product:** D'Vielle (Intelligent Vigilance) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
 
@@ -51,7 +51,7 @@ The CPU contract is published on the twin. The resident task uses measured sched
 
 2.1.0 is a minor version. Sandbox launch and TUF verification are new capabilities on the same guardian. They do not replace Defender, and they do not change the Limited resident task.
 
-Open unfamiliar is a user-approved `OPEN_SANDBOX` action. On Windows Home the offer is UNAVAILABLE and the checklist names Smart App Control, ASR, CFA, and Firewall. It does not start a process. Windows Defender Application Guard is named only to say it is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not offered as a Home sandbox. On Pro, Enterprise, or Education, a missing optional feature stays LIMITED and is not enabled by DVielle. When the feature is present, D'Vielle writes one `.wsb` with networking disabled, vGPU disabled, clipboard redirection disabled, and one read-only mapped folder, then starts `WindowsSandbox.exe` with that file. Any other executable is refused. A normal desktop window is not Windows Sandbox. If guest networking is not observed, the result is LIMITED. A probe that reports networking disabled is recorded as verified, with the assumption that Group Policy override of `.wsb` settings was not read (Microsoft documents that an administrator policy can override a sandbox setting). A probe that reports networking enabled is not counted as the requested profile.
+Open unfamiliar is a user-approved `OPEN_SANDBOX` action. On Windows Home the offer is UNAVAILABLE and the checklist names Smart App Control, ASR, CFA, and Firewall. It does not start a process. Windows Defender Application Guard is named only to say it is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not offered as a Home sandbox. On Pro, Enterprise, or Education, a missing optional feature stays LIMITED and is not enabled by D'Vielle. When the feature is present, D'Vielle writes one `.wsb` with networking disabled, vGPU disabled, clipboard redirection disabled, and one read-only mapped folder, then starts `WindowsSandbox.exe` with that file. Any other executable is refused. A normal desktop window is not Windows Sandbox. If guest networking is not observed, the result is LIMITED. A probe that reports networking disabled is recorded as verified, with the assumption that Group Policy override of `.wsb` settings was not read (Microsoft documents that an administrator policy can override a sandbox setting). A probe that reports networking enabled is not counted as the requested profile.
 
 TUF verification follows specification 1.0.36. The client checks root, timestamp, snapshot, and targets from a local directory. It rejects a version rollback, an expiration that is not later than the update start time, and a sha256 or length mismatch. Delegations are refused rather than treated as verified. On failure the previously installed file stays. Privileged auto-update stays off. There is no GitHub Release updater. The displayed attestation is the verified package hash and the hash of the trusted targets metadata. Live measurement of the running process stays UNCHECKED. The wire format is [TUF_POUF.md](TUF_POUF.md).
 
@@ -752,7 +752,7 @@ These conflict — pick deliberately:
 
 ### Legal / brand protections (do these regardless)
 - Clear **LICENSE** (e.g. proprietary freeware terms, or GPL/AGPL/Apache with explicit no-warranty; if proprietary free: “free for personal/org use; **no commercial resale/rebrand**”)  
-- **Trademark** the name D'Vielle / DEEP VIGILLANCE where practical  
+- **Trademark** the name D'Vielle / Intelligent Vigilance where practical  
 - Copyright notices in UI, installer, About, logs header  
 - README: official download only from *your* site/repo; warn that third-party paid copies are unauthorized  
 - Optional: simple “About → Official build” checksum / version attestation page you control  

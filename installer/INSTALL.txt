@@ -21,8 +21,8 @@ docs\implementation\PYTHON314_PROTECTED_DEPLOYMENT_2026-10-10.md
 Detailed sequence: docs\project\17_Step_by_Step_Implementation_Plan.md
 
 HISTORICAL PUBLIC 2.4.2 INSTRUCTIONS BELOW — NOT CURRENT CANDIDATE INSTALL STEPS
-DVielle 2.4.2 — Windows install
-DEEP VIGILLANCE
+D'Vielle 2.4.2 — Windows install
+Intelligent Vigilance
 
 Repair branch status, 2026-10-09: normal Limited installation requires a verified
 protected source stage and a protected system Python executable on PATH.
@@ -45,7 +45,7 @@ standalone .exe. Python 3.12 is required.
 4. Approve the Windows prompt. The default destination is C:\DVILLIE.
    The unzip folder name (for example VIGILLANCE-2.4.2 or VIGILLANCE-main)
    is only the source. It is not where the resident copy lives.
-5. Open the desktop shortcut "DVielle - Deep Vigilance", or run
+5. Open the desktop shortcut "D'Vielle - Intelligent Vigilance", or run
    installer\Launch-DVielle.bat from C:\DVILLIE.
 
 A custom folder is allowed. From an Administrator PowerShell window:
@@ -53,13 +53,13 @@ A custom folder is allowed. From an Administrator PowerShell window:
   installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'
 
 The resident scheduled task stays Limited (your normal logon rights).
-Do not choose a Highest task for unattended use. DVielle does not add a
+Do not choose a Highest task for unattended use. D'Vielle does not add a
 Defender exclusion for its own folder.
 
 Uninstall: installer\Uninstall-DVielle.bat (as administrator).
 Files stay unless you type DELETE for that exact folder.
 
-There is no cloud install. Put DVielle on the PC you want watched.
+There is no cloud install. Put D'Vielle on the PC you want watched.
 Full steps: docs\USER_GUIDE.md
 
 A setup executable (DVielle-Setup-2.4.2.exe) can be built separately.

@@ -76,8 +76,8 @@ Copy-Item -LiteralPath $venvPythonw -Destination $guiExe -Force
 & $RceditPath `
     $guiExe `
     --set-icon $IconPath `
-    --set-version-string FileDescription 'DVielle - Deep Vigilance' `
-    --set-version-string ProductName DVielle `
+    --set-version-string FileDescription 'D''Vielle - Intelligent Vigilance' `
+    --set-version-string ProductName 'D''Vielle' `
     --set-version-string CompanyName DVielle `
     --set-version-string OriginalFilename DVielle.exe `
     --set-product-version $Version `

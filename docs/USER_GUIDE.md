@@ -9,9 +9,20 @@ field acceptance result for the repairs. See [the current constraints](REPAIR_IN
 
 ![D'Vielle logo](images/dvielle-logo.png)
 
-Version 2.4.2. D'Vielle (DEEP VIGILLANCE) is a free local guardian for a Windows PC. It watches that PC, explains what it noticed, and waits for you before it changes anything important.
+Version 2.5.0. D'Vielle (Intelligent Vigilance) is a free local guardian for a Windows PC. It watches that PC, explains what it noticed, and waits for you before it changes anything important.
 
 This guide is the install and day-to-day page. Promises and limits are in [CLAIMS.md](CLAIMS.md). Pass and fail checks are in [TRUST_GATES.md](TRUST_GATES.md).
+
+## Theme and logo
+
+- **Nexus Fold Prime** is the console theme. It has a pearl folded overview, a cobalt spatial network stage and a bottom dock on all six pages. Pick **Dark** or **Light** in the header. **Motion** follows the Windows animation setting until you change it, and turning it off freezes every animation. Animation is decoration only and never stands in for a reading. See [NEXUS_FOLD_PRIME.md](NEXUS_FOLD_PRIME.md).
+- **Quantum Key** is the logo. The header shows it with silent blue electrical surges; the window, taskbar, tray and shortcuts use the matching static icon.
+
+![Nexus Fold Prime, Dark](images/nexus-fold-prime-dark.png)
+
+Both choices are saved in local `console_ui.json` and are not uploaded.
+
+The install steps below describe the last packaged installer (2.4.x, Python 3.12). For the 2.5.0 Program Files install with Python 3.14, follow [installer/INSTALL.txt](../installer/INSTALL.txt).
 
 ## What you need
 
@@ -42,18 +53,18 @@ The unzip folder is the **source**. GitHub may name it `VIGILLANCE-2.4.2` or `VI
 For a different folder, open Administrator PowerShell in the unzipped tree and run:
 
 ```powershell
-installer\install-dvielle.ps1 -InstallDir 'C:\Apps\D'Vielle'
+installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'
 ```
 
 Use a dedicated local folder. The installer rejects a drive root, a shared Windows directory, and a reparse-point path. After that, start, stop, config, and data all use the folder you chose. D'Vielle does not silently fall back to another copy.
 
 Copying new files over an existing install does not refresh `.venv`. Run `Install-DVielle.bat` again.
 
-The resident task stays **Limited** (least privilege). A Highest task is an explicit installer switch only, and only after the install folder is locked down. Elevated unattended use is not recommended. The installer does not add a Microsoft Defender `ExclusionPath` for DVielle.
+The resident task stays **Limited** (least privilege). A Highest task is an explicit installer switch only, and only after the install folder is locked down. Elevated unattended use is not recommended. The installer does not add a Microsoft Defender `ExclusionPath` for D'Vielle.
 
 ## First open
 
-Open the desktop shortcut **D'Vielle - Deep Vigilance**, or run `installer\Launch-DVielle.bat` from the install folder.
+Open the desktop shortcut **D'Vielle - Intelligent Vigilance**, or run `installer\Launch-DVielle.bat` from the install folder.
 
 The console attaches to the background agent. It does not start a second set of collectors. The header should move from “Connecting” to a monitoring line when the agent is alive.
 

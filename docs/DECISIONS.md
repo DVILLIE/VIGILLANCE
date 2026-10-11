@@ -18,7 +18,7 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Dual mutate gate | Options-card token (or published auto-protect for that subject) **and** Cortex ActionKind + registered handler | Firewall, temp delete, startup disable, smart close, and BLOCK_IP fail closed if either half refuses. CLOSE_PROCESS is USER_APPROVED_ONLY. A Level≥3 decision must be durably saved before any handler runs. No second OS path. |
 | Scheduled task RunLevel | **Limited** | `TASK_RUNLEVEL_LUA`. `-RunLevel Highest` is refused before installation changes until the privileged service boundary is implemented. `elevate.ps1` elevates the installer process, not the resident task. Protected code and private writable data/config use separate ACLs. |
 | Install identity | Selected `InstallDir` | Start, verify, stop, config, and data use that tree. No silent fallback to another install such as `C:\DVILLIE`. |
-| Defender exclusion | **No** `Add-MpPreference ExclusionPath` | Installer must not carve DVielle out of Defender. |
+| Defender exclusion | **No** `Add-MpPreference ExclusionPath` | Installer must not carve D'Vielle out of Defender. |
 | Platform honesty | Windows-primary; Linux/macOS limited-mode | Camera in-use on Windows is not available yet. Footprint collector returns no hits; remote rows are drill tickets. |
 | F1 runtime | CapabilityReport + shared Twin + independent Nerve collectors + evidence schema | Single owner, workload-aware deferral and retry recovery; see `AUTONOMY.md` |
 | P0 safety contract | Collectors observe; Cortex decides; Action Executor mutates with Decision ID | Fail-closed; no module Level ≥2 bypass |
@@ -29,7 +29,7 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |
 | Install path | Default **`C:\DVILLIE`** | A selected `-InstallDir` is that installation's only config and data root |
 | Windows setup executable | Buildable wrapper. The Release download stays the zip until the exe is listed | `scripts/build_windows_installer.ps1` produces `DVielle-Setup-2.4.2.exe`. It checks the official Python 3.12.10 amd64 installer (last python.org 3.12 binary; later 3.12 releases are source-only) and calls `install-dvielle.ps1 -RunLevel Limited`. Not a PyInstaller freeze. Unsigned. No Defender exclusion. Chat stays removed. |
-| Console process identity | Branded `.venv\Scripts\DVielle.exe` (pythonw copy + rcedit icon) | Task Manager shows DVielle for the console. Resident stays `pythonw -m agent.main`. Built at install by `scripts/New-DvielleGuiExe.ps1`. Unsigned. |
+| Console process identity | Branded `.venv\Scripts\DVielle.exe` (pythonw copy + rcedit icon) | Task Manager shows D'Vielle for the console. Resident stays `pythonw -m agent.main`. Built at install by `scripts/New-DvielleGuiExe.ps1`. Unsigned. |
 | Runtime | Headless `agent.main` + attached optional GUI | One OS lock per data directory; shared atomic snapshot |
 | Cadence authority | **Future Architecture § Adaptive Nerve only** | No duplicate cadence docs; per-collector, not global “2–5s full scan” |
 | Review discipline | Master § Architecture Review Rules | CURRENT / REGRESSION / HISTORICAL labels; audit named refs |

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dvielle"
-version = "2.4.2"
-description = "DVielle — DEEP VIGILLANCE, a free local Windows guardian"
+version = "2.5.0"
+description = "D'Vielle — Intelligent Vigilance, a free local Windows guardian"
 readme = "README.md"
 requires-python = ">=3.12,<3.15,!=3.13.*"
 license = "MIT"

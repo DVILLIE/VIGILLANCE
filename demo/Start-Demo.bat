@@ -11,7 +11,7 @@ if not exist node_modules (
   call npm install
 )
 echo.
-echo Starting DVielle Demo at http://127.0.0.1:43123
+echo Starting D'Vielle Demo at http://127.0.0.1:43123
 echo Keep this window open. Press Ctrl+C to stop.
 echo.
 call npm run dev -- --host 127.0.0.1 --port 43123

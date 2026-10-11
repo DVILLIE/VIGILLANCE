@@ -31,7 +31,7 @@ def block_app_network(
     """
     del runner
     if not name or name.lower() in SYSTEM_PROTECTED:
-        return False, f"DVielle will not block the network for {name or 'that process'}. Traffic was not stopped."
+        return False, f"D'Vielle will not block the network for {name or 'that process'}. Traffic was not stopped."
     from agent.privilege.broker import submit_restrict_network
 
     body = submit_restrict_network(

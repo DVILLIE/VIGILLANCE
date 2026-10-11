@@ -202,7 +202,7 @@ def _identity(finding: dict, ctx: HandlerContext) -> tuple[bool, str, int, str]:
     if pid <= 1 or not name:
         return False, "Identity unclear. D\'Vielle did not touch that process.", pid, name
     if name.lower() in SYSTEM_PROTECTED:
-        return False, f"DVielle will not close {name}. It is a system process.", pid, name
+        return False, f"D'Vielle will not close {name}. It is a system process.", pid, name
     current = ctx.lookup(pid)
     if current is None:
         return False, "That process is already gone. Nothing was changed.", pid, name
@@ -346,7 +346,7 @@ def restrict_network(finding: dict, ctx: HandlerContext) -> dict:
     path = str(signals.get("program") or signals.get("path") or "")
     name = str(signals.get("name") or Path(path).name)
     if not name or name.lower() in SYSTEM_PROTECTED:
-        return _result(False, f"DVielle will not block the network for {name or 'that program'}. Traffic was not stopped.")
+        return _result(False, f"D'Vielle will not block the network for {name or 'that program'}. Traffic was not stopped.")
     families = signals.get("address_families")
     remotes = signals.get("remote_addresses")
     performed, detail = block_app_network(

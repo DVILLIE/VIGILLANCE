@@ -1,4 +1,4 @@
-# DVielle TUF POUF — dvielle-json-ed25519-1
+# D'Vielle TUF POUF — dvielle-json-ed25519-1
 
 **Spec:** The Update Framework 1.0.36 (5 August 2026), https://theupdateframework.github.io/specification/v1.0.36/  
 **Status:** Verification only. Privileged auto-update is off. No network fetch.

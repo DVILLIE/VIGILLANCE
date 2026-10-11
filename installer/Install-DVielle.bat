@@ -1,7 +1,7 @@
 @echo off
 setlocal
-title DVielle Installer - Deep Vigilance
-echo DVielle installation requires Administrator approval.
+title D'Vielle Installer - Intelligent Vigilance
+echo D'Vielle installation requires Administrator approval.
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0elevate.ps1" -Operation Install
 set "DVIELLE_EXIT=%ERRORLEVEL%"
 if not "%DVIELLE_EXIT%"=="0" (

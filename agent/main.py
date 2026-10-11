@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
         print('D\'Vielle is already running; no duplicate collector was started.')
         return 0 if not args.once else 2
     except Exception as exc:
-        print(f'DVielle startup failed: {exc}', file=sys.stderr)
+        print(f"D'Vielle startup failed: {exc}", file=sys.stderr)
         return 1
 
     from dvielle.gui.notify_policy import set_notification_mode

@@ -1,4 +1,4 @@
-# DVielle researched repair batch — 2026-10-09
+# D'Vielle researched repair batch — 2026-10-09
 
 Implemented in `C:\DVILLIE-main-repairs`, branch
 `codex/researched-repairs-20261009`, based on main commit
@@ -12,7 +12,7 @@ finding is resolved or that the application has been deployed or certified.
 
 | Area | Result and verification boundary |
 | --- | --- |
-| Protection preferences | ASR retains the entire configured map, including unknown catalog IDs. ASR/CFA journal before writing, serialize DVielle changes, detect intervening state changes, and verify unrelated settings. Unreadable/corrupt/pending journals refuse further changes. Windows offers no atomic comparison against external policy writers. |
+| Protection preferences | ASR retains the entire configured map, including unknown catalog IDs. ASR/CFA journal before writing, serialize D'Vielle changes, detect intervening state changes, and verify unrelated settings. Unreadable/corrupt/pending journals refuse further changes. Windows offers no atomic comparison against external policy writers. |
 | Firewall | Uses supported per-family RemoteAddress arrays, exact normalized filters, ownership tags, and verified invocation-owned rollback. A failed cleanup reports uncertain state. The production privileged transport remains held. |
 | Sandbox | Uses the Windows system location, unique configuration files, explicit disabled network/clipboard/audio/video/printer redirection, and read-only maps. Finding text cannot impersonate a guest probe. Actual guest networking remains unknown without independent observation. |
 | Intelligence | OSV batch IDs are hydrated, outstanding pages followed, and query associations preserved. Invalid or oversized refreshes retain the old cache. Version matching handles supported interval/prerelease semantics and reports unsupported comparisons as unassessed. Source-specific advisory licenses are retained. |

@@ -280,7 +280,7 @@ def open_unfamiliar(
     if not _is_system_exe(str(sandbox_exe or "")):
         body = _base(
             "REFUSED",
-            "DVielle only starts WindowsSandbox.exe from the Windows system directory. A normal desktop window is not Windows Sandbox. Nothing was started.",
+            "D'Vielle only starts WindowsSandbox.exe from the Windows system directory. A normal desktop window is not Windows Sandbox. Nothing was started.",
             _NOT_SANDBOX,
         )
         body["offer"] = "REFUSED"

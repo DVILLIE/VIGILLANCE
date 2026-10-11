@@ -1,4 +1,4 @@
-DVielle setup
+D'Vielle setup
 
 Repair branch status, 2026-10-09: this setup wrapper is held pending protected
 bootstrap and compiler staging. It aborts during initialization; it does not
@@ -18,4 +18,4 @@ This is not an antivirus product. It does not turn Windows Defender off, and it 
 
 The setup file is unsigned. Windows SmartScreen may say it prevented an unrecognized app from starting. That warning is expected.
 
-DVielle does not prove this PC is free of threats.
+D'Vielle does not prove this PC is free of threats.

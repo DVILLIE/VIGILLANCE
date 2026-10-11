@@ -894,7 +894,7 @@ def close_pids(
         except psutil.AccessDenied:
             return False, f"Refused: PID {pid} not accessible — run as Administrator"
         if pname in protected or pid == foreground_pid or _protected_ancestry(proc, workload_names):
-            return False, f"Refused: PID {pid} ({pname}) is protected (system / DVielle)."
+            return False, f"Refused: PID {pid} ({pname}) is protected (system / D'Vielle)."
         if observed_at is None or pid not in expected or not _identity_matches(proc, expected[pid], protected):
             return False, f"Refused: PID {pid} identity is missing or changed; refresh and confirm again"
         targets.append(proc)

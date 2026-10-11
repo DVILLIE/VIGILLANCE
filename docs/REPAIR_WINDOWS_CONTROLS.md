@@ -6,7 +6,7 @@ rule, Sandbox session, or installed task was changed during this work.
 ## Implemented contracts
 
 - ASR changes preserve every configured GUID/action, including GUIDs outside
-  the DVielle catalog. New IDs use `Add-MpPreference`; changing an existing ID
+  the D'Vielle catalog. New IDs use `Add-MpPreference`; changing an existing ID
   supplies the full preserved arrays to `Set-MpPreference`. Removal uses
   `Remove-MpPreference`. The writer rechecks the full baseline before mutation;
   the result verifies the full map and unchanged CFA mode.
@@ -59,7 +59,7 @@ generated mutation script was executed.
 Disposable Windows validation must exercise actual Defender array updates and
 recovery, tamper protection and managed-policy overrides, all IPv4/IPv6 filter
 representations, name collisions and partial firewall failures, and independent
-guest networking evidence. The journal lock coordinates DVielle instances;
+guest networking evidence. The journal lock coordinates D'Vielle instances;
 Windows exposes no atomic preference compare-and-swap against external policy
 writers. A system path is not a fresh binary-signature attestation. A successful
 rule read is not a packet-level isolation guarantee. The production guest probe

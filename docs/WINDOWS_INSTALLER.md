@@ -2,7 +2,7 @@
 
 Current repair candidate (10 October 2026): bootstrap, default installer runtime and held build metadata now select protected Python 3.14.8; default application location is `C:\Program Files\DVielle`. The public wrapper remains held. The Python 3.12 instructions below describe the preserved historical public 2.4.2 release, not current candidate installation. See `installer/INSTALL.txt` and the current implementation evidence.
 
-![DVielle logo](images/dvielle-logo.png)
+![D'Vielle logo](images/dvielle-logo.png)
 
 Version 2.4.2. This page is how to produce `DVielle-Setup-2.4.2.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
 
