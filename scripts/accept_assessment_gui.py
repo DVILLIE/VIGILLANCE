@@ -18,6 +18,11 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--installed-runtime', action='store_true')
     args = parser.parse_args()
+    if args.installed_runtime:
+        import inspect
+        expected = Path(r'C:\Program Files\DVielle\dvielle\gui\assessment.py')
+        if Path(inspect.getfile(AssessmentWorkspace)).resolve() != expected.resolve():
+            raise RuntimeError('--installed-runtime requires the protected installed interpreter and modules')
     root = ctk.CTk()
     root.geometry('1200x850')
     root.title("D'Vielle — keyboard and scaling acceptance")
