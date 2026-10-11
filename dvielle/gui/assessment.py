@@ -57,8 +57,12 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.sign_exports = ctk.CTkCheckBox(self, text='Sign exports locally with ML-DSA-65 (Windows-protected key; retain the signer fingerprint separately)')
         self.sign_exports.pack(anchor='w', pady=6)
         self.tabs = ctk.CTkTabview(self, fg_color=T.BG_PANEL)
+        tab_names = ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs")
+        self.tab_choice = ctk.CTkOptionMenu(self, values=list(tab_names), command=self.tabs.set)
+        self.tab_choice.set('Assessment')
+        self.tab_choice.pack(anchor='w', pady=(4, 0))
         self.tabs.pack(fill="both", expand=True, pady=10)
-        for title in ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs"):
+        for title in tab_names:
             self.tabs.add(title)
         privacy = self.tabs.tab('Privacy & costs')
         self.retention_enabled = ctk.CTkCheckBox(privacy, text='Automatically clean old history after an assessment')
@@ -149,6 +153,7 @@ class AssessmentWorkspace(ctk.CTkFrame):
                    "TCP listener observations and available Windows protection posture.\n\n"
                    "Missing coverage remains unknown. No automatic OS remediation is enabled here.")
         self.refresh_history()
+        self._keyboard_controls()
         if self.engine is not None:
             try:
                 policy = HistoryPrivacy(self.engine).policy()
@@ -453,6 +458,23 @@ class AssessmentWorkspace(ctk.CTkFrame):
             self.tabs.set("Assessment")
         except (ValueError, OSError, sqlite3.Error, KeyError, TypeError, AttributeError):
             self.status.configure(text="The selected assessment is unavailable.")
+
+    def _keyboard_controls(self):
+        """Expose actual action canvases to Tab, Enter and Space with a focus ring."""
+        pending = list(self.winfo_children())
+        while pending:
+            widget = pending.pop()
+            pending.extend(widget.winfo_children())
+            if isinstance(widget, ctk.CTkButton):
+                canvas = widget._canvas
+                canvas.configure(takefocus=1, highlightthickness=2,
+                                 highlightcolor=widget._apply_appearance_mode(T.ACCENT),
+                                 highlightbackground=widget._apply_appearance_mode(T.BG_PANEL))
+                def invoke(_event, button=widget):
+                    button.invoke()  # CTkButton retains its disabled-state guard.
+                    return 'break'
+                widget.bind('<Return>', invoke, add=True)
+                widget.bind('<space>', invoke, add=True)
 
     def stop(self):
         self.stop_event.set()

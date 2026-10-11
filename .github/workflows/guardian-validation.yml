@@ -1,0 +1,51 @@
+name: Guardian Windows acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.14.8'
+      - name: Install exact reviewed dependencies
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r .github/locks/windows-python314-runtime.txt -r .github/locks/windows-validation.txt
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python -m pip install --no-deps --no-build-isolation -e .
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Non-collecting installation smoke
+        run: python scripts/smoke_test.py
+      - name: Regression with machine-readable results
+        run: python -m pytest -q --tb=short --junitxml=validation-results/pytest.xml
+      - name: Parse PowerShell without executing installers
+        shell: pwsh
+        run: |
+          foreach ($file in Get-ChildItem installer,scripts -Filter *.ps1 -Recurse) {
+            $errorsFound = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errorsFound)
+            if ($errorsFound) { $errorsFound | ForEach-Object { $_.ToString() }; exit 1 }
+          }
+      - name: Preserve validation results only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: guardian-validation-${{ matrix.os }}
+          path: validation-results/pytest.xml
+          if-no-files-found: warn
+          retention-days: 14
