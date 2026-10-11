@@ -54,6 +54,8 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.share_versions = ctk.CTkCheckBox(self,
             text="For this run: share D'Vielle runtime package names/versions with OSV for vulnerability lookup")
         self.share_versions.pack(anchor="w", pady=6)
+        self.sign_exports = ctk.CTkCheckBox(self, text='Sign exports locally with ML-DSA-65 (Windows-protected key; retain the signer fingerprint separately)')
+        self.sign_exports.pack(anchor='w', pady=6)
         self.tabs = ctk.CTkTabview(self, fg_color=T.BG_PANEL)
         self.tabs.pack(fill="both", expand=True, pady=10)
         for title in ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs"):
@@ -468,6 +470,15 @@ class AssessmentWorkspace(ctk.CTkFrame):
             try:
                 self.engine.export(self.current_report["id"], Path(destination))
                 self.status.configure(text="Redacted report exported. Origin, addresses and process IDs removed.")
+                if self.sign_exports.get() == 1:
+                    try:
+                        from agent.assessment.signatures import sign_report
+                        from agent.local_files import atomic_text
+                        signature = sign_report(Path(destination), self.engine.directory / 'security')
+                        atomic_text(Path(destination + '.sig.json'), json.dumps(signature, indent=2))
+                        self.status.configure(text='Redacted report and ML-DSA-65 signature exported. Signer fingerprint: ' + signature['key_fingerprint'])
+                    except Exception as exc:
+                        self.status.configure(text='Redacted report exported; signature unavailable (' + type(exc).__name__ + '). No signed-export claim.')
             except (OSError, sqlite3.Error, ValueError, KeyError, TypeError):
                 self.status.configure(text="Report export failed; the assessment remains in local history.")
 

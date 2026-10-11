@@ -9,6 +9,7 @@ import secrets
 import socket
 import struct
 import time
+import ipaddress
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,6 +40,42 @@ def probe(address):
                 'elapsed_seconds': time.monotonic() - started}
 
 
+def observe_drop_events(address, pid, started):
+    """Read actual WFP audit records; never enable or change audit policy."""
+    ipaddress.IPv4Address(address)
+    if type(pid) is not int or pid <= 0:
+        raise ValueError('Real observer PID required')
+    from agent.utils import run_powershell
+    stamp = started.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    script = """
+$ErrorActionPreference = 'Stop'
+try {
+  $events = @(Get-WinEvent -FilterHashtable @{LogName='Security';Id=5152,5157;StartTime=[datetime]'__START__'} -MaxEvents 200 -ErrorAction Stop)
+  foreach ($event in $events) {
+    $xml = [xml]$event.ToXml()
+    $fields = @{}
+    foreach ($entry in $xml.Event.EventData.Data) { $fields[$entry.Name] = [string]$entry.'#text' }
+    $raw = $fields['ProcessID']
+    if (!$raw) { $raw = $fields['ProcessId'] }
+    if ($raw -like '0x*') { $observed = [Convert]::ToInt64($raw.Substring(2),16) } else { $observed = [long]$raw }
+    if ($observed -eq __PID__ -and $fields['DestAddress'] -eq '__ADDRESS__' -and $fields['DestPort'] -eq '53' -and $fields['Protocol'] -eq '17' -and $fields['Direction'] -eq '%%14593') {
+      @{event_id=$event.Id;record_id=$event.RecordId;time=$event.TimeCreated.ToUniversalTime().ToString('o');application=$fields['Application'];process_id=$observed;destination=$fields['DestAddress'];destination_port=53;protocol=17} | ConvertTo-Json -Compress
+    }
+  }
+} catch {
+  @{query_unavailable=$true;error_type=$_.Exception.GetType().Name} | ConvertTo-Json -Compress
+}
+""".replace('__START__', stamp).replace('__PID__', str(pid)).replace('__ADDRESS__', address)
+    code, stdout, _, timed_out = run_powershell(script, timeout=10)
+    records = []
+    for line in stdout.splitlines():
+        if line.strip():
+            records.append(json.loads(line))
+    return {'state':'query_completed' if code == 0 and not timed_out and not any(r.get('query_unavailable') for r in records) else 'unavailable',
+            'matching_drops':[r for r in records if r.get('event_id') in {5152,5157}],
+            'audit_policy_changed':False, 'bounded_event_limit':200}
+
+
 def main(acceptance):
     address = acceptance['resolver']
     if address not in {'1.1.1.1', '8.8.8.8'}:
@@ -66,7 +103,7 @@ def main(acceptance):
     if store.pending():
         raise RuntimeError('Resolve the retained recovery backlog before any acceptance mutation')
     destination = Path(acceptance['output'])
-    if (destination.parent != Path(win32api.GetWindowsDirectory()) / 'Temp'
+    if (destination.parent != Path(__import__('sys').prefix).parent
             or not destination.name.startswith('DVielleUDP-') or destination.suffix != '.json'):
         raise ValueError('Unsafe evidence destination')
     attributes = pywintypes.SECURITY_ATTRIBUTES()
@@ -95,11 +132,15 @@ def main(acceptance):
         if result.get('ok') is not True:
             report['state'] = 'apply_not_verified'
             return
+        drop_start = datetime.now(timezone.utc)
         report['during'] = [probe(address) for _ in range(2)]
+        report['drop_events'] = observe_drop_events(address, psutil.Process().pid, drop_start)
         # A timeout alone cannot prove that Windows blocked a packet.
         blocked = all(r['state'] == 'response_unavailable' and r['windows_error'] == 10013
                       for r in report['during'])
-        report['state'] = 'bounded_udp_denial_observed' if blocked else 'udp_acceptance_not_proven'
+        matched_drop = bool(report['drop_events']['matching_drops'])
+        report['packet_drop_attribution'] = 'matching_wfp_security_event' if matched_drop else 'not_measured'
+        report['state'] = 'bounded_udp_denial_observed' if blocked or matched_drop else 'udp_acceptance_not_proven'
     except Exception as exc:
         report.update(state='failed_or_incomplete', error_type=type(exc).__name__)
     finally:
