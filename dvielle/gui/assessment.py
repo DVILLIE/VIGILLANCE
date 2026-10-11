@@ -64,6 +64,19 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.tabs.pack(fill="both", expand=True, pady=10)
         for title in tab_names:
             self.tabs.add(title)
+        signer = ctk.CTkFrame(self.tabs.tab('Quantum readiness'), fg_color=T.BG_PANEL_ALT)
+        signer.pack(fill='x', pady=6)
+        ctk.CTkLabel(signer, text='Local report signer', font=T.FONT_BODY).pack(anchor='w', padx=10, pady=6)
+        self.signer_status = ctk.CTkLabel(signer, text='Check the local signer before managing its keys.',
+                                        wraplength=700, justify='left')
+        self.signer_status.pack(anchor='w', padx=10, pady=4)
+        signer_controls = ctk.CTkFrame(signer, fg_color='transparent')
+        signer_controls.pack(fill='x', padx=8, pady=8)
+        signer_controls.grid_columnconfigure((0, 1), weight=1)
+        ctk.CTkButton(signer_controls, text='Check signer', command=self.check_signer).grid(row=0, column=0, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Rotate signer', command=self.rotate_signer).grid(row=0, column=1, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Revoke & replace', command=lambda: self.rotate_signer(revoke=True)).grid(row=1, column=0, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Verify signed report', command=self.verify_signed_report).grid(row=1, column=1, sticky='ew', padx=3, pady=3)
         privacy = self.tabs.tab('Privacy & costs')
         self.retention_enabled = ctk.CTkCheckBox(privacy, text='Automatically clean old history after an assessment')
         self.retention_enabled.pack(anchor='w', pady=8)
@@ -503,6 +516,64 @@ class AssessmentWorkspace(ctk.CTkFrame):
                         self.status.configure(text='Redacted report exported; signature unavailable (' + type(exc).__name__ + '). No signed-export claim.')
             except (OSError, sqlite3.Error, ValueError, KeyError, TypeError):
                 self.status.configure(text="Report export failed; the assessment remains in local history.")
+
+    def check_signer(self):
+        if self.engine is None:
+            self.signer_status.configure(text='Local assessment storage is unavailable.')
+            return None
+        try:
+            from agent.assessment.signatures import report_key_status
+            status = report_key_status(self.engine.directory / 'security')
+            if status['state'] != 'active':
+                self.signer_status.configure(text='No signer yet. Create one by exporting a locally signed report.')
+                return None
+            self.signer_status.configure(text='Active fingerprint: ' + status['key_fingerprint'] +
+                                         '\nRetired/revoked signers: ' + str(len(status['retired'])))
+            return status
+        except Exception as exc:
+            self.signer_status.configure(text='Signer unavailable (' + type(exc).__name__ + ').')
+            return None
+
+    def rotate_signer(self, *, revoke=False):
+        status = self.check_signer()
+        if status is None:
+            return
+        explanation = ('Previously signed reports from this signer will be rejected by local lifecycle verification.'
+                       if revoke else 'Previously signed reports remain verifiable as retired. The old private seed is discarded.')
+        if not messagebox.askyesno("D'Vielle local signer", explanation +
+                                  '\n\nCreate a new report signer? Retain its new fingerprint independently.',
+                                  parent=self.winfo_toplevel()):
+            return
+        try:
+            from agent.assessment.signatures import rotate_report_key
+            result = rotate_report_key(self.engine.directory / 'security', status['key_fingerprint'],
+                                       revoke_previous=revoke)
+            self.signer_status.configure(text='Signer rotated. Retain new fingerprint: ' + result['key_fingerprint'] +
+                                         '\nPrevious signer: ' + result['previous_state'])
+        except Exception as exc:
+            self.signer_status.configure(text='Rotation unavailable (' + type(exc).__name__ + '). Check signer state again.')
+
+    def verify_signed_report(self):
+        if self.engine is None:
+            self.signer_status.configure(text='Local assessment storage is unavailable.')
+            return
+        filename = filedialog.askopenfilename(parent=self.winfo_toplevel(),
+                                             title='Select a locally signed JSON report',
+                                             filetypes=[('JSON report', '*.json')])
+        if not filename:
+            return
+        try:
+            from agent.assessment.signatures import verify_local_report, MAX_BYTES
+            report = Path(filename)
+            with report.with_suffix(report.suffix + '.sig.json').open('rb') as stream:
+                raw = stream.read(MAX_BYTES + 1)
+            if len(raw) > MAX_BYTES:
+                raise ValueError('Oversized signature envelope')
+            result = verify_local_report(report, json.loads(raw), self.engine.directory / 'security')
+            self.signer_status.configure(text='Report signature verified. Signer: ' + result['signer_lifecycle'] +
+                                         '. This verifies report bytes, not the report conclusions.')
+        except Exception as exc:
+            self.signer_status.configure(text='Report signature NOT verified (' + type(exc).__name__ + ').')
 
     def close(self):
         self.closed = True
