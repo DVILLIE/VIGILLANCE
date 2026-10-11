@@ -30,6 +30,7 @@ os._exit(73)
 '''
 
 
+@pytest.mark.requires_unelevated
 @pytest.mark.parametrize('phase', ['committed', 'uncommitted'])
 def test_process_exit_preserves_transaction_boundary(tmp_path, phase):
     program = tmp_path / 'fixture.exe'

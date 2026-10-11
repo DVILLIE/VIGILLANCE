@@ -280,6 +280,7 @@ def test_direct_apply_refuses_outside_the_helper(tmp_path: Path):
     assert "Stop-Service" not in remove_script(["DVielle-restrict-abc-v4"])
 
 
+@pytest.mark.requires_unelevated
 def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()
@@ -329,6 +330,7 @@ def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path)
         helper.close()
 
 
+@pytest.mark.requires_unelevated
 def test_one_address_family_is_warned(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()
@@ -353,6 +355,7 @@ def test_one_address_family_is_warned(tmp_path: Path):
         helper.close()
 
 
+@pytest.mark.requires_unelevated
 def test_dual_gate_restrict_uses_the_helper_and_auto_protect_cannot(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()

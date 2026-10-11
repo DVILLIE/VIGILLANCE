@@ -64,6 +64,7 @@ with tempfile.TemporaryDirectory() as temporary:
 '''
 
 
+@pytest.mark.requires_unelevated
 @pytest.mark.skipif(os.name != 'nt', reason='Actual Windows pipe required')
 def test_native_authenticated_dispatch_roundtrip():
     result = subprocess.run([sys.executable, '-c', CODE], capture_output=True, text=True, timeout=15)
