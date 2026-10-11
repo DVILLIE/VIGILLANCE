@@ -49,7 +49,9 @@ def _pick_sapi_voice(speaker, persona: PersonaId) -> None:
     fallback = None
     for voice in speaker.GetVoices():
         try:
-            lang = int(voice.GetAttribute("Language"))
+            languages = str(voice.GetAttribute("Language")).split(";")
+            lang = next((int(value, 16) for value in languages
+                         if int(value, 16) == want_lang), 0)
         except Exception:
             lang = 0
         desc = str(voice.GetDescription())
@@ -63,26 +65,6 @@ def _pick_sapi_voice(speaker, persona: PersonaId) -> None:
         speaker.Voice = chosen
 
 
-def _pick_pyttsx_voice(engine, persona: PersonaId) -> None:
-    try:
-        voices = engine.getProperty("voices") or []
-        want_lang = "en-us" if persona == "jarvis" else "en-gb"
-        for v in voices:
-            vid = (getattr(v, "id", "") or "").lower()
-            name = (getattr(v, "name", "") or "").lower()
-            if want_lang.replace("-", "_") in vid or want_lang in name:
-                if _voice_matches_persona(name, persona):
-                    engine.setProperty("voice", v.id)
-                    return
-        for v in voices:
-            name = (getattr(v, "name", "") or "").lower()
-            if _voice_matches_persona(name, persona):
-                engine.setProperty("voice", v.id)
-                return
-    except Exception as exc:
-        logger.debug("pyttsx voice pick skipped: %s", exc)
-
-
 def _speak_sapi_com(text: str, persona: PersonaId) -> bool:
     try:
         import pythoncom
@@ -94,7 +76,8 @@ def _speak_sapi_com(text: str, persona: PersonaId) -> bool:
             speaker.Volume = 100
             speaker.Rate = 2 if persona == "jarvis" else 1
             _pick_sapi_voice(speaker, persona)
-            speaker.Speak(text, 0)
+            # SVSFIsNotXML: observations are text, never speech markup.
+            speaker.Speak(text, 16)
             return True
         finally:
             pythoncom.CoUninitialize()
@@ -103,33 +86,11 @@ def _speak_sapi_com(text: str, persona: PersonaId) -> bool:
         return False
 
 
-def _speak_pyttsx3(text: str, persona: PersonaId) -> bool:
-    try:
-        import pyttsx3
-
-        engine = pyttsx3.init("sapi5")
-        engine.setProperty("rate", 168 if persona == "jarvis" else 155)
-        engine.setProperty("volume", 1.0)
-        _pick_pyttsx_voice(engine, persona)
-        engine.say(text)
-        engine.runAndWait()
-        try:
-            engine.stop()
-        except Exception:
-            pass
-        return True
-    except Exception as exc:
-        logger.warning("pyttsx3 speech failed: %s", exc)
-        return False
-
-
 def _speak_blocking(text: str, persona: PersonaId) -> None:
     if not _ON_WINDOWS:
         logger.info("[%s speaks] %s", persona.upper(), text)
         return
     if _speak_sapi_com(text, persona):
-        return
-    if _speak_pyttsx3(text, persona):
         return
     logger.error("Voice unavailable for %s — check Windows sound output", persona)
 
@@ -154,7 +115,7 @@ def _ensure_worker() -> None:
     with _worker_lock:
         if _worker_started:
             return
-        _speech_queue = queue.Queue()
+        _speech_queue = queue.Queue(maxsize=16)
         threading.Thread(
             target=_speech_worker,
             daemon=True,
@@ -172,7 +133,10 @@ def speak_async(text: str, persona: PersonaId = "jarvis") -> None:
         return
     _ensure_worker()
     assert _speech_queue is not None
-    _speech_queue.put((text, persona))
+    try:
+        _speech_queue.put_nowait((text[:2048], persona))
+    except queue.Full:
+        logger.warning("Speech queue full; message retained in log: %s", text)
 
 
 def random_greeting() -> str:

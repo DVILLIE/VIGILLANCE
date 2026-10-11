@@ -15,6 +15,8 @@ local, non-elevated run, where these tests execute normally.
 from __future__ import annotations
 
 import pytest
+import gc
+import threading
 
 ELEVATED_SKIP_REASON = (
     "Requires a non-elevated token: the product deliberately refuses elevated "
@@ -49,3 +51,17 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     skip = pytest.mark.skip(reason=ELEVATED_SKIP_REASON)
     for item in marked:
         item.add_marker(skip)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_teardown(item: pytest.Item):
+    """Finalize orphan Tk fonts/images on their creating thread after GUI teardown.
+
+    Actual Python 3.14 hosted failures showed tkinter.font.Font.__del__ blocking
+    in the later resident-controller thread when cyclic GC collected GUI objects.
+    Keep the lifecycle test intact and collect after fixture caches are released.
+    """
+    yield
+    if (item.path.name in {'test_logo_animation.py', 'test_nexus_fold_prime.py'}
+            and threading.current_thread() is threading.main_thread()):
+        gc.collect()
