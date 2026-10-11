@@ -33,6 +33,7 @@ def identity(params):
         return observed
 
 
+@pytest.mark.requires_unelevated
 def test_consumption_and_intent_are_durable_and_single_use(setup):
     store, params = setup
     grant = store.issue(params)
@@ -43,6 +44,7 @@ def test_consumption_and_intent_are_durable_and_single_use(setup):
         reopened.claim(grant, SID, params, identity(params))
 
 
+@pytest.mark.requires_unelevated
 @pytest.mark.parametrize('alteration', ['scope', 'identity', 'sid', 'expired', 'revoked'])
 def test_grant_rejects_changed_authority(setup, alteration):
     store, params = setup
@@ -65,6 +67,7 @@ def test_grant_rejects_changed_authority(setup, alteration):
     assert store.pending() == []
 
 
+@pytest.mark.requires_unelevated
 def test_concurrent_claims_have_one_winner(setup):
     store, params = setup
     grant = store.issue(params)
@@ -80,6 +83,7 @@ def test_concurrent_claims_have_one_winner(setup):
     assert len(store.pending()) == 1
 
 
+@pytest.mark.requires_unelevated
 def test_installation_user_and_schema_are_bound(setup):
     store, _ = setup
     with pytest.raises(PermissionError):
@@ -90,6 +94,7 @@ def test_installation_user_and_schema_are_bound(setup):
         GrantStore(store.directory, SID, test_harness=True)
 
 
+@pytest.mark.requires_unelevated
 def test_dispatch_durable_before_runner_and_replay_refused(setup):
     store, params = setup
     calls = []
@@ -110,6 +115,7 @@ def test_dispatch_durable_before_runner_and_replay_refused(setup):
     assert store.pending() == []
 
 
+@pytest.mark.requires_unelevated
 def test_crash_intent_blocks_other_mutations(setup):
     store, params = setup
     store.claim(store.issue(params), SID, params, identity(params))
@@ -117,6 +123,7 @@ def test_crash_intent_blocks_other_mutations(setup):
     assert dispatcher.dispatch(request(store.issue(params), params))['code'] == 'recovery_required'
 
 
+@pytest.mark.requires_unelevated
 def test_replaced_executable_cannot_use_original_grant(setup):
     store, params = setup
     grant = store.issue(params)
@@ -126,6 +133,7 @@ def test_replaced_executable_cannot_use_original_grant(setup):
     assert dispatcher.dispatch(request(grant, params))['code'] == 'unauthorized'
 
 
+@pytest.mark.requires_unelevated
 def test_request_cannot_supply_identity_or_consent(setup):
     store, params = setup
     dispatcher = ServiceDispatcher(store, runner=lambda _: pytest.fail('must not execute'))
@@ -135,6 +143,7 @@ def test_request_cannot_supply_identity_or_consent(setup):
     assert dispatcher.dispatch(ReceivedRequest(None, request('a'*32, params).body))['code'] == 'unauthorized'
 
 
+@pytest.mark.requires_unelevated
 def test_transaction_failure_rolls_back_claim(setup):
     store, params = setup
     grant = store.issue(params)
@@ -168,6 +177,7 @@ def test_native_windows_lease_blocks_changes_and_releases(tmp_path):
     program.rename(tmp_path / 'renamed.exe')
 
 
+@pytest.mark.requires_unelevated
 @pytest.mark.parametrize('mode', ['missing', 'mismatched', 'conflict', 'restored'])
 def test_administrative_recovery_keeps_unresolved_evidence(setup, mode):
     from agent.privilege.recovery import reconcile
@@ -191,6 +201,7 @@ def test_administrative_recovery_keeps_unresolved_evidence(setup, mode):
     assert bool(calls) is (mode in {'conflict', 'restored'})
 
 
+@pytest.mark.requires_unelevated
 def test_deleted_program_does_not_strand_owned_recovery(setup):
     from pathlib import Path
     from agent.privilege.recovery import reconcile

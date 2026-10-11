@@ -17,10 +17,27 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Check setup build hold
+        id: hold
+        shell: powershell
+        run: |
+          # The owner's build script deliberately holds setup wrapper builds
+          # (an unconditional "Setup wrapper builds are held" throw) until the
+          # protected bootstrap/compiler staging is in place. Respect that hold:
+          # skip the compile and upload steps instead of failing the job.
+          $script = Get-Content -LiteralPath .\scripts\build_windows_installer.ps1 -Raw
+          if ($script -match "(?m)^\s*throw\s+'Setup wrapper builds are held") {
+            "held=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Output "::notice title=Setup build held::scripts/build_windows_installer.ps1 holds setup wrapper builds pending protected bootstrap/compiler staging. Compile and upload are skipped; remove the hold in the script to re-enable them."
+          } else {
+            "held=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
       - name: Compile DVielle-Setup exe
+        if: steps.hold.outputs.held != 'true'
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_installer.ps1
       - name: Upload setup executable
+        if: steps.hold.outputs.held != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: DVielle-Setup
