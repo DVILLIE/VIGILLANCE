@@ -1,0 +1,13 @@
+{
+  "version": "3.14.8",
+  "arch": "amd64",
+  "filename": "python-3.14.8-amd64.exe",
+  "url": "https://www.python.org/ftp/python/3.14.8/python-3.14.8-amd64.exe",
+  "release_page": "https://www.python.org/downloads/release/python-3148/",
+  "sha256": "759be887b96e736a3ca886daf8d575f18fcae1a09efab6902f42d59e8999f8ef",
+  "size": 33387464,
+  "signature_observation": "Valid Python Software Foundation Authenticode signature observed 2026-10-10",
+  "deployment_evidence": "See docs/implementation/PYTHON314_PROTECTED_DEPLOYMENT_2026-10-10.md; pin metadata alone is not runtime evidence",
+  "silent_args": ["/quiet", "InstallAllUsers=1", "TargetDir=\"C:\\Program Files\\DVielleRuntime\\Python314\"", "PrependPath=0", "Include_launcher=0", "Include_pip=1", "Include_tcltk=1", "Include_test=0", "Include_doc=0", "Shortcuts=0", "AssociateFiles=0"],
+  "target_directory": "C:\\Program Files\\DVielleRuntime\\Python314"
+}

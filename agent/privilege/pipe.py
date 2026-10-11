@@ -2,13 +2,14 @@
 
 The resident task stays RunLevel Limited. This is not a SYSTEM service.
 ``\\\\.\\pipe\\DViellePrivilegedHelper`` is the intended Windows transport.
-The DACL grants SYSTEM and one installed-user SID generic read and write.
+The proposed DACL grants SYSTEM full control and one installed-user SID
+specific client rights, excluding FILE_CREATE_PIPE_INSTANCE.
 Everyone, Authenticated Users, and the Users group are refused.
 
-On this version the tested transport is in-process and applies that same
-allow-list before ``dispatch``. Undefined operations still never reach a
-firewall cmdlet. A Windows ``CreateNamedPipe`` server is a skeleton: it is
-not started by the Limited scheduled task.
+The in-process model applies an allow-list for refusal tests; it is not an OS
+authentication boundary. native_channel now implements bounded OS request
+reception and identity verification, without a mutation dispatcher or deployed
+service. This descriptor creates nothing; resident enforcement stays unavailable.
 """
 
 from __future__ import annotations
@@ -21,7 +22,11 @@ from agent.privilege.helper import Runner, dispatch
 from agent.utils import IS_WINDOWS
 
 # S-1-5-21-… is a machine or domain user. SYSTEM is added separately.
-_USER_SID = re.compile(r"S-1-5-21-\d+(?:-\d+){2,}")
+_USER_SID = re.compile(r"S-1-5-21-\d+-\d+-\d+-\d+")
+# FILE_GENERIC_READ | FILE_GENERIC_WRITE, minus FILE_CREATE_PIPE_INSTANCE (0x4).
+# https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights
+PIPE_CLIENT_RIGHTS = 0x0012019B
+PIPE_REJECT_REMOTE_CLIENTS = 0x8  # Required future CreateNamedPipe mode; not applied here.
 _DENIED_SIDS = frozenset(
     {
         "S-1-1-0",  # Everyone
@@ -39,12 +44,14 @@ def build_pipe_sddl(user_sid: str) -> str:
     """Return a protected DACL. Raises ValueError for a shared or empty SID."""
     if not isinstance(user_sid, str) or user_sid in _DENIED_SIDS or not _USER_SID.fullmatch(user_sid):
         raise ValueError("The pipe ACL needs one installed-user SID. Everyone, Users, and Administrators are refused.")
-    return f"D:P(A;;GRGW;;;SY)(A;;GRGW;;;{user_sid})"
+    return f"D:P(A;;GA;;;SY)(A;;0x{PIPE_CLIENT_RIGHTS:08x};;;{user_sid})"
 
 
 def describe_pipe(user_sid: str | None) -> dict[str, Any]:
     """Describe the contract. Does not create a pipe."""
     support = windows_pipe_support()
+    support.update({"server_created": False, "remote_rejection_enforced": False,
+                    "required_pipe_mode": PIPE_REJECT_REMOTE_CLIENTS})
     if not user_sid:
         return {
             "transport": "named_pipe",
@@ -76,7 +83,7 @@ def describe_pipe(user_sid: str | None) -> dict[str, Any]:
     return {
         "transport": "named_pipe",
         "pipe": PIPE_NAME,
-        "acl": "configured",
+        "acl": "defined_only",
         "sddl": sddl,
         "allows_everyone": False,
         "defined_op": DEFINED_OP,
@@ -84,7 +91,7 @@ def describe_pipe(user_sid: str | None) -> dict[str, Any]:
         "privileged_service": False,
         "resident_runlevel": "Limited",
         "windows": support,
-        "reason": "The DACL is defined. This version does not start a SYSTEM service.",
+        "reason": "The DACL and remote-rejection requirement are defined only. No OS pipe or SYSTEM service is created.",
     }
 
 
@@ -110,7 +117,7 @@ def windows_pipe_support() -> dict[str, Any]:
 
 
 class InProcessPipe:
-    """Same refusal rules as the named pipe, without a kernel object."""
+    """Unit refusal model without a kernel object or privileged dispatcher."""
 
     def __init__(self, allowed: set[str] | frozenset[str], runner: Runner, token: str) -> None:
         self.allowed = frozenset(allowed)

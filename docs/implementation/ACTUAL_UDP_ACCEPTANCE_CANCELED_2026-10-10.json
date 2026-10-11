@@ -1,0 +1,7 @@
+{
+  "reason": "Windows RunAs returned operation canceled by the user",
+  "recorded": "2026-10-10T20:23:25.7097146+05:30",
+  "test_mutations": [],
+  "state": "windows_launch_canceled",
+  "test_process_created": false
+}

@@ -19,7 +19,7 @@ MapsResult = Literal["pass", "fail", "unavailable"]
 # Microsoft Learn: command-line arguments for Microsoft Defender Antivirus.
 # ValidateMapsConnection verifies cloud-service reachability (Windows 10 1703+).
 MAPS_GUIDANCE = (
-    "DVielle does not block Microsoft Defender cloud endpoints. "
+    "D\'Vielle does not block Microsoft Defender cloud endpoints. "
     "Cloud-delivered protection needs those endpoints reachable."
 )
 
@@ -27,7 +27,7 @@ HEALTH_ASSUMPTIONS: tuple[str, ...] = (
     "Active mode means Get-MpComputerStatus AMRunningMode is Normal. Passive and EDR Block Mode are not active mode.",
     "Real-time protection is taken only from RealTimeProtectionEnabled. A missing value is unknown.",
     "Signature currency uses DefenderSignaturesOutOfDate when that boolean is present. The age in days is reported beside it.",
-    "AMEngineVersion is observed only. DVielle does not compare it with Microsoft's current engine catalog, so engine freshness stays UNKNOWN.",
+    "AMEngineVersion is observed only. D\'Vielle does not compare it with Microsoft's current engine catalog, so engine freshness stays UNKNOWN.",
     "ValidateMapsConnection exit 0 without a documented failure is pass. Elevation-required, service-disabled, and unsupported-OS results stay unavailable.",
     "A pass verifies cloud reachability. It is not a malware-efficacy claim.",
 )

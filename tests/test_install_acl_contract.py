@@ -20,16 +20,12 @@ def test_no_defender_exclusion_path():
         assert "Add-MpPreference" not in text
 
 
-def test_limited_is_the_default_and_highest_is_after_acl_lockdown():
+def test_limited_is_the_default_and_highest_is_held_before_installation():
     install = _text("installer/install-dvielle.ps1")
     assert "[string]$RunLevel = 'Limited'" in install
-    assert "Protect-DvielleInstallForElevation" in install
-    assert install.index("Protect-DvielleInstallForElevation") < install.index("Register-ScheduledTask")
     assert "Refusing to create or enable a Highest scheduled task" in install
-    assert "Refusing to enable a Highest scheduled task" in install
-    assert install.index("Test-DvielleElevatedTree") < install.index("Enable-ScheduledTask")
-    refuse_enable = install.index("Refusing to enable a Highest scheduled task")
-    assert install.rfind("Unregister-ScheduledTask", 0, refuse_enable) > install.index("Register-ScheduledTask")
+    assert install.index("Refusing to create or enable a Highest scheduled task") < install.index("Disable-DvielleOwnedTasks")
+    assert "protected code and private writable data have not yet been separated" in install
     common = _text("installer/common.ps1")
     for sid in ("S-1-5-32-544", "S-1-5-18", "S-1-5-11", "S-1-5-32-545"):
         assert sid in common
@@ -44,11 +40,14 @@ def test_install_resyncs_declared_dependencies_before_the_resident_starts():
     pyproject = _text("pyproject.toml")
     smoke = _text("scripts/smoke_test.py")
     assert "cryptography>=41" in pyproject
-    assert "'--upgrade'" in install
-    assert "'only-if-needed'" in install
+    assert "'--require-hashes'" in install
+    assert "'--only-binary=:all:'" in install
+    assert "'--no-index'" in install
+    assert "'--no-deps', '--no-build-isolation'" in install
+    assert install.index('Assert-DvielleOfflineDependencies $DependencyBundle') < install.index('Disable-DvielleOwnedTasks')
     assert "'.[windows]'" in install
     assert "'.[windows,chat]'" not in install
-    pip_at = install.index("'-m', 'pip', 'install'")
+    pip_at = install.index("'-m', 'pip', '--isolated', '--disable-pip-version-check', 'install'")
     smoke_at = install.index("scripts\\smoke_test.py')")
     register_at = install.index("Register-ScheduledTask")
     assert pip_at < smoke_at < register_at

@@ -1,0 +1,101 @@
+{
+  "started": "2026-10-10T13:45:35.336441+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5788,
+    "manifest_sha256": "d0d7d6d7df70beb668fd7e93bd3c5b8f6ee467a9884de31f552e8f08850c3811",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "launch_executable": "C:\\Program Files\\DVielle\\.venv\\Scripts\\python.exe",
+    "scope_kind": "executable_path_all_instances_not_single_pid",
+    "remote_address": "151.101.0.223",
+    "port": 443,
+    "profile": "Any"
+  },
+  "state": "bounded_traffic_block_observed",
+  "mutations": [
+    {
+      "operation_id": "186ab24335e3467b9db1cc4c87e0f10e",
+      "operation": "restrict_network"
+    }
+  ],
+  "packet_drop_attribution": "not_measured",
+  "excluded": [
+    "IPv6",
+    "UDP",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "children",
+    "competing policy",
+    "crash recovery"
+  ],
+  "before": {
+    "state": "connected",
+    "elapsed_seconds": 0.009490199969150126
+  },
+  "before_verified_tls": {
+    "version": "TLSv1.3",
+    "hostname_verified": true
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-1bc88baefc6f-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+        "remote": "151.101.0.223",
+        "group": "DVielle",
+        "description": "DVielle invocation ea2a4c33467e450a8429bbe52a8e3fe8",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "186ab24335e3467b9db1cc4c87e0f10e"
+  },
+  "during_new_tcp": [
+    {
+      "state": "connection_failed",
+      "error_type": "PermissionError",
+      "windows_error": 10013,
+      "errno": 13,
+      "elapsed_seconds": 0.000672499998472631
+    },
+    {
+      "state": "connection_failed",
+      "error_type": "PermissionError",
+      "windows_error": 10013,
+      "errno": 13,
+      "elapsed_seconds": 0.00043350004125386477
+    }
+  ],
+  "during_existing_tls": {
+    "state": "io_failed",
+    "error_type": "ConnectionResetError",
+    "windows_error": 10054
+  },
+  "recovery": {
+    "ok": true,
+    "code": "restored",
+    "performed": true,
+    "journal_state": "restored",
+    "message": "Owned-rule cleanup verified; other rules preserved.",
+    "operation_id": "186ab24335e3467b9db1cc4c87e0f10e"
+  },
+  "after": {
+    "state": "connected",
+    "elapsed_seconds": 0.004579900065436959
+  },
+  "finished": "2026-10-10T13:45:46.197611+00:00",
+  "acceptance": "observations_only_not_full_network_certification"
+}

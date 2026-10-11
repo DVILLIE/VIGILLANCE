@@ -1,12 +1,18 @@
 DVielle setup
 
-This setup installs DVielle into C:\DVILLIE and registers one logon task for your Windows account.
+Repair branch status, 2026-10-09: this setup wrapper is held pending protected
+bootstrap and compiler staging. It aborts during initialization; it does not
+extract and execute the former Administrator script from temporary storage.
 
-The task runs with your normal rights (Limited). This setup does not create a Highest task.
+The normal Limited installer script can be used from a verified protected source
+stage with protected system Python on PATH. It protects code and keeps data/config
+private to the installed user. Highest is refused before installation changes.
 
-Windows will ask for Administrator approval once. That approval is for this setup only.
+Windows can ask for Administrator approval to launch this held wrapper. It does
+not imply that application installation or field validation has succeeded.
 
-If Python 3.12 is not already installed, this setup runs the official Python 3.12.10 64-bit installer from python.org, including Tcl/Tk. Stay online for that step if Python is missing. An existing Python 3.12 is left as it is.
+Published 2.4.2 archives are unchanged. See docs/REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md
+for current staging, interpreter and migration requirements.
 
 This is not an antivirus product. It does not turn Windows Defender off, and it does not add a Defender exclusion.
 

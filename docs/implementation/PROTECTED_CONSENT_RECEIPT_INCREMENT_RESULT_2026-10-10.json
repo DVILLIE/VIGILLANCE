@@ -1,0 +1,30 @@
+{
+  "started": "2026-10-10T16:32:32.599328+00:00",
+  "state": "activated_identity_verified",
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-48003fd6dbf243658262157e8aa9538d",
+    "old_runtime_sha256": "3cbec108d10c627f7bf02db6d6e9239730e6685a583570e884d10a599efd70bd",
+    "new_runtime_sha256": "090f92667f382616c836b54a4fefe1adb8243de2c94d4b2c60c4aabba66d39e9",
+    "changes": [
+      {
+        "path": "agent/privilege/mediation.py",
+        "old_sha256": "17601cedb6833bc7a579590ff10c601c25c12e6bf119ead69fba14fd7e7c36f9",
+        "new_sha256": "4370a3bb9b8c036eeda9c3d96e815823c1f37a97979d33187bbf7a0ef885ef51"
+      }
+    ]
+  },
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "task_enabled": true,
+  "helper_was_running": true,
+  "change_intents": [
+    "agent/privilege/mediation.py"
+  ],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5792,
+    "manifest_sha256": "090f92667f382616c836b54a4fefe1adb8243de2c94d4b2c60c4aabba66d39e9",
+    "publisher_authenticated": false
+  },
+  "finished": "2026-10-10T16:32:50.466581+00:00"
+}

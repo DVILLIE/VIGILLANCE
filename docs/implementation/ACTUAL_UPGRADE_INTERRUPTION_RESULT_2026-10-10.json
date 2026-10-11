@@ -1,0 +1,30 @@
+{
+  "scope": "Actual abrupt upgrade-worker exit after one harmless comment source replacement",
+  "state": "actual_interruption_and_predecessor_recovery_passed",
+  "before": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5790,
+    "manifest_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "publisher_authenticated": false
+  },
+  "backup_name": "upgrade-2a1398e62be948f88dd782b56c3c4c7a",
+  "network_mutations": [],
+  "power_loss_acceptance": "not_tested",
+  "worker_exit_code": 23,
+  "replacement_observed": true,
+  "recovery": {
+    "state": "interrupted_increment_predecessor_restored",
+    "identity": {
+      "state": "approved_runtime_digest_verified",
+      "files": 5790,
+      "manifest_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+      "publisher_authenticated": false
+    }
+  },
+  "after": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5790,
+    "manifest_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "publisher_authenticated": false
+  }
+}

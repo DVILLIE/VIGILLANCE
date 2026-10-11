@@ -1,8 +1,16 @@
-# DVielle Function Spec (v0.9.5 — P5 experiences, passkeys, and claims)
+# D'Vielle Function Spec (v0.9.5 — P5 experiences, passkeys, and claims)
+
+**Current repair branch (2026-10-09):** production token-only loopback firewall
+mutation is refused; only explicit non-elevated unit adapters retain that
+transport. No authenticated OS helper or remote-client rejection is deployed.
+Highest installation and setup-wrapper builds are held. The normal Limited
+script requires protected source/interpreter staging, protects code, and
+validates private data/config separately. Historical shipped descriptions below
+are earlier version records. See [the current boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
 
 **Status:** Function / intelligence first. UI look-and-feel is explicitly out of scope for this document.  
 **Date:** 2026-09-29 (v0.9 locked the eight FREE pillars; v0.9.1 records that P1 shipped in 1.9.0; v0.9.2 records that P2 shipped in 2.0.0; v0.9.3 records that P3 shipped in 2.1.0; v0.9.4 records that P4 shipped in 2.2.0; v0.9.5 records that P5 shipped in 2.3.0. The v0.8 keep-on loop remains in force.)  
-**Product:** DVielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
+**Product:** D'Vielle (DEEP VIGILLANCE) — Windows-primary local guardian. Linux and macOS are limited-mode.  
 **Audience:** Mostly non-technical users (laptop first; server = same brain, stricter autonomy profile later)  
 **Authority for edition limits and claim language:** primary-source brief dated 2026-09-29 (Microsoft Learn, CISA, TUF, W3C, seL4, AMTSO, abuse.ch). A claim without that basis stays **UNKNOWN**.
 
@@ -10,7 +18,7 @@
 
 ## 1. One-sentence promise
 
-DVielle watches this machine, **finds real problems, and drives them to a resolution** — safety, speed, privacy/internet abuse, AI data shipping, disk junk, online footprint exposure, and camera misuse — in simple English. The user decides what is **OK to keep on**; DVielle **learns** those choices, stays quiet when activity matches, and when something looks wrong or unexpected shows an **options card** — the user selects, then DVielle performs. Auto-protect may finish a tiny published set of emergencies if opted in. Every finding is a ticket: Found → Fix → Resolved / Monitoring. We do not steal data, do not attack other systems, and we prefer a working local fix or a checklist the user finishes over an empty warning.
+D'Vielle watches this machine, **finds real problems, and drives them to a resolution** — safety, speed, privacy/internet abuse, AI data shipping, disk junk, online footprint exposure, and camera misuse — in simple English. The user decides what is **OK to keep on**; D'Vielle **learns** those choices, stays quiet when activity matches, and when something looks wrong or unexpected shows an **options card** — the user selects, then D'Vielle performs. Auto-protect may finish a tiny published set of emergencies if opted in. Every finding is a ticket: Found → Fix → Resolved / Monitoring. We do not steal data, do not attack other systems, and we prefer a working local fix or a checklist the user finishes over an empty warning.
 
 ### Shipped honesty (1.7)
 
@@ -21,39 +29,42 @@ This version does **not** claim a live multi-OS product.
 | Windows | Primary platform. Installer, Defender/firewall posture, and auth-event collectors are Windows-shaped. |
 | Linux / macOS | Limited mode. Shared keep-on logic can run. Windows-only sensors stay unknown. Do not describe them as full adapters. |
 | Camera | On Windows, in-use detection is **not available yet**. The collector returns unknown and does not invent an off/on state. Linux may read `/dev/video*` links. No frames are stored. |
-| Footprint | The live collector is **empty**. Remote breach, broker, and dark-web rows are drill tickets only. DVielle does not invent hits or search other people. |
+| Footprint | The live collector is **empty**. Remote breach, broker, and dark-web rows are drill tickets only. D'Vielle does not invent hits or search other people. |
 | Blocked IPs | The Attacks window does not show an “active now” block count. No gated BLOCK_IP writer is registered. |
 | Mutations | Firewall, temp delete, startup disable, smart close, and BLOCK_IP need both a keep-on choice (or published auto-protect for that subject) and Cortex. |
 
 ### Shipped honesty (1.8.0)
 
-1.8.0 adds read-only Defender health, a MAPS reachability check, and an edition matrix. It does not enable ASR, CFA, App Control, or Windows Sandbox. A partial or access-denied read is not a clean bill of health. Engine currency is **UNKNOWN** until DVielle compares it with a catalog, which this version does not do. Attestation checksums and TUF are not built. The pass/fail list is [TRUST_GATES.md](TRUST_GATES.md).
+1.8.0 adds read-only Defender health, a MAPS reachability check, and an edition matrix. It does not enable ASR, CFA, App Control, or Windows Sandbox. A partial or access-denied read is not a clean bill of health. Engine currency is **UNKNOWN** until D'Vielle compares it with a catalog, which this version does not do. Attestation checksums and TUF are not built. The pass/fail list is [TRUST_GATES.md](TRUST_GATES.md).
 
 ### Shipped honesty (1.9.0 — P1)
 
-1.9.0 collects ASR rule actions and CFA mode from `Get-MpPreference`. A missing rule is Not configured, not Audit. Standard-protection Block is a user-approved dual-gate path for the vulnerable-driver rule and the LSASS rule, and only while the live action is still Audit and Defender is Active, real-time protection is on, and MAPS passed. The WMI persistence rule and every other ASR rule can be set to Audit only. DVielle does not blanket-Block them. CFA moves from off to Audit, and from Audit to Enabled. Enabled is a modification and boot-sector shield. DVielle does not claim CFA prevents reading or exfiltration. Offline encrypted backups and a restore test stay required (CISA). BackupConfigured, BackupFresh, and RestoreVerified are separate user-declared states, not a backup engine. Home is not described as lacking ASR. Local PowerShell does not require E5. App Control, Windows Sandbox on Home, TUF, and privileged auto-update are still not built.
+1.9.0 collects ASR rule actions and CFA mode from `Get-MpPreference`. A missing rule is Not configured, not Audit. Standard-protection Block is a user-approved dual-gate path for the vulnerable-driver rule and the LSASS rule, and only while the live action is still Audit and Defender is Active, real-time protection is on, and MAPS passed. The WMI persistence rule and every other ASR rule can be set to Audit only. D'Vielle does not blanket-Block them. CFA moves from off to Audit, and from Audit to Enabled. Enabled is a modification and boot-sector shield. D'Vielle does not claim CFA prevents reading or exfiltration. Offline encrypted backups and a restore test stay required (CISA). BackupConfigured, BackupFresh, and RestoreVerified are separate user-declared states, not a backup engine. Home is not described as lacking ASR. Local PowerShell does not require E5. App Control, Windows Sandbox on Home, TUF, and privileged auto-update are still not built.
 
 ### Shipped honesty (2.0.0 — P2)
 
-2.0.0 reads Windows Firewall profiles and existing DVielle app rules. It can propose an outbound Block for one program, on one profile (Domain, Private, Public, or Any), for IPv4, IPv6, or both, with up to four specific remote networks. The apply path is the existing `RESTRICT_NETWORK` dual gate (`safety.restrict_network`, and the privacy and AI block handlers when they are not given a test double). The Limited process does not run `New-NetFirewallRule`. It sends a versioned request to a loopback helper. The helper accepts only `restrict_network`, checks the parameters again, and keeps the rule only when a second `Get-NetFirewallRule` matches. Anything else, including stopping MpsSvc, a Defender exclusion, or a GitHub update, is an undefined operation and is refused. The helper is a stub, not a Windows service. The resident scheduled task stays RunLevel Limited. A rule is not a leakproof block: IPv6 and VPN adapters are called out, and a full leakproof guarantee stays UNKNOWN. Stopping MpsSvc is not done.
+2.0.0 reads Windows Firewall profiles and existing D'Vielle app rules. It can propose an outbound Block for one program, on one profile (Domain, Private, Public, or Any), for IPv4, IPv6, or both, with up to four specific remote networks. The apply path is the existing `RESTRICT_NETWORK` dual gate (`safety.restrict_network`, and the privacy and AI block handlers when they are not given a test double). The Limited process does not run `New-NetFirewallRule`. It sends a versioned request to a loopback helper. The helper accepts only `restrict_network`, checks the parameters again, and keeps the rule only when a second `Get-NetFirewallRule` matches. Anything else, including stopping MpsSvc, a Defender exclusion, or a GitHub update, is an undefined operation and is refused. The helper is a stub, not a Windows service. The resident scheduled task stays RunLevel Limited. A rule is not a leakproof block: IPv6 and VPN adapters are called out, and a full leakproof guarantee stays UNKNOWN. Stopping MpsSvc is not done.
 
-The CPU contract is published on the twin. The resident task uses measured scheduling (the existing self-budget: optional collectors defer after three heartbeats over the configured CPU or memory limit). That is not an OS hard cap. The helper may assign its own process to a Windows Job Object hard cap at 20% (`CpuRate` 2000, percentage times 100). If the machine is not Windows, or `SetInformationJobObject` fails (including Remote Desktop Services with Dynamic Fair Share Scheduling), the result stays measured and says so. DVielle does not terminate user applications to make that number look healthy. 20% is DVielle's published helper cap, not a Microsoft-mandated agent budget and not a copied industry figure.
+The CPU contract is published on the twin. The resident task uses measured scheduling (the existing self-budget: optional collectors defer after three heartbeats over the configured CPU or memory limit). That is not an OS hard cap. The helper may assign its own process to a Windows Job Object hard cap at 20% (`CpuRate` 2000, percentage times 100). If the machine is not Windows, or `SetInformationJobObject` fails (including Remote Desktop Services with Dynamic Fair Share Scheduling), the result stays measured and says so. D'Vielle does not terminate user applications to make that number look healthy. 20% is D'Vielle's published helper cap, not a Microsoft-mandated agent budget and not a copied industry figure.
 
 ### Shipped honesty (2.1.0 — P3)
 
 2.1.0 is a minor version. Sandbox launch and TUF verification are new capabilities on the same guardian. They do not replace Defender, and they do not change the Limited resident task.
 
-Open unfamiliar is a user-approved `OPEN_SANDBOX` action. On Windows Home the offer is UNAVAILABLE and the checklist names Smart App Control, ASR, CFA, and Firewall. It does not start a process. Windows Defender Application Guard is named only to say it is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not offered as a Home sandbox. On Pro, Enterprise, or Education, a missing optional feature stays LIMITED and is not enabled by DVielle. When the feature is present, DVielle writes one `.wsb` with networking disabled, vGPU disabled, clipboard redirection disabled, and one read-only mapped folder, then starts `WindowsSandbox.exe` with that file. Any other executable is refused. A normal desktop window is not Windows Sandbox. If guest networking is not observed, the result is LIMITED. A probe that reports networking disabled is recorded as verified, with the assumption that Group Policy override of `.wsb` settings was not read (Microsoft documents that an administrator policy can override a sandbox setting). A probe that reports networking enabled is not counted as the requested profile.
+Open unfamiliar is a user-approved `OPEN_SANDBOX` action. On Windows Home the offer is UNAVAILABLE and the checklist names Smart App Control, ASR, CFA, and Firewall. It does not start a process. Windows Defender Application Guard is named only to say it is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not offered as a Home sandbox. On Pro, Enterprise, or Education, a missing optional feature stays LIMITED and is not enabled by DVielle. When the feature is present, D'Vielle writes one `.wsb` with networking disabled, vGPU disabled, clipboard redirection disabled, and one read-only mapped folder, then starts `WindowsSandbox.exe` with that file. Any other executable is refused. A normal desktop window is not Windows Sandbox. If guest networking is not observed, the result is LIMITED. A probe that reports networking disabled is recorded as verified, with the assumption that Group Policy override of `.wsb` settings was not read (Microsoft documents that an administrator policy can override a sandbox setting). A probe that reports networking enabled is not counted as the requested profile.
 
 TUF verification follows specification 1.0.36. The client checks root, timestamp, snapshot, and targets from a local directory. It rejects a version rollback, an expiration that is not later than the update start time, and a sha256 or length mismatch. Delegations are refused rather than treated as verified. On failure the previously installed file stays. Privileged auto-update stays off. There is no GitHub Release updater. The displayed attestation is the verified package hash and the hash of the trusted targets metadata. Live measurement of the running process stays UNCHECKED. The wire format is [TUF_POUF.md](TUF_POUF.md).
 
-The privileged helper is still not a SYSTEM service. The tested pipe contract grants SYSTEM and one installed-user SID, refuses Everyone, and still refuses every operation other than `restrict_network`. The resident scheduled task stays RunLevel Limited.
+The helper is not a SYSTEM service. The proposed pipe DACL grants SYSTEM full
+control and one user specific client rights excluding server-instance creation.
+No OS pipe or remote-client rejection is deployed. Production dispatch is
+refused. The resident scheduled task stays RunLevel Limited.
 
 ### Shipped honesty (2.2.0 — P4)
 
 2.2.0 reads CISA KEV and OSV from local files and can apply one supported privacy choice after the user approves it. It does not replace Defender, and it does not change the Limited resident task.
 
-If `kev.json` and `osv.json` are absent, the report is `intel: unavailable`. Invalid JSON or a catalog row without a real CVE id produces no hits. KEV stays CC0: the report says this is not a CISA or DHS endorsement and DVielle ships no CISA or DHS logo. OSV stays Apache-2.0, and the notice points at the osv-schema license. A match runs only when `inventory.json` lists a name and a version. A KEV product-name overlap is a candidate, not proof that installed copy is exploitable. An OSV hit needs the same ecosystem and name plus an exact `versions` entry or a numeric introduced/fixed range. A version that cannot be compared is not a hit. Fetch is off unless a caller enables it. OSV is queried only for inventory rows. abuse.ch stays off, is not bundled, and is fetched only when that switch is on and the caller supplies an Auth-Key. The response is not saved into the product.
+If `kev.json` and `osv.json` are absent, the report is `intel: unavailable`. Invalid JSON or a catalog row without a real CVE id produces no hits. KEV stays CC0: the report says this is not a CISA or DHS endorsement and D'Vielle ships no CISA or DHS logo. OSV stays Apache-2.0, and the notice points at the osv-schema license. A match runs only when `inventory.json` lists a name and a version. A KEV product-name overlap is a candidate, not proof that installed copy is exploitable. An OSV hit needs the same ecosystem and name plus an exact `versions` entry or a numeric introduced/fixed range. A version that cannot be compared is not a hit. Fetch is off unless a caller enables it. OSV is queried only for inventory rows. abuse.ch stays off, is not bundled, and is fetched only when that switch is on and the caller supplies an Auth-Key. The response is not saved into the product.
 
 The privacy assistant prefers Required diagnostic data (AllowTelemetry 1). Home and Pro cannot claim Security=Off. Diagnostic data off (0) is offered only on Enterprise, Education, or Server, and the copy still says that is not proof Microsoft traffic stopped. Advertising id and tailored experiences are separate choices. A write counts only when a second read of that value matches. MAPS, Windows Update, and CRL names are not turned into firewall rules. If a request names them, or names Microsoft broadly, the consequence includes the existing `ValidateMapsConnection` result.
 
@@ -79,9 +90,9 @@ P4 remains closed. P5 is closed for this version.
 
 ## 1.1 World-class FREE pillars (locked 2026-09-29)
 
-Core prevention is free. DVielle orchestrates Microsoft Defender. It does not replace Defender, and it does not turn real-time protection off to “take over.”
+Core prevention is free. D'Vielle orchestrates Microsoft Defender. It does not replace Defender, and it does not turn real-time protection off to “take over.”
 
-Every promise below has the shape **Promise → Assumptions → Evidence**. Silence about an assumption is an over-claim (seL4 publishes its assumptions; DVielle does the same). An AMTSO Security Features Check proves wiring. It is not a malware-efficacy percentage.
+Every promise below has the shape **Promise → Assumptions → Evidence**. Silence about an assumption is an over-claim (seL4 publishes its assumptions; D'Vielle does the same). An AMTSO Security Features Check proves wiring. It is not a malware-efficacy percentage.
 
 ### The eight pillars
 
@@ -89,8 +100,8 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 |---|--------|---------|-------------|----------|
 | 1 | Defender orchestration | Observe Defender and configure only features the edition supports. Never disable real-time protection to replace it. Never add an install-time `ExclusionPath`. | Defender is present. The user consents before a preference change. 1.9.0 changes ASR or CFA only through the dual gate, then re-reads the live preference. | `Get-MpComputerStatus` active mode, real-time, signature age, and the Defender out-of-date flag. Access denial stays partial. |
 | 2 | Edition-honest matrix | Show Home vs Pro+ support before any enablement. Windows Sandbox and App Control PowerShell authoring are unavailable on Home. | EditionID / caption classification. Smart App Control is a probe, not an eligibility guess. | `feature_matrix` on the capability report and the console evidence strip. |
-| 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
-| 4 | Firewall assist | Propose Windows Firewall app rules per profile. DVielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. Do not stop MpsSvc. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local and the resident task stays Limited. | 2.0.0 reads rules with `Get-NetFirewallRule` / profile state, proposes a block, and applies it only inside DualGate. Success is the second read. |
+| 3 | ASR and CFA | ASR and CFA are Defender features on Home and Pro. CFA is a modification shield. D'Vielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only. | Defender Active, real-time on, MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill still required (CISA). | 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside DualGate. A partial read plans nothing. |
+| 4 | Firewall assist | Propose Windows Firewall app rules per profile. D'Vielle is not a second firewall engine. No “blocked app means no leak on every interface” claim. Do not stop MpsSvc. | Domain / Private / Public profiles. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local and the resident task stays Limited. | 2.0.0 reads rules with `Get-NetFirewallRule` / profile state, proposes a block, and applies it only inside DualGate. Success is the second read. |
 | 5 | Isolation honesty | Windows Sandbox profiles are a Pro+ action. Home is told there is no first-party disposable GUI sandbox. WDAG is deprecated and removed starting Windows 11 24H2. Client Hyper-V is not a Home substitute. | Pro, Enterprise, or Education for Sandbox. Default Sandbox networking is on until a `.wsb` disables it. Group Policy can override a `.wsb` file. Guest networking is UNKNOWN unless a probe reports it. | 2.1.0 writes Networking Disable and one ReadOnly folder, and starts only `WindowsSandbox.exe`. Home stays UNAVAILABLE. Unobserved guest networking stays LIMITED. |
 | 6 | Privacy, sign-in, recovery | Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant ceremony where the relying party supports them, not a promise against stolen session cookies or weak recovery. Backup configured, backup fresh, and restore verified are different states. | Home has no consumer “diagnostic data off” switch. WebAuthn is bound to the relying party. CISA requires a tested restore, not only a successful backup job. The recovery marker is a declaration, not proof a backup file exists. | 2.2.0 reads AllowTelemetry and related settings, prefers Required, refuses Security=Off on Home and Pro, and counts a change only when the second read matches. A broad Microsoft block shows the MAPS result and creates no rule. 2.3.0 adds local passkey guidance with no phishing-impossible badge and no account automation. |
 | 7 | Supply chain and intel | No privileged auto-update until TUF verifies root, timestamp, snapshot, and targets. On failure, keep the last good build. Ship CISA KEV (CC0, no CISA/DHS logo) and OSV (Apache-2.0). abuse.ch only with a user-supplied Auth-Key at fetch time, or do not bundle it. | Online update keys are not the root of trust. Redistributing abuse.ch dumps is not assumed to be fair use. The client does not download unless fetch is explicitly enabled. | 2.1.0 verifies a local TUF repository and keeps the previous file when rollback, freeze, or a bad hash is injected. Privileged auto-update stays off. 2.2.0 loads local KEV and OSV with provenance. A missing file is `intel: unavailable`. abuse.ch stays off and is not bundled. |
@@ -115,7 +126,7 @@ Every promise below has the shape **Promise → Assumptions → Evidence**. Sile
 P0 only, and only the read-only half:
 
 - Defender health from `Get-MpComputerStatus`: AMRunningMode, real-time protection, antivirus signature age, `DefenderSignaturesOutOfDate`, and the observed engine version. Engine freshness stays UNKNOWN.
-- MAPS via `MpCmdRun.exe -ValidateMapsConnection`. Exit 0 without a documented failure is pass. Elevation required (80070005), service disabled (800106BA), and unsupported OS (0x80070667) stay unavailable. A documented connection failure is fail. The text tells the user DVielle does not block Defender cloud endpoints.
+- MAPS via `MpCmdRun.exe -ValidateMapsConnection`. Exit 0 without a documented failure is pass. Elevation required (80070005), service disabled (800106BA), and unsupported OS (0x80070667) stay unavailable. A documented connection failure is fail. The text tells the user D'Vielle does not block Defender cloud endpoints.
 - Edition matrix: ASR, CFA, and Firewall are edition-supported on Windows Home and Pro. Smart App Control is the `VerifiedAndReputablePolicyState` probe (0 off, 1 enforce, 2 evaluation) or UNKNOWN. Windows Sandbox is UNAVAILABLE on Home. App Control authoring is UNAVAILABLE on Home.
 - The console evidence strip shows those states. Collector status `partial` is not rendered as active protection.
 
@@ -144,7 +155,7 @@ Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference Exclusion
 
 | Rule | Meaning |
 |------|---------|
-| Scope | Only the machine / accounts where DVielle is installed and the user controls. |
+| Scope | Only the machine / accounts where D'Vielle is installed and the user controls. |
 | Authorized self-assessment | “Ethical hacking” = posture assessment + safe remediation of *this* host. Not offensive tooling. |
 | Default | `monitor_only` / observe-first. Mutations are opt-in or Auto-protect only. |
 | Fail closed | If confidence is low or identity of a target is unclear → ask or skip; never guess-mutate. |
@@ -168,9 +179,9 @@ Dual mutate gate. Resident task RunLevel Limited. No `Add-MpPreference Exclusion
 
 Shared pipeline for all pillars:
 
-`Observe → Match learned keep-on → If expected: quiet → If not: Simple English options card → User selects → DVielle performs → Resolved / Monitoring → Log (+ Undo when possible)`
+`Observe → Match learned keep-on → If expected: quiet → If not: Simple English options card → User selects → D'Vielle performs → Resolved / Monitoring → Log (+ Undo when possible)`
 
-**Doctrine:** no finding without a next fix. No ask_user mutation without an options selection. If the best fix is a specialized website/service (broker removal, dark-web monitor), DVielle opens that path as an option and tracks status — it does not stop at “be careful.”
+**Doctrine:** no finding without a next fix. No ask_user mutation without an options selection. If the best fix is a specialized website/service (broker removal, dark-web monitor), D'Vielle opens that path as an option and tracks status — it does not stop at “be careful.”
 
 ---
 
@@ -188,7 +199,7 @@ Every finding carries at least:
 - **resolution_steps** — ordered fixes (local and/or partner)  
 - **resolution_status** — `found` | `in_progress` | `resolved` | `monitoring` | `dismissed`  
 - **action_class** — `ask_user` | `auto_protect_eligible` | `partner_path` | `observe_only`  
-- **options[]** — selectable actions for this finding (label + what DVielle will do); required when `ask_user`  
+- **options[]** — selectable actions for this finding (label + what D'Vielle will do); required when `ask_user`  
 - **subject_identity** — app/process/path/setting the keep-on decision attaches to (when applicable)  
 - **keep_on_match** — `allowed_and_expected` | `denied` | `unknown` | `suspicious_mismatch` | `n/a`  
 - **reversible** — yes | partial | no (temp deletes are often “no” or “partial”)
@@ -217,10 +228,10 @@ Speak only on **real need**. Cry-wolf kills the product.
 - Severity ≥ medium **or** critical storage/safety threshold  
 - Confidence ≥ medium (safety auto actions require **high**)  
 - Cooldown: same issue updates one card; no spam every minute  
-- Under extreme load: prefer tray/badge unless critical; defer DVielle’s own heavy work  
+- Under extreme load: prefer tray/badge unless critical; defer D'Vielle’s own heavy work  
 
 ### Decision UI (behavior, not pixels) — all pillars
-Every user-facing alert is an **options card**: the user must select one option; DVielle then performs that choice (or starts the partner path). No silent mutation on ask_user findings.
+Every user-facing alert is an **options card**: the user must select one option; D'Vielle then performs that choice (or starts the partner path). No silent mutation on ask_user findings.
 
 **Universal minimum options** (every pillar):
 
@@ -231,7 +242,7 @@ Every user-facing alert is an **options card**: the user must select one option;
 - **Show me why** — one plain paragraph + evidence  
 
 **Plus pillar-specific action options** (Safety, Speed, Privacy, AI, Storage, Footprint, Camera — see §5.1 and each pillar section).  
-After the user selects, DVielle **performs** the chosen action, logs it, updates keep-on memory if relevant, and sets the ticket to Resolved / Monitoring.  
+After the user selects, D'Vielle **performs** the chosen action, logs it, updates keep-on memory if relevant, and sets the ticket to Resolved / Monitoring.  
 Auto-protect actions always produce an after-the-fact notice: what we did, when, Undo if possible.
 
 ---
@@ -246,7 +257,7 @@ This is the product interaction model for **Safety, Speed, Privacy, AI data, Sto
 3. If **allowed and expected** (e.g. allowed app is actually open / known hog user accepted / accepted Microsoft channel during Update) → **stay quiet** (optional Activity note).  
 4. If **first time**, **denied**, **unknown**, or **suspicious mismatch** (activity looks like an allowed thing but that thing is **not** actually present / open / in the expected state) → open a resolution ticket and show an **options card**.  
 5. User **selects** one option.  
-6. DVielle **performs** that option (local fix, OS settings deep-link, partner path start, or remember-and-quiet).  
+6. D'Vielle **performs** that option (local fix, OS settings deep-link, partner path start, or remember-and-quiet).  
 7. **Learn** the decision into local keep-on memory; log; Undo when possible.
 
 ### Keep-on memory (local)
@@ -267,7 +278,7 @@ This is the product interaction model for **Safety, Speed, Privacy, AI data, Sto
 
 ### Options shape (same format everywhere)
 Plain English: what’s happening → why it matters → what we suggest.  
-Then a **list of selectable actions**. User picks **one**. DVielle runs it.
+Then a **list of selectable actions**. User picks **one**. D'Vielle runs it.
 
 | Common option | Meaning |
 |---------------|---------|
@@ -325,14 +336,14 @@ No raw event IDs, CVE dumps, or jargon in the primary text. Technical detail onl
 - Anything that can break Wi‑Fi, banking, updates, Store, or work tools  
 
 ### 7.2 Auto-protect allowlist (opt-in at install or Settings)
-User must enable: *“Allow DVielle to take a few emergency steps to protect this PC.”*
+User must enable: *“Allow D'Vielle to take a few emergency steps to protect this PC.”*
 
 | May auto (only if opted in + high confidence + identity OK) | Notes |
 |------------------------------------------------------------|--------|
 | Re-enable clearly disabled core protection (e.g. Defender realtime / Firewall *profile* on) when detected off | Notify + log; do not invent aggressive custom blocklists |
 | Pause/isolate a process that matches **high-confidence local safety rules** with verified identity | Same identity bar as Smart Close; then notify |
 | Safe temp cleanup when free space is **critically low** | Only §8 allowlist; skip locked files; notify how much freed |
-| Defer DVielle’s own heavy collectors under extreme load | Always allowed (self-throttling); not really “mutation” |
+| Defer D'Vielle’s own heavy collectors under extreme load | Always allowed (self-throttling); not really “mutation” |
 
 ### 7.3 Auto-protect denylist (never alone)
 - Delete Documents/Desktop/Downloads/Pictures or project trees  
@@ -389,7 +400,7 @@ User must enable: *“Allow DVielle to take a few emergency steps to protect thi
 - Detect top CPU/RAM/disk/network consumers and heavy startup  
 - Explain in plain English why the machine feels slow  
 - Recommend: defer / Smart Close / startup trim — user gated  
-- DVielle must **not** be the slowdown: workload deferral when the machine is under pressure  
+- D'Vielle must **not** be the slowdown: workload deferral when the machine is under pressure  
 
 ---
 
@@ -462,7 +473,7 @@ Prefer extending current patterns rather than inventing a second owner:
 5. Safe temp clean frees space only from allowlist; reports skipped in-use files.  
 6. AI/privacy alerts use honest wording (no false “trained on your file” claims).  
 7. No user data leaves the machine unless user explicitly enables a stated cloud feature.  
-8. Under load, DVielle defers its own heavy work.  
+8. Under load, D'Vielle defers its own heavy work.  
 9. Activity log shows protections and user choices.  
 
 ---
@@ -477,7 +488,7 @@ Prefer extending current patterns rather than inventing a second owner:
 
 ## 18. Continuous local self-learning (unique per machine)
 
-Every user, work pattern, installed software set, and usage rhythm is different. DVielle must **learn continuously on-device** what “normal” looks like for *this* laptop/computer/server — then use that baseline to spot real problems with fewer false alarms.
+Every user, work pattern, installed software set, and usage rhythm is different. D'Vielle must **learn continuously on-device** what “normal” looks like for *this* laptop/computer/server — then use that baseline to spot real problems with fewer false alarms.
 
 ### What we learn (aggregates only — not private content)
 | Domain | Examples of learned signal |
@@ -549,7 +560,7 @@ Suggested layout:
 | `storage.txt` | Disk pressure, temp cleans, space freed |
 | `autoprotect.txt` | Every Auto-protect action |
 | `activity.txt` | Short unified timeline (optional thin index: time + pillar + one line) |
-| `errors.txt` | DVielle’s own failures (so we don’t hide bugs) |
+| `errors.txt` | D'Vielle’s own failures (so we don’t hide bugs) |
 
 ### Log rules (space discipline)
 - One event ≈ **one line** (timestamp + level + short message). Details stay in evidence/twin if needed — not novel-length log rows.  
@@ -570,7 +581,7 @@ Suggested layout:
 1. **Per-profile learning** — Laptop vs Server baselines are separate modes; don’t mix a gaming evening pattern into a server service baseline.  
 2. **Cold start** — Until enough samples exist, prefer ask-user over Auto-protect; label confidence lower (“still learning your PC”).  
 3. **Concept drift** — If the user installs a major app or changes schedule, baselines adapt gradually (or reset a domain after explicit “I’m changing how I use this PC”).  
-4. **Self-space budget** — DVielle’s `data/learn` + `data/logs` combined should stay under a published cap (target: **tens of MB**, not hundreds). If over: rotate/summarize before alerting about *other* apps’ disk use.  
+4. **Self-space budget** — D'Vielle’s `data/learn` + `data/logs` combined should stay under a published cap (target: **tens of MB**, not hundreds). If over: rotate/summarize before alerting about *other* apps’ disk use.  
 5. **User-readable** — Advanced users can open any `.txt` in Notepad; that builds trust for a free repo.
 
 ---
@@ -581,7 +592,7 @@ Suggested layout:
 11. Issue logs exist as separate `.txt` files per pillar (+ autoprotect/errors) with rotation/size caps.  
 12. After a learning period, identical “normal for you” behavior does not spam alerts; true deviations still can.  
 13. Learning/logs never leave the machine unless the user explicitly exports.  
-14. Combined learn+logs footprint stays within the published space budget (or DVielle self-trims first).
+14. Combined learn+logs footprint stays within the published space budget (or D'Vielle self-trims first).
 
 ---
 
@@ -589,7 +600,7 @@ Suggested layout:
 
 ## 22. Execute learnings — adaptive self-upgrade (safe definition)
 
-Learning is useless if it only sits in `.txt` files. DVielle must **apply** what it learns so the running app gets smarter for *this* machine.
+Learning is useless if it only sits in `.txt` files. D'Vielle must **apply** what it learns so the running app gets smarter for *this* machine.
 
 ### What “self-upgrade / self-implement / self-modify” means (allowed)
 The app **self-tunes its behavior and configuration** from `data/learn/*.txt`, for example:
@@ -640,9 +651,9 @@ Some users want the app to go further and **implement personality-specific behav
 
 ---
 
-## 23. Background load governor (protect the host from DVielle)
+## 23. Background load governor (protect the host from D'Vielle)
 
-DVielle runs whenever the machine is on. It must **define and enforce how much load it may use** so it does not become the reason the CPU feels bad.
+D'Vielle runs whenever the machine is on. It must **define and enforce how much load it may use** so it does not become the reason the CPU feels bad.
 
 ### Fixed safety caps (always on)
 - Hard ceilings on CPU %, memory MB, and disk IO for the agent process group (platform-appropriate measurement).  
@@ -659,9 +670,9 @@ From `baseline_speed.txt` + live pressure, maintain `runtime_tune.txt` fields su
 - `deep_scan_allowed` (true only in quiet windows)  
 - `learning_pass_allowed`  
 
-If DVielle approaches its own cap: shed work, log one line to `errors.txt` or `speed.txt` (“DVielle reduced its own load”), do not fight the user for CPU.
+If D'Vielle approaches its own cap: shed work, log one line to `errors.txt` or `speed.txt` (“D'Vielle reduced its own load”), do not fight the user for CPU.
 
-**Acceptance feel:** after install, users should not notice DVielle in Task Manager as a top consumer during normal work.
+**Acceptance feel:** after install, users should not notice D'Vielle in Task Manager as a top consumer during normal work.
 
 ---
 
@@ -704,7 +715,7 @@ Server on any OS: same brain, quieter UI, stricter auto actions (see §13).
 ## 25. Acceptance checks (additions for v0.2)
 
 15. Learnings change runtime tune files (intervals, quiet hours, suppressions, load caps) and the running agent honors them by default without touching core install files.  
-16. Under user load, DVielle CPU stays within published busy caps; evidence in logs when it self-throttles.  
+16. Under user load, D'Vielle CPU stays within published busy caps; evidence in logs when it self-throttles.  
 17. OS family is detected; Windows, Linux, and macOS each have an adapter path (full or clearly limited — never wrong-OS APIs).  
 18. Deep personalization defaults OFF; enabling requires double verification; changes confined to `data/personality/` with rollback and logging.  
 19. With deep personalization OFF, no personality modules load and behavior matches tune `.txt` only.  
@@ -717,7 +728,7 @@ Server on any OS: same brain, quieter UI, stricter auto actions (see §13).
 ## 26. Free distribution vs reverse-engineering / resale (honesty + strategy)
 
 ### Hard truth (must stay in docs/README mindset)
-If users run DVielle on their machine, **it cannot be made undecodable**. Determined reverse-engineering of any client app is always possible. Anyone claiming “impossible to crack/decode” is selling false certainty.
+If users run D'Vielle on their machine, **it cannot be made undecodable**. Determined reverse-engineering of any client app is always possible. Anyone claiming “impossible to crack/decode” is selling false certainty.
 
 Your real risks as a **free** publisher:
 1. Someone copies the idea/UI and sells a rip-off.  
@@ -741,7 +752,7 @@ These conflict — pick deliberately:
 
 ### Legal / brand protections (do these regardless)
 - Clear **LICENSE** (e.g. proprietary freeware terms, or GPL/AGPL/Apache with explicit no-warranty; if proprietary free: “free for personal/org use; **no commercial resale/rebrand**”)  
-- **Trademark** the name DVielle / DEEP VIGILLANCE where practical  
+- **Trademark** the name D'Vielle / DEEP VIGILLANCE where practical  
 - Copyright notices in UI, installer, About, logs header  
 - README: official download only from *your* site/repo; warn that third-party paid copies are unauthorized  
 - Optional: simple “About → Official build” checksum / version attestation page you control  
@@ -779,24 +790,24 @@ High-level only; details at implement time:
 
 **Current build:** `collect_footprint_facts()` returns no rows. Remote kinds (breach, broker, public search, dark web) are drill tickets only and must be marked synthetic before a ticket opens. The collector does not invent hits.
 
-**Product stance:** Users want **find → fix → verify**, not a lecture. DVielle’s job is to drive **resolutions on this PC**. Broker scanning, opt-outs, and exposure monitoring are cloud work a local free app does not rebuild. DVielle does not endorse a vendor, does not require an account, and does not call those services.
+**Product stance:** Users want **find → fix → verify**, not a lecture. D'Vielle’s job is to drive **resolutions on this PC**. Broker scanning, opt-outs, and exposure monitoring are cloud work a local free app does not rebuild. D'Vielle does not endorse a vendor, does not require an account, and does not call those services.
 
 **What those services actually do (so this app does not pretend to):**  
 - A removal service can scan known people-search catalogs, submit opt-outs, and rescan because listings come back.  
 - An exposure monitor watches identifiers the user enrolls and sends alerts. It does not delete every copy on the internet. Once data is out, the practical fix is to lock accounts, freeze credit, and change credentials.  
-DVielle’s free value: **local machine control + simple English + a Resolution Center that tracks every fix to done**, plus a checklist the user finishes. An optional public page is something the user opens. It is not a DVielle partnership.
+D'Vielle’s free value: **local machine control + simple English + a Resolution Center that tracks every fix to done**, plus a checklist the user finishes. An optional public page is something the user opens. It is not a D'Vielle partnership.
 
 ### Resolution pipeline (what we ship)
 Every footprint item is a ticket: **Found → Recommended fix → In progress → Resolved / Monitoring**.
 
-| Layer | Solution DVielle drives |
+| Layer | Solution D'Vielle drives |
 |-------|-------------------------|
-| **This PC** | Sign-out unused accounts, revoke app sessions, tighten browser/OS privacy — DVielle can open settings and walk the user to **done**. |
+| **This PC** | Sign-out unused accounts, revoke app sessions, tighten browser/OS privacy — D'Vielle can open settings and walk the user to **done**. |
 | **Breaches (HIBP / similar)** | Opt-in email check → for each hit: change password, turn on 2FA, stop reuse — checklist marked resolved when user confirms. |
 | **Public web (DIY)** | Guided self-search and a search alert the user sets; each finding gets a remove/opt-out/request-takedown step with status. |
-| **Account dashboards** | Open the privacy pages for accounts the user already has; track “opened / completed checkup.” DVielle does not sign in. |
-| **Brokers & people-search** | **Resolution path:** a do-it-yourself opt-out checklist, or a removal service the user opens. DVielle does not enroll an account and does not show another company's removal status. |
-| **Dark-web style exposure** | Do not fake a dark-web crawler. The user may open a monitor they already use. DVielle turns that alert into local resolutions (password, credit freeze, session revoke). |
+| **Account dashboards** | Open the privacy pages for accounts the user already has; track “opened / completed checkup.” D'Vielle does not sign in. |
+| **Brokers & people-search** | **Resolution path:** a do-it-yourself opt-out checklist, or a removal service the user opens. D'Vielle does not enroll an account and does not show another company's removal status. |
+| **Dark-web style exposure** | Do not fake a dark-web crawler. The user may open a monitor they already use. D'Vielle turns that alert into local resolutions (password, credit freeze, session revoke). |
 | **Ongoing** | Rescan schedule + “still exposed?” so the app keeps working after the first cleanup. |
 
 ### Build order (solutions, not theater)
@@ -808,7 +819,7 @@ Every footprint item is a ticket: **Found → Recommended fix → In progress �
 ### Still refuse (ethics, not defeatism)
 - Looking up **other people** (stalkerware).  
 - Storing user PII on our servers by default.  
-- Marketing “we scrape and erase the entire internet alone inside this free local binary.” Removal and monitoring are cloud operations. DVielle tracks the local fix. It does not operate those clouds.
+- Marketing “we scrape and erase the entire internet alone inside this free local binary.” Removal and monitoring are cloud operations. D'Vielle tracks the local fix. It does not operate those clouds.
 
 ### Log
 `data/logs/footprint.txt` — findings and **resolution outcomes**.  
@@ -835,7 +846,7 @@ Every footprint item is a ticket: **Found → Recommended fix → In progress �
 | Network/IP cameras on the LAN | **Later, separate.** Different problem (device firmware, default passwords, cloud). Do not pretend laptop camera APIs cover them. |
 
 ### Core rule: the user decides what stays allowed
-1. When DVielle first sees an app using the camera (or the user opens Camera settings), it asks in plain English whether this app is **OK to keep using the camera**.
+1. When D'Vielle first sees an app using the camera (or the user opens Camera settings), it asks in plain English whether this app is **OK to keep using the camera**.
 2. The user’s choice is **remembered** locally (learned allow / deny / ask-always).
 3. Allowed apps = “keep on” list the product learns from the user — e.g. Zoom, Meet, Teams if they said yes.
 4. Denied apps stay blocked from quiet use; next camera use from them opens an options card again (unless “Never for this”).
@@ -859,14 +870,14 @@ Speak up when confidence is enough that something is off, for example:
 - Unknown or unexpected process holding the camera  
 - Camera on + unusual outbound while no video call app is open (heuristic — **ask**, don’t auto-kill)
 
-Then DVielle **informs the user** and shows an **options card**. The user must select; only then does DVielle perform.
+Then D'Vielle **informs the user** and shows an **options card**. The user must select; only then does D'Vielle perform.
 
 ### Options card (Camera Guard — required shape)
 Plain English first: what’s happening, why it matters, what we suggest.
 
 Then **selectable actions** (user picks exactly one primary action; secondary “Show me why” always available):
 
-| Option (example labels) | What DVielle does after selection |
+| Option (example labels) | What D'Vielle does after selection |
 |-------------------------|-----------------------------------|
 | **This is OK — allow this app** | Add/update allowlist; quiet next time when that app is open |
 | **Stop this app from using the camera** | Identity-checked stop/close of the camera-holding process when safe |
@@ -877,7 +888,7 @@ Then **selectable actions** (user picks exactly one primary action; secondary �
 | **Never warn for this app** | Persist deny-of-alerts for that app identity (still log quietly) |
 | **Show me why** | Evidence: time, device, process name/path if known, whether claimed app was running |
 
-DVielle **never** silently disables the whole camera or kills a live video call without this selection (Auto-protect exception only if user later pins an explicit high-confidence rule — default off).
+D'Vielle **never** silently disables the whole camera or kills a live video call without this selection (Auto-protect exception only if user later pins an explicit high-confidence rule — default off).
 
 ### Detection notes (honest)
 - Detect when a local camera becomes **in use** (best-effort, OS-specific; say so in Details).
@@ -950,7 +961,7 @@ Everything decided since kickoff, rewritten as **problems we solve** and **how w
 | Top CPU/RAM hog | Options: Keep on while I work / Pause or Smart Close / Disable at startup / Not now / Never warn / Show why → learn → Resolved |
 | Heavy startup pile | Options per item: Disable / Keep on / Not now → reboot note → Resolved |
 | Named hog but identity mismatch | Treat as suspicious → options (do not quiet on name alone) |
-| DVielle itself heavy | Self-throttle first; log “we reduced our load” → Resolved |
+| D'Vielle itself heavy | Self-throttle first; log “we reduced our load” → Resolved |
 | Disk thrash from junk | Hand off to Storage options card |
 
 ### 30.4 Privacy & internet (Microsoft + other apps)
@@ -989,21 +1000,21 @@ Everything decided since kickoff, rewritten as **problems we solve** and **how w
 |---------|------------|
 | First time an app uses the camera | Options: Allow keep-on / Stop / Revoke OS access / Cover reminder / Not now / Never warn → learn decision → Resolved |
 | Allowed app is open and using camera | Stay quiet (optional Activity note) → Resolved |
-| Camera on but allowed app is **not** open / unknown process | Options card → user selects → DVielle performs → Resolved / Monitoring |
+| Camera on but allowed app is **not** open / unknown process | Options card → user selects → D'Vielle performs → Resolved / Monitoring |
 | User wants maximum safety | Guide: shutter/cover + OS camera off → Resolved |
 | IP / network cameras | Out of v1 Camera Guard; later LAN module — until then, do not claim covered |
 
 ### 30.9 External services (when local alone isn’t enough)
-DVielle does not replace a cloud removal or monitoring service, and it does not endorse one.
+D'Vielle does not replace a cloud removal or monitoring service, and it does not endorse one.
 
 - An opt-in breach check is refused until the user chooses it. With no checker connected, nothing is sent.
 - Broker removal and exposure monitoring stay pages the user may open. This build does not call them.
-- Privacy pages for accounts the user already has can be opened as a checklist. DVielle does not sign in.
+- Privacy pages for accounts the user already has can be opened as a checklist. D'Vielle does not sign in.
 
 The Resolution Center stores progress only. It does not store a vendor account.
 
 ### 30.10 What “done” looks like for the free app
-A non-technical user can open DVielle and see: **open issues**, **fixes in progress**, **resolved**, **still monitoring** — across Safety, Speed, Privacy, AI, Storage, Footprint, and Camera — without reading jargon. That is the product.
+A non-technical user can open D'Vielle and see: **open issues**, **fixes in progress**, **resolved**, **still monitoring** — across Safety, Speed, Privacy, AI, Storage, Footprint, and Camera — without reading jargon. That is the product.
 
 ---
 
@@ -1019,7 +1030,7 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 ## 32. Acceptance checks (v0.7 — Camera decisions)
 
 33. Camera Guard stores user allow/deny (“keep on”) decisions locally and stays quiet when an allowed app is **actually open** and using the camera.  
-34. When camera use looks suspicious (allowed app not open, unknown process, or mismatched attribution), DVielle shows an **options card**; it performs an action only after the user selects an option (unless an explicit Auto-protect camera rule is on).  
+34. When camera use looks suspicious (allowed app not open, unknown process, or mismatched attribution), D'Vielle shows an **options card**; it performs an action only after the user selects an option (unless an explicit Auto-protect camera rule is on).  
 35. Options include at least: allow this app, stop this app’s camera use, open/revoke OS camera access, cover-lens reminder, not now, never warn, show why.  
 36. Camera logs never store video frames or images; hardware shutter/cover + OS off remain stated as the strongest practical block.
 
@@ -1037,7 +1048,7 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 
 ## 34. Acceptance checks (1.7.1 — honesty and elevated-task lockdown)
 
-42. The resident scheduled task defaults to RunLevel **Limited** (`TASK_RUNLEVEL_LUA`). `TASK_RUNLEVEL_HIGHEST` is created only when `-RunLevel Highest` is passed and `Protect-DvielleInstallForElevation` has locked the install tree so only Administrators and SYSTEM can write. A failed lockdown does not create or enable that task. Elevated unattended operation is not recommended until that lockdown is proven on the target PC. See Microsoft Learn: [Principal.RunLevel](https://learn.microsoft.com/en-us/windows/win32/taskschd/principal-runlevel) and [Security Contexts for Running Tasks](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks). The setup executable, when built, calls that installer with `-RunLevel Limited` only. It is not a frozen agent. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
+42. The resident scheduled task defaults to RunLevel **Limited** (`TASK_RUNLEVEL_LUA`). On the current repair branch, Highest is refused before any installation changes. Protected code and installed-user-private data/config use distinct ACLs; source and system interpreter staging must pass trust preflight. The setup wrapper aborts initialization pending protected extraction staging. These source/unit checks are not field installation evidence. See [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md) and [the current boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
 43. Start, verify, and stop share one selected install root. Config and data from another tree are not used as a silent fallback.
 44. Resource advice stays schedulable during host pressure, on a background worker, no faster than 30 seconds, and still yields when the agent's own budget is exceeded.
 45. CPU advice uses a timestamped heartbeat sample. An unprimed or failed sample is not treated as zero load.
@@ -1082,9 +1093,9 @@ A non-technical user can open DVielle and see: **open issues**, **fixes in progr
 
 ## 37. Acceptance checks (2.0.0 — P2 firewall, helper, CPU)
 
-66. Firewall observation reads profiles, MpsSvc status, and DVielle app rules. It does not stop or start MpsSvc, and it does not create a rule. An incomplete read proposes nothing.
+66. Firewall observation reads profiles, MpsSvc status, and D'Vielle app rules. It does not stop or start MpsSvc, and it does not create a rule. An incomplete read proposes nothing.
 67. A proposal can name one program, one profile, IPv4 and/or IPv6, and up to four specific remote networks. Applying it uses `RESTRICT_NETWORK` through DualGate. Auto-protect cannot issue `safety.restrict_network`.
-68. The Limited process sends the request to the helper. The helper refuses every operation other than `restrict_network`, refuses a bad token, and refuses parameters outside the schema. Success is a second `Get-NetFirewallRule` read. A partial read removes the DVielle rules from that attempt and is not counted as applied.
+68. The Limited process sends the request to the helper. The helper refuses every operation other than `restrict_network`, refuses a bad token, and refuses parameters outside the schema. Success is a second `Get-NetFirewallRule` read. A partial read removes the D'Vielle rules from that attempt and is not counted as applied.
 69. Copy states that the block is not leakproof. A single address family is warned. A VPN-like adapter is named when the read sees one. Home Sandbox stays unavailable. CFA copy stays a modification shield.
 70. The twin publishes `cpu_contract`. The resident task's mode is measured scheduling. The published analysis cap is 20% (`CpuRate` 2000). `terminates_other_processes` is false. A Job Object hard cap is claimed only when assignment on the helper succeeded.
 71. No `ExclusionPath`, no MAPS endpoint block, and no GitHub auto-update in the P2 modules. The resident scheduled task default stays RunLevel Limited. TUF and Sandbox `.wsb` stay P3.

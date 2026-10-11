@@ -1,0 +1,28 @@
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 43%]
+........................................................................ [ 54%]
+........................................................................ [ 65%]
+........................................................................ [ 76%]
+........................................................................ [ 87%]
+........................................................................ [ 98%]
+............                                                             [100%]
+============================== warnings summary ===============================
+tests/test_logo_animation.py::test_quantum_timing_and_electrical_frames
+tests/test_logo_animation.py::test_quantum_timing_and_electrical_frames
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_brand_gif_builds_intro_and_idle
+tests/test_logo_animation.py::test_brand_gif_builds_intro_and_idle
+  C:\DVILLIE-main-repairs\tests\test_logo_animation.py:19: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for a, b in zip(left.getdata(), right.getdata()):
+
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+  C:\DVILLIE-main-repairs\tests\test_logo_animation.py:72: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for pixel in idle[0].getdata():
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+660 passed, 9 warnings in 88.61s (0:01:28)

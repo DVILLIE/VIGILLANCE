@@ -10,7 +10,7 @@ from typing import Any
 
 from agent.modules.resource_advisor import SYSTEM_PROTECTED
 
-HONEST_FAIL = "DVielle did not add a firewall rule. Traffic was not stopped."
+HONEST_FAIL = "D\'Vielle did not add a firewall rule. Traffic was not stopped."
 
 
 def block_app_network(
@@ -22,6 +22,7 @@ def block_app_network(
     address_families: list[str] | None = None,
     remote_addresses: list[str] | None = None,
     endpoint: dict[str, Any] | None = None,
+    grant_id: str | None = None,
 ) -> tuple[bool, str]:
     """Ask the helper to block outbound traffic for one program file.
 
@@ -41,8 +42,11 @@ def block_app_network(
             "remote_addresses": list(remote_addresses or []),
         },
         endpoint=endpoint,
+        grant_id=grant_id,
     )
     message = str(body.get("message") or HONEST_FAIL)
+    if body.get("state_unknown"):
+        return False, message.rstrip(".") + ". The traffic outcome is unknown; reconcile the protected operation before retrying."
     if not body.get("performed"):
         if "not stopped" not in message.lower():
             message = message.rstrip(".") + ". Traffic was not stopped."
@@ -51,4 +55,4 @@ def block_app_network(
         message = message.rstrip(".") + ". This does not prove every connection already stopped."
     if "not a leakproof" not in message.lower() and "not leakproof" not in message.lower():
         message = message.rstrip(".") + ". This is not a leakproof block."
-    return True, message
+    return body.get("ok") is True, message

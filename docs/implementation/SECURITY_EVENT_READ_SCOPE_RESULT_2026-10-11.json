@@ -1,0 +1,9 @@
+{
+  "state": "read_scope_configuration_verified",
+  "channel": "Security",
+  "added_access_mask": 1,
+  "started": "2026-10-11T13:09:07.398290+00:00",
+  "audit_policy_changed": false,
+  "logs_cleared": false,
+  "rollback_record": "C:\\ProgramData\\DVielle\\privileged\\security-event-read-fedf152ad4794d8a8c2b250dbb89071b.json"
+}

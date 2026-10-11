@@ -128,17 +128,9 @@ def set_asr_rule(finding: dict, ctx: HandlerContext) -> dict:
 
 
 def open_unfamiliar(finding: dict, ctx: HandlerContext) -> dict:
-    from agent.modules.sandbox import open_unfamiliar as launch_unfamiliar
+    from agent.modules.sandbox import open_unfamiliar as launch_unfamiliar, system_sandbox_exe
 
     signals = finding.get("signals") or {}
-    probe_name = signals.get("network_probe", "unavailable")
-
-    def probe(_path: str) -> str | None:
-        if probe_name == "disabled":
-            return "disabled"
-        if probe_name == "enabled":
-            return "enabled"
-        return None
 
     folder = str(signals.get("host_folder") or "")
     exists = ctx.sandbox_folder_exists
@@ -156,12 +148,14 @@ def open_unfamiliar(finding: dict, ctx: HandlerContext) -> dict:
         sku=str(signals.get("sku") or "Unknown"),
         host_folder=folder,
         feature_installed=feature,
-        sandbox_exe=str(signals.get("sandbox_exe") or r"C:\Windows\System32\WindowsSandbox.exe"),
+        sandbox_exe=str(signals.get("sandbox_exe") or system_sandbox_exe()),
         folder_exists=exists,
         launch=launch,
-        network_probe=probe,
+        # Finding fields are claims, not a guest observation. No independent
+        # production session probe is installed; guest networking stays unknown.
+        network_probe=None,
         wsb_dir=ctx.sandbox_wsb_dir,
-        read_only=signals.get("read_only", True) is not False,
+        read_only=signals.get("read_only", True),
     )
 
 
@@ -182,7 +176,7 @@ def set_cfa_mode(finding: dict, ctx: HandlerContext) -> dict:
 def turn_protection_on(finding: dict, ctx: HandlerContext) -> dict:
     return _result(
         False,
-        "DVielle did not change protection. Turning it on needs an administrator and a "
+        "D\'Vielle did not change protection. Turning it on needs an administrator and a "
         "supported tool, and this version does not switch it. Nothing was turned on.",
     )
 
@@ -194,7 +188,7 @@ def open_settings(finding: dict, ctx: HandlerContext) -> dict:
         where = "On macOS, open System Settings → Privacy & Security."
     else:
         where = "Open this system's security settings."
-    return _result(False, where + " DVielle did not change protection.")
+    return _result(False, where + " D\'Vielle did not change protection.")
 
 
 def _identity(finding: dict, ctx: HandlerContext) -> tuple[bool, str, int, str]:
@@ -206,7 +200,7 @@ def _identity(finding: dict, ctx: HandlerContext) -> tuple[bool, str, int, str]:
     name = str(signals.get("name") or "")
     expected_path = str(signals.get("path") or "")
     if pid <= 1 or not name:
-        return False, "Identity unclear. DVielle did not touch that process.", pid, name
+        return False, "Identity unclear. D\'Vielle did not touch that process.", pid, name
     if name.lower() in SYSTEM_PROTECTED:
         return False, f"DVielle will not close {name}. It is a system process.", pid, name
     current = ctx.lookup(pid)
@@ -214,9 +208,9 @@ def _identity(finding: dict, ctx: HandlerContext) -> tuple[bool, str, int, str]:
         return False, "That process is already gone. Nothing was changed.", pid, name
     current_name, current_path = current
     if current_name.lower() != name.lower():
-        return False, "Identity changed. DVielle did not touch the process.", pid, name
+        return False, "Identity changed. D\'Vielle did not touch the process.", pid, name
     if expected_path and current_path and current_path != expected_path:
-        return False, "Identity changed. DVielle did not touch the process.", pid, name
+        return False, "Identity changed. D\'Vielle did not touch the process.", pid, name
     return True, "", pid, name
 
 
@@ -285,7 +279,7 @@ def free_temp(finding: dict, ctx: HandlerContext) -> dict:
 def empty_recycle(finding: dict, ctx: HandlerContext) -> dict:
     require_cortex_mutate()
     if ctx.trash_root is None or not ctx.trash_root.exists():
-        return _result(False, "This system has no recycle bin DVielle can empty. Nothing was deleted.")
+        return _result(False, "This system has no recycle bin D\'Vielle can empty. Nothing was deleted.")
     freed, skipped = free([ctx.trash_root], set())
     if freed <= 0:
         return _result(False, "The recycle bin was not emptied. Nothing was deleted.")
@@ -376,22 +370,22 @@ def _settings_message(target: str, *, launched: bool) -> str:
             return (
                 "Asked the system to open privacy settings. "
                 "That is not this app's own improve-the-model page. "
-                "DVielle did not change a model setting and did not prove any upload stopped."
+                "D\'Vielle did not change a model setting and did not prove any upload stopped."
             )
         return (
             "No improve-the-model settings link is reachable from here. "
-            "DVielle did not change a model setting and did not prove any upload stopped."
+            "D\'Vielle did not change a model setting and did not prove any upload stopped."
         )
     if target.startswith("camera"):
         if launched:
             return (
                 "Asked the system to open camera privacy settings. "
-                "DVielle did not turn the camera off and stored no picture."
+                "D\'Vielle did not turn the camera off and stored no picture."
             )
         return "Could not open camera privacy settings. The camera was not turned off and no picture was stored."
     if launched:
-        return "Asked the system to open privacy and firewall settings. DVielle did not prove traffic stopped."
-    return "Could not open privacy and firewall settings from here. DVielle did not prove traffic stopped."
+        return "Asked the system to open privacy and firewall settings. D\'Vielle did not prove traffic stopped."
+    return "Could not open privacy and firewall settings from here. D\'Vielle did not prove traffic stopped."
 
 
 def _open_target(ctx: HandlerContext, target: str) -> dict:
@@ -438,7 +432,7 @@ def cover_reminder(finding: dict, ctx: HandlerContext) -> dict:
     return _result(
         False,
         "A physical cover or shutter is still the surest way to make sure nobody sees you. "
-        "DVielle did not turn the camera off and stored no picture.",
+        "D\'Vielle did not turn the camera off and stored no picture.",
     )
 
 
@@ -457,7 +451,7 @@ def _remember_progress(ctx: HandlerContext, finding: dict, status: str, partner:
 def _own_machine(finding: dict) -> str | None:
     target = (finding.get("signals") or {}).get("target") or "self"
     if target != "self":
-        return "DVielle will not look up another person. Nothing was searched."
+        return "D\'Vielle will not look up another person. Nothing was searched."
     return None
 
 
@@ -469,7 +463,7 @@ def footprint_lockdown(finding: dict, ctx: HandlerContext) -> dict:
     return _result(
         False,
         "On this PC: sign out of accounts you are not using, revoke leftover app sessions, "
-        "and turn on two-factor login. DVielle did not sign you out and did not change a password. "
+        "and turn on two-factor login. D\'Vielle did not sign you out and did not change a password. "
         "This ticket stays in progress until you mark it resolved.",
         status="in_progress",
     )
@@ -482,12 +476,12 @@ def footprint_breach_check(finding: dict, ctx: HandlerContext) -> dict:
     email = (ctx.breach_email or "").strip()
     notice = (
         "A breach check sends your email off this device to a service such as Have I Been Pwned. "
-        "DVielle does not look up other people."
+        "D\'Vielle does not look up other people."
     )
     if "@" not in email:
         return _result(
             False,
-            "No email was enrolled. DVielle did not send an address off this device and did not look up any person.",
+            "No email was enrolled. D\'Vielle did not send an address off this device and did not look up any person.",
             status="found",
         )
     if ctx.breach_check is None:
@@ -515,7 +509,7 @@ def footprint_diy_opt_out(finding: dict, ctx: HandlerContext) -> dict:
         False,
         "Do-it-yourself path: search only your own name, open each site's opt-out or takedown page, "
         "and set a search alert you control if you want a reminder. "
-        "DVielle did not search anyone and did not submit a form. This ticket stays in progress.",
+        "D\'Vielle did not search anyone and did not submit a form. This ticket stays in progress.",
         status="in_progress",
     )
 
@@ -540,7 +534,7 @@ def footprint_mark_resolved(finding: dict, ctx: HandlerContext) -> dict:
     _remember_progress(ctx, finding, "resolved", notes="user marked resolved")
     return _result(
         True,
-        "You marked this ticket resolved. DVielle did not delete your data from the internet, "
+        "You marked this ticket resolved. D\'Vielle did not delete your data from the internet, "
         "and this free app does not erase every copy on earth.",
         status="resolved",
     )

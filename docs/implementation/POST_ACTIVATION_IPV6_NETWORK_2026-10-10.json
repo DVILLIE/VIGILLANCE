@@ -1,0 +1,40 @@
+{
+  "started": "2026-10-10T13:58:10.608404+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5789,
+    "manifest_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "launch_executable": "C:\\Program Files\\DVielle\\.venv\\Scripts\\python.exe",
+    "scope_kind": "executable_path_all_instances_not_single_pid",
+    "remote_address": "2a04:4e42::223",
+    "address_family": "IPv6",
+    "port": 443,
+    "profile": "Any"
+  },
+  "state": "inconclusive_baseline_unavailable",
+  "mutations": [],
+  "packet_drop_attribution": "not_measured",
+  "excluded": [
+    "IPv4",
+    "UDP",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "children",
+    "competing policy",
+    "crash recovery"
+  ],
+  "before": {
+    "state": "connection_failed",
+    "error_type": "OSError",
+    "windows_error": 10051,
+    "errno": 10051,
+    "elapsed_seconds": 0.017636599950492382
+  },
+  "finished": "2026-10-10T13:58:10.626087+00:00",
+  "acceptance": "observations_only_not_full_network_certification"
+}

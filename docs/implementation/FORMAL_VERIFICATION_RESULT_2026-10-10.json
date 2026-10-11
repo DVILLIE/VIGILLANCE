@@ -1,0 +1,8 @@
+{
+  "finite_model": "passed",
+  "unsafe_restore_negative_control": "counterexample_detected",
+  "production_changes": false,
+  "windows_enforcement": "not_measured",
+  "source_sha256": "0133b33e77b4b1380a725cf040ad0f15fe31e69e9b0d4c0f5298cace6d69bfa0",
+  "config_sha256": "184d811a3f9d982017c5fbb4c45f166f51a3ee6a0d474c905e2cbc61f7ee6bb0"
+}

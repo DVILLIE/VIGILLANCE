@@ -40,7 +40,7 @@ def safety_protection_options() -> list[Option]:
         _learn(
             "keep_as_is",
             "Keep protection as-is",
-            "Remember this choice. If protection is off, DVielle will not turn it on "
+            "Remember this choice. If protection is off, D\'Vielle will not turn it on "
             "and will stay quiet while this same protection stays off.",
             "allow",
             "monitoring",
@@ -48,13 +48,13 @@ def safety_protection_options() -> list[Option]:
         _mutate(
             "turn_on",
             "Turn protection back on",
-            "Ask this computer to turn that protection back on. If DVielle cannot, it will say so.",
+            "Ask this computer to turn that protection back on. If D\'Vielle cannot, it will say so.",
             "safety.turn_protection_on",
         ),
         _guide(
             "open_settings",
             "Open security settings",
-            "Tell you where security settings are. DVielle does not switch them here.",
+            "Tell you where security settings are. D\'Vielle does not switch them here.",
             "safety.open_settings",
         ),
         _not_now(),
@@ -101,7 +101,7 @@ def speed_options() -> list[Option]:
         _learn(
             "keep_on",
             "This is OK (keep on while I work)",
-            "Remember this app as allowed. Next time it is actually this app, DVielle stays quiet.",
+            "Remember this app as allowed. Next time it is actually this app, D\'Vielle stays quiet.",
             "allow",
             "monitoring",
         ),
@@ -141,7 +141,7 @@ def storage_options() -> list[Option]:
         _mutate(
             "empty_recycle",
             "Empty Recycle Bin",
-            "Empty the recycle bin only if this system has one DVielle can see. Documents are not touched.",
+            "Empty the recycle bin only if this system has one D\'Vielle can see. Documents are not touched.",
             "storage.empty_recycle",
         ),
         _not_now(),
@@ -155,20 +155,20 @@ def privacy_options() -> list[Option]:
         _learn(
             "keep_on",
             "Allow this app's internet (keep on)",
-            "Remember this app as allowed. Next time it is actually open and talking, DVielle stays quiet.",
+            "Remember this app as allowed. Next time it is actually open and talking, D\'Vielle stays quiet.",
             "allow",
             "monitoring",
         ),
         _mutate(
             "block_network",
             "Block this app's network",
-            "Add a Windows Firewall outbound block for this program after you confirm. IPv6 and VPN can still carry traffic. DVielle does not claim a leakproof block.",
+            "Add a Windows Firewall outbound block for this program after you confirm. IPv6 and VPN can still carry traffic. D\'Vielle does not claim a leakproof block.",
             "privacy.block_network",
         ),
         _guide(
             "open_settings",
             "Open privacy / firewall settings",
-            "Point you at privacy and firewall settings. DVielle does not claim traffic stopped.",
+            "Point you at privacy and firewall settings. D\'Vielle does not claim traffic stopped.",
             "privacy.open_settings",
         ),
         _not_now(),
@@ -195,7 +195,7 @@ def ai_options() -> list[Option]:
         _guide(
             "open_settings",
             "Open improve-the-model / privacy settings",
-            "Open a settings link when one is reachable. DVielle does not change the model setting itself.",
+            "Open a settings link when one is reachable. D\'Vielle does not change the model setting itself.",
             "ai.open_settings",
         ),
         _not_now(),
@@ -222,7 +222,7 @@ def camera_options() -> list[Option]:
         _guide(
             "revoke_app",
             "Turn off camera access for this app",
-            "Open this app's camera privacy settings when the system allows. DVielle does not disable every camera.",
+            "Open this app's camera privacy settings when the system allows. D\'Vielle does not disable every camera.",
             "camera.open_app_settings",
         ),
         _guide(
@@ -234,7 +234,7 @@ def camera_options() -> list[Option]:
         _guide(
             "system_off",
             "Turn camera off in system settings",
-            "Open system camera privacy settings. DVielle does not flip that switch by itself.",
+            "Open system camera privacy settings. D\'Vielle does not flip that switch by itself.",
             "camera.open_system_settings",
         ),
         _not_now(),
@@ -254,19 +254,19 @@ def footprint_options() -> list[Option]:
         _guide(
             "breach_check",
             "Check breach (opt-in email)",
-            "An opt-in check sends your email off this device. DVielle will not look up anyone else.",
+            "An opt-in check sends your email off this device. D\'Vielle will not look up anyone else.",
             "footprint.breach_check",
         ),
         _guide(
             "diy_opt_out",
             "Open DIY opt-out",
-            "Open a takedown and opt-out checklist you complete yourself. DVielle does not search a name.",
+            "Open a takedown and opt-out checklist you complete yourself. D\'Vielle does not search a name.",
             "footprint.diy_opt_out",
         ),
         _guide(
             "partner",
             "Start / open partner removal or monitoring",
-            "Show optional public pages for removal or monitoring. No service is required, and DVielle does not endorse one.",
+            "Show optional public pages for removal or monitoring. No service is required, and D\'Vielle does not endorse one.",
             "footprint.open_partner",
         ),
         _guide(

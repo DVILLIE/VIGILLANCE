@@ -1,4 +1,4 @@
-"""Shared utilities for DVielle Agent."""
+"""Shared utilities for D\'Vielle Agent."""
 
 from __future__ import annotations
 

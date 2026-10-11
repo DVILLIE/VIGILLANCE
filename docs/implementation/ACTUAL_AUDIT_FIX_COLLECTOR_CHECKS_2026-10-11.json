@@ -1,0 +1,20 @@
+{
+  "observed_at": "2026-10-11T13:16:47.658824+00:00",
+  "security": {
+    "degraded": false,
+    "error": null,
+    "matching_event_count": 0,
+    "latest_record_id": null
+  },
+  "camera": {
+    "available": true,
+    "coverage_complete": false,
+    "detail": "Windows camera privacy permission: Allow; live device ownership remains unverified.",
+    "record_count": 2
+  },
+  "resources": {
+    "observed_processes": 7,
+    "idle_excluded": true
+  },
+  "mutations": []
+}

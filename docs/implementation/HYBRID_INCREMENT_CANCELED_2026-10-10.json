@@ -1,0 +1,7 @@
+{
+  "reason": "Windows RunAs returned operation canceled by the user",
+  "upgrade_mutations": [],
+  "state": "windows_launch_canceled",
+  "upgrade_process_created": false,
+  "recorded": "2026-10-10T20:26:42.2479726+05:30"
+}

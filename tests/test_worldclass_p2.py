@@ -52,6 +52,7 @@ class _Rules:
         self.fail = fail
         self.calls: list[str] = []
         self.live: dict[str, str] = {}
+        self.owners: dict[str, str] = {}
 
     def __call__(self, script: str) -> tuple[str, bool]:
         self.calls.append(script)
@@ -59,16 +60,22 @@ class _Rules:
             raise AssertionError("firewall script tried to change a service")
         names = re.findall(r"DVielle-restrict-[0-9a-f]{12}-v[46]", script)
         if "DVIELLE_FW_REMOVE" in script:
+            owner = _comment(script, "OWNER")
+            lines = []
             for name in names:
-                self.live.pop(name, None)
-            lines = [f"REMOVE:GONE:{name}" for name in dict.fromkeys(names)]
+                if name in self.live and self.owners[name] != owner:
+                    lines.append(f"REMOVE:UNTOUCHED:{name}")
+                else:
+                    self.live.pop(name, None)
+                    self.owners.pop(name, None)
+                    lines.append(f"REMOVE:GONE:{name}")
             lines.append("STATUS:OK")
             return "\n".join(lines), False
         if "DVIELLE_FW_APPLY" not in script:
             return "STATUS:FAILED\n", False
         program = _comment(script, "PROGRAM")
         profile = _comment(script, "PROFILE")
-        remote = _comment(script, "REMOTE") or "Any"
+        remotes = _comment(script, "REMOTE")
         lines = []
         for family, name in re.findall(
             r"# FAMILY:(IPv[46]):(DVielle-restrict-[0-9a-f]{12}-v[46])", script
@@ -76,9 +83,18 @@ class _Rules:
             if self.fail == family:
                 lines.append(f"VERIFY:MISSING:{name}")
                 continue
-            self.live[name] = family
+            if name not in self.live:
+                self.live[name] = family
+                self.owners[name] = _comment(script, "OWNER")
+            if remotes:
+                import ipaddress
+
+                remote = ",".join(value for value in remotes.split(",")
+                                  if ipaddress.ip_network(value).version == (4 if family == "IPv4" else 6))
+            else:
+                remote = "0.0.0.0/0" if family == "IPv4" else "::/0"
             lines.append(
-                f"VERIFY:{name}|True|Outbound|Block|{profile}|{family}|{program}|{remote}"
+                f"VERIFY:{name}|True|Outbound|Block|{profile}|derived|{program}|{remote}|DVielle|{self.owners[name]}"
             )
         lines.append("STATUS:OK")
         return "\n".join(lines), False
@@ -122,7 +138,7 @@ def test_home_firewall_stays_available_and_sandbox_stays_unavailable():
 def test_observe_warns_on_vpn_and_single_stack_without_changing_rules():
     posture = parse_firewall_observe(
         _observe(
-            "RULE:DVielle-restrict-abc123abc123-v4|True|Outbound|Block|Any|IPv4|C:\\Apps\\App.exe|Any",
+            "RULE:DVielle-restrict-abc123abc123-v4|True|Outbound|Block|Any||C:\\Apps\\App.exe|0.0.0.0/0",
             vpn="Tailscale",
         )
     )
@@ -267,7 +283,7 @@ def test_direct_apply_refuses_outside_the_helper(tmp_path: Path):
 def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()
-    helper = LoopbackHelper(rules)
+    helper = LoopbackHelper(rules, test_harness=True)
     try:
         checked, error = validate_restrict_params(
             {
@@ -282,13 +298,13 @@ def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path)
 
         token = _mutate_depth.set(1)
         try:
-            body = submit_restrict_network(checked, endpoint=helper.endpoint())
+            body = submit_restrict_network(checked, endpoint=helper.endpoint(), test_harness=True)
         finally:
             _mutate_depth.reset(token)
         assert body["performed"] is True
         assert "does not prove" in body["message"].lower()
         assert "not a leakproof" in body["message"].lower()
-        assert len(rules.live) == 2
+        assert len(rules.live) == 1  # Specific IPv4 remotes do not block every IPv6 destination.
         assert any("DVIELLE_FW_REMOVE" in script for script in rules.calls) is False
 
         rules.fail = "IPv6"
@@ -301,11 +317,13 @@ def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path)
                     "address_families": ["IPv4", "IPv6"],
                 },
                 endpoint=helper.endpoint(),
+                test_harness=True,
             )
         finally:
             _mutate_depth.reset(token)
         assert failed["performed"] is False
-        assert "not stopped" in failed["message"].lower() or "not kept" in failed["message"].lower()
+        assert failed["rollback_verified"] is True
+        assert "removed" in failed["message"].lower()
         assert any("DVIELLE_FW_REMOVE" in script for script in rules.calls)
     finally:
         helper.close()
@@ -314,7 +332,7 @@ def test_verified_rule_is_kept_and_a_partial_read_is_rolled_back(tmp_path: Path)
 def test_one_address_family_is_warned(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()
-    helper = LoopbackHelper(rules)
+    helper = LoopbackHelper(rules, test_harness=True)
     try:
         from agent.policy.dual import _mutate_depth
 
@@ -323,6 +341,7 @@ def test_one_address_family_is_warned(tmp_path: Path):
             body = submit_restrict_network(
                 {"program": program, "profile": "Private", "address_families": ["IPv4"]},
                 endpoint=helper.endpoint(),
+                test_harness=True,
             )
         finally:
             _mutate_depth.reset(token)
@@ -337,7 +356,7 @@ def test_one_address_family_is_warned(tmp_path: Path):
 def test_dual_gate_restrict_uses_the_helper_and_auto_protect_cannot(tmp_path: Path):
     program = _program(tmp_path)
     rules = _Rules()
-    helper = LoopbackHelper(rules)
+    helper = LoopbackHelper(rules, test_harness=True)
     engine = ResolutionEngine(
         AgentStore(tmp_path / "agent.db"),
         learn_dir=tmp_path / "learn",
@@ -368,9 +387,10 @@ def test_dual_gate_restrict_uses_the_helper_and_auto_protect_cannot(tmp_path: Pa
         assert rules.calls == []
         issued = engine.policy.issue(finding["id"], "safety.restrict_network", auto=False, subject=program)
         body = engine.handlers.invoke("safety.restrict_network", finding, engine.handler_ctx, issued)
-        assert body["performed"] is True
-        assert "not a leakproof" in body["message"].lower()
-        assert len(rules.live) == 2
+        assert body["performed"] is False
+        assert "protected service installation" in body["message"].lower()
+        assert "one-use administrative grant" in body["message"].lower()
+        assert rules.calls == []
     finally:
         helper.close()
 

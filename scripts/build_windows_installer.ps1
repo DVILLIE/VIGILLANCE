@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
   Build dist\DVielle-Setup-<version>.exe on Windows.
-  Downloads the pinned official Python 3.12.10 installer and, if needed, the
+  Downloads the pinned official Python 3.14.8 installer and, if needed, the
   pinned Inno Setup 6.4.0 compiler. Does not publish a GitHub Release.
 #>
 [CmdletBinding()]
@@ -9,6 +9,7 @@ param(
     [string]$Iscc = ''
 )
 $ErrorActionPreference = 'Stop'
+throw 'Setup wrapper builds are held pending protected bootstrap/compiler staging. No download, compiler installation or elevated payload execution was started.'
 $Root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $Root 'installer\common.ps1')
 
@@ -52,7 +53,7 @@ function ConvertTo-DvielleInnoPath {
     return $full
 }
 
-$pythonPin = Get-DviellePin 'python-3.12.10.pin.json'
+$pythonPin = Get-DviellePin 'python-3.14.8.pin.json'
 $innoPin = Get-DviellePin 'inno-setup-6.4.0.pin.json'
 if (-not $Iscc) { $Iscc = [string]$innoPin.iscc }
 

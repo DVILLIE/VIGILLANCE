@@ -1,0 +1,88 @@
+{
+  "state": "actual_gui_approval_apply_and_recovery_passed",
+  "scope": "Actual installed widgets, human Windows and exact-scope consent, one IPv4 TCP endpoint",
+  "installed_component": "C:\\Program Files\\DVielle\\dvielle\\gui\\assessment.py",
+  "probe_process_image": "C:\\Program Files\\DVielleRuntime\\Python314\\pythonw.exe",
+  "automated_consent": false,
+  "mutations": [
+    {
+      "operation_id": "6ef6945266d04b88b98a4d2500db70ba",
+      "operation": "restrict_network"
+    }
+  ],
+  "accessibility_acceptance": "not_tested",
+  "before": {
+    "state": "connected"
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-89ceb493dd5e-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\pythonw.exe",
+        "remote": "151.101.0.223",
+        "group": "DVielle",
+        "description": "DVielle invocation c79d49c583e84d2789496c40eac83c21",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "6ef6945266d04b88b98a4d2500db70ba",
+    "state": "helper_result",
+    "requested_scope": {
+      "program": "C:\\Program Files\\DVielleRuntime\\Python314\\pythonw.exe",
+      "profile": "Any",
+      "address_families": [
+        "IPv4"
+      ],
+      "remote_addresses": [
+        "151.101.0.223/32"
+      ]
+    }
+  },
+  "during": [
+    {
+      "state": "connection_failed",
+      "windows_error": 10013,
+      "error_type": "PermissionError"
+    },
+    {
+      "state": "connection_failed",
+      "windows_error": 10013,
+      "error_type": "PermissionError"
+    }
+  ],
+  "recovery": {
+    "v": 1,
+    "nonce": "25f4ffa8a1954120bfb1419cff163bd3",
+    "action": "recover",
+    "state": "recovery_result",
+    "performed": true,
+    "identity": {
+      "state": "approved_runtime_digest_verified",
+      "files": 5792,
+      "manifest_sha256": "090f92667f382616c836b54a4fefe1adb8243de2c94d4b2c60c4aabba66d39e9",
+      "publisher_authenticated": false
+    },
+    "result": {
+      "ok": true,
+      "code": "restored",
+      "performed": true,
+      "journal_state": "restored",
+      "message": "Owned-rule cleanup verified; other rules preserved.",
+      "operation_id": "6ef6945266d04b88b98a4d2500db70ba"
+    }
+  },
+  "after": {
+    "state": "connected"
+  },
+  "callback_errors": []
+}

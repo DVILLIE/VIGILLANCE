@@ -1,0 +1,37 @@
+{
+  "runtime_files": 5789,
+  "runtime_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+  "pq_checks": {
+    "state": "observed",
+    "scope": "Local cryptographic primitive execution only",
+    "negotiated_key_exchange": "not_measured",
+    "negotiated_authentication": "not_measured",
+    "private_keys_saved": false,
+    "ml_kem_768": {
+      "state": "passed",
+      "encapsulation_decapsulation_matched": true,
+      "invalid_length_rejected": true
+    },
+    "ml_dsa_65": {
+      "state": "passed",
+      "signature_verified": true,
+      "modified_message_rejected": true,
+      "wrong_context_rejected": true
+    },
+    "elapsed_seconds": 0.04471639997791499
+  },
+  "self_image": {
+    "state": "observed",
+    "pid": 21608,
+    "created_epoch_seconds": 1791640554.7395806,
+    "name": "python.exe",
+    "executable_image": {
+      "state": "observed",
+      "path": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+      "scope": "Executable path rules affect all instances; launchers and child images may differ."
+    },
+    "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+  },
+  "tls_keylog_disabled": true,
+  "mutations": []
+}

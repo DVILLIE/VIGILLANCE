@@ -1,0 +1,153 @@
+{
+  "updated_at": "2026-10-11T18:48:35.358508+05:30",
+  "collectors": {
+    "connections": {
+      "status": "ok",
+      "interval_seconds": 60.0,
+      "error": null,
+      "duration_ms": 478.7711000535637,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:20.58002+05:30",
+      "last_success_at": "2026-10-11T18:48:21.059183+05:30"
+    },
+    "attacks": {
+      "status": "ok",
+      "interval_seconds": 30.0,
+      "error": null,
+      "duration_ms": 1526.1707999743521,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:21.380488+05:30",
+      "last_success_at": "2026-10-11T18:48:22.907001+05:30"
+    },
+    "browser_guard": {
+      "status": "ok",
+      "interval_seconds": 120.0,
+      "error": null,
+      "duration_ms": 65.2409999165684,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:19.442861+05:30",
+      "last_success_at": "2026-10-11T18:48:19.508417+05:30"
+    },
+    "ram": {
+      "status": "ok",
+      "interval_seconds": 60.0,
+      "error": null,
+      "duration_ms": 4.884799942374229,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:11.052948+05:30",
+      "last_success_at": "2026-10-11T18:48:11.060992+05:30"
+    },
+    "resource_advisor": {
+      "status": "ok",
+      "interval_seconds": 60.0,
+      "error": null,
+      "duration_ms": 2.9357000021263957,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:21.104654+05:30",
+      "last_success_at": "2026-10-11T18:48:21.107983+05:30"
+    },
+    "disk": {
+      "status": "deferred",
+      "interval_seconds": 300.0,
+      "error": null,
+      "duration_ms": 24.28070001769811,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:46:19.561647+05:30",
+      "last_success_at": "2026-10-11T18:46:19.602731+05:30"
+    },
+    "security": {
+      "status": "running",
+      "interval_seconds": 120.0,
+      "error": null,
+      "duration_ms": 16706.815000041388,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:27.797075+05:30",
+      "last_success_at": "2026-10-11T18:46:27.79624+05:30"
+    },
+    "privacy_guard": {
+      "status": "deferred",
+      "interval_seconds": 300.0,
+      "error": null,
+      "duration_ms": 46.4227000484243,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:46:19.679976+05:30",
+      "last_success_at": "2026-10-11T18:46:19.726787+05:30"
+    },
+    "network_info": {
+      "status": "deferred",
+      "interval_seconds": 300.0,
+      "error": null,
+      "duration_ms": 4991.0298000322655,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:46:19.783434+05:30",
+      "last_success_at": "2026-10-11T18:46:24.77592+05:30"
+    },
+    "microsoft_guard": {
+      "status": "deferred",
+      "interval_seconds": 300.0,
+      "error": null,
+      "duration_ms": 54.75100001785904,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:46:24.822609+05:30",
+      "last_success_at": "2026-10-11T18:46:24.877651+05:30"
+    },
+    "heartbeat": {
+      "status": "running",
+      "error": null,
+      "duration_ms": 8.150000008754432,
+      "interval_seconds": 8,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:48:35.358516+05:30",
+      "last_success_at": "2026-10-11T18:48:27.350796+05:30"
+    },
+    "capability": {
+      "status": "deferred",
+      "error": null,
+      "duration_ms": null,
+      "interval_seconds": 900.0,
+      "failures": 0
+    },
+    "retention": {
+      "status": "ok",
+      "error": null,
+      "duration_ms": 119.90150006022304,
+      "interval_seconds": 900.0,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:46:14.071922+05:30",
+      "last_success_at": "2026-10-11T18:46:14.19219+05:30"
+    },
+    "pulse": {
+      "status": "partial",
+      "error": "Keep-on source coverage is incomplete; see runtime.keep_on.problems",
+      "duration_ms": 47.420599963516,
+      "interval_seconds": 90,
+      "failures": 0,
+      "last_attempt_at": "2026-10-11T18:47:55.163143+05:30",
+      "last_partial_at": "2026-10-11T18:47:55.210893+05:30"
+    }
+  },
+  "runtime": {
+    "state": "running",
+    "owner_pid": 22364,
+    "owner_create_time": 1791724570.5179017,
+    "owner_token": "5ea0afd8f5e04d16954fb2072703e30f",
+    "started_at": "2026-10-11T18:46:10.964162+05:30",
+    "cycle_count": 2,
+    "monitor_only": true,
+    "heartbeat_at": "2026-10-11T18:48:35.358502+05:30",
+    "last_pulse_at": "2026-10-11T18:47:55.17647+05:30",
+    "keep_on": {
+      "status": "partial",
+      "sampled_at": "2026-10-11T18:47:55.209736+05:30",
+      "problems": [
+        {
+          "disposition": "unavailable",
+          "source": "camera",
+          "error": "Windows camera privacy permission: Allow; live device ownership remains unverified.",
+          "finding": null,
+          "mutated": false
+        }
+      ]
+    }
+  }
+}

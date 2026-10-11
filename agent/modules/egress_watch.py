@@ -147,7 +147,8 @@ def _attach_hosts(rows: list[dict], limit: int = 8) -> None:
                 continue
             seen += 1
             try:
-                cache[ip] = _reverse_dns(ip, timeout=0.3) or ""
+                # Shared resolver is non-blocking; its API accepts only the IP.
+                cache[ip] = _reverse_dns(ip) or ""
             except OSError:
                 cache[ip] = ""
         row["host"] = cache[ip]

@@ -1,0 +1,674 @@
+{
+  "state": "completed",
+  "root_pid": 19468,
+  "root_created": 1791643086.0177464,
+  "scope": "Actual resident process and visible descendants; no command lines or packet contents collected",
+  "samples": [
+    {
+      "observed_monotonic": 697027.1048428,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21049344,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697027.6110031,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20987904,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697028.1173667,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20987904,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697028.6236327,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20918272,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697029.1299793,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20918272,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697029.6361765,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20897792,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697030.1427946,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20897792,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697030.6487027,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697031.155763,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697031.6620509,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697032.1680918,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.6875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697032.6755913,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697033.1817368,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697033.6878865,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20869120,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697034.193841,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20869120,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697034.6998944,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20869120,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697035.2085438,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20873216,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697035.71532,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20860928,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697036.2218719,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20860928,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697036.7299753,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20860928,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697037.2363986,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20860928,
+          "cpu_user_seconds": 2.703125,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697037.7433963,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20881408,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697038.2497994,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20881408,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697038.7607679,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20881408,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697039.2671607,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20881408,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697039.7732468,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697040.280209,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697040.7863835,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697041.2926424,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697041.7991696,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697042.3052042,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 20877312,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697042.8161467,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21028864,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 17532,
+          "created": 1791644165.334077,
+          "image_name": "powershell.exe",
+          "rss_bytes": 96305152,
+          "cpu_user_seconds": 0.390625,
+          "cpu_system_seconds": 0.171875
+        },
+        {
+          "pid": 9416,
+          "created": 1791644165.3385427,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7954432,
+          "cpu_user_seconds": 0.015625,
+          "cpu_system_seconds": 0.03125
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697043.3254171,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21028864,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 17532,
+          "created": 1791644165.334077,
+          "image_name": "powershell.exe",
+          "rss_bytes": 93417472,
+          "cpu_user_seconds": 0.625,
+          "cpu_system_seconds": 0.25
+        },
+        {
+          "pid": 9416,
+          "created": 1791644165.3385427,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7954432,
+          "cpu_user_seconds": 0.015625,
+          "cpu_system_seconds": 0.03125
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697043.8330921,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21037056,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 8332,
+          "created": 1791644166.4355683,
+          "image_name": "powershell.exe",
+          "rss_bytes": 72343552,
+          "cpu_user_seconds": 0.296875,
+          "cpu_system_seconds": 0.21875
+        },
+        {
+          "pid": 11448,
+          "created": 1791644166.440792,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7946240,
+          "cpu_user_seconds": 0.0,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697044.3429585,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21037056,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 8332,
+          "created": 1791644166.4355683,
+          "image_name": "powershell.exe",
+          "rss_bytes": 140148736,
+          "cpu_user_seconds": 0.6875,
+          "cpu_system_seconds": 0.28125
+        },
+        {
+          "pid": 11448,
+          "created": 1791644166.440792,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7946240,
+          "cpu_user_seconds": 0.0,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697044.8528939,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21037056,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 8332,
+          "created": 1791644166.4355683,
+          "image_name": "powershell.exe",
+          "rss_bytes": 136126464,
+          "cpu_user_seconds": 0.921875,
+          "cpu_system_seconds": 0.46875
+        },
+        {
+          "pid": 11448,
+          "created": 1791644166.440792,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7946240,
+          "cpu_user_seconds": 0.0,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697045.3597963,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21069824,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 8540,
+          "created": 1791644167.9658692,
+          "image_name": "powershell.exe",
+          "rss_bytes": 76222464,
+          "cpu_user_seconds": 0.234375,
+          "cpu_system_seconds": 0.15625
+        },
+        {
+          "pid": 18772,
+          "created": 1791644167.9712064,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7970816,
+          "cpu_user_seconds": 0.0,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697045.8706483,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21127168,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 21072,
+          "created": 1791644168.4652712,
+          "image_name": "powershell.exe",
+          "rss_bytes": 72163328,
+          "cpu_user_seconds": 0.359375,
+          "cpu_system_seconds": 0.140625
+        },
+        {
+          "pid": 20672,
+          "created": 1791644168.4705727,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7950336,
+          "cpu_user_seconds": 0.03125,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697046.3786592,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21127168,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 21072,
+          "created": 1791644168.4652712,
+          "image_name": "powershell.exe",
+          "rss_bytes": 89747456,
+          "cpu_user_seconds": 0.703125,
+          "cpu_system_seconds": 0.21875
+        },
+        {
+          "pid": 20672,
+          "created": 1791644168.4705727,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7950336,
+          "cpu_user_seconds": 0.03125,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    },
+    {
+      "observed_monotonic": 697046.8887985,
+      "processes": [
+        {
+          "pid": 19468,
+          "created": 1791643086.0177464,
+          "image_name": "pythonw.exe",
+          "rss_bytes": 21180416,
+          "cpu_user_seconds": 2.71875,
+          "cpu_system_seconds": 3.890625
+        },
+        {
+          "pid": 19848,
+          "created": 1791644169.567564,
+          "image_name": "powershell.exe",
+          "rss_bytes": 64475136,
+          "cpu_user_seconds": 0.1875,
+          "cpu_system_seconds": 0.1875
+        },
+        {
+          "pid": 11600,
+          "created": 1791644169.6065288,
+          "image_name": "conhost.exe",
+          "rss_bytes": 7946240,
+          "cpu_user_seconds": 0.015625,
+          "cpu_system_seconds": 0.0
+        }
+      ]
+    }
+  ],
+  "controlled_workload": false,
+  "mutations": []
+}

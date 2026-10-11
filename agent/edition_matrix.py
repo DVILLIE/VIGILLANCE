@@ -24,9 +24,9 @@ FEATURE_ORDER: tuple[str, ...] = (
 )
 
 PRODUCT_NOTES: tuple[str, ...] = (
-    "DVielle orchestrates Microsoft Defender. It does not replace Defender or disable real-time protection.",
+    "D\'Vielle orchestrates Microsoft Defender. It does not replace Defender or disable real-time protection.",
     "Cells describe edition support, not whether the feature is turned on.",
-    "CFA is documented to control unauthorized modification. DVielle does not claim CFA prevents reading or exfiltration.",
+    "CFA is documented to control unauthorized modification. D\'Vielle does not claim CFA prevents reading or exfiltration.",
     "Windows Sandbox is not supported on Windows Home.",
     "Sandbox AVAILABLE means the client SKU supports Windows Sandbox. It does not mean the optional feature is installed or that a sandbox is running. Default sandbox networking is on.",
     "App Control for Business PowerShell authoring is not available on Home. A policy can still be effective on Home if one was deployed another way.",

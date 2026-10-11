@@ -54,7 +54,7 @@ CFA_MODE_NAMES = {
 CFA_MODIFICATION_COPY = (
     "Controlled folder access helps block untrusted apps from modifying or deleting "
     "files in protected folders. In full Enabled mode it also helps block untrusted "
-    "boot-sector writes. DVielle does not claim CFA prevents reading or exfiltration."
+    "boot-sector writes. D\'Vielle does not claim CFA prevents reading or exfiltration."
 )
 CISA_BACKUP_COPY = (
     "Offline, encrypted backups and a restore test remain required. "
@@ -62,7 +62,7 @@ CISA_BACKUP_COPY = (
 )
 HOME_ASR_COPY = (
     "ASR and CFA are Microsoft Defender Antivirus features on Windows Home and Pro. "
-    "DVielle does not treat Home as missing ASR."
+    "D\'Vielle does not treat Home as missing ASR."
 )
 E5_NOT_REQUIRED_COPY = (
     "Configuring ASR with local PowerShell does not require Microsoft 365 E5. "
@@ -137,7 +137,7 @@ ASR_RULES: tuple[AsrRule, ...] = (
         "Block persistence through WMI event subscription",
         "standard",
         False,
-        "Microsoft documents that Configuration Manager depends on WMI. DVielle does not set this rule to Block.",
+        "Microsoft documents that Configuration Manager depends on WMI. D\'Vielle does not set this rule to Block.",
     ),
     _rule("7674ba52-37eb-4a4f-a9a1-f0f9a1619a2c", "Block Adobe Reader from creating child processes", "other", False),
     _rule("d4f940ab-401b-4efc-aadc-ad5f3c50688a", "Block all Office applications from creating child processes", "other", False),
@@ -178,7 +178,7 @@ PREVENTION_ASSUMPTIONS: tuple[str, ...] = (
     "ASR rule actions follow Microsoft Learn: 0 Off, 1 Block, 2 Audit, 5 Not configured, 6 Warn.",
     "A rule missing from Get-MpPreference is Not configured. That is not Audit evidence.",
     "Standard-protection Block is offered only for the driver and LSASS rules, and only while the live action is Audit.",
-    "The WMI persistence rule and every non-standard rule are Audit-only. DVielle does not blanket-Block them.",
+    "The WMI persistence rule and every non-standard rule are Audit-only. D\'Vielle does not blanket-Block them.",
     "Warn is not Audit evidence and is not converted to Block.",
     "CFA modes follow EnableControlledFolderAccess: 0 Disabled, 1 Enabled, 2 Audit, 3 Block disk modification only, 4 Audit disk modification only.",
     "Full CFA Block is offered only while the live mode is Audit (2). Disk-only audit is not folder-audit evidence.",
@@ -400,7 +400,7 @@ def promotion_prerequisites(health: DefenderHealth, maps: MapsCheck) -> tuple[bo
     if maps.result != "pass":
         gaps.append(
             "MAPS cloud-delivered protection is not verified. "
-            "DVielle does not block Microsoft Defender cloud endpoints."
+            "D\'Vielle does not block Microsoft Defender cloud endpoints."
         )
     return (not gaps, gaps)
 
@@ -449,7 +449,7 @@ def _plan_rule(rule: AsrRule, action: int, prereq_ok: bool, gaps: list[str]) -> 
             reason="Live mode is Audit. This standard-protection rule may move to Block.",
         )
     if action == 2:
-        note = rule.hold_note or "Already in Audit. DVielle does not blanket-Block this rule."
+        note = rule.hold_note or "Already in Audit. D\'Vielle does not blanket-Block this rule."
         return RulePlan(**base, allowed_actions=[], block_allowed=False, audit_allowed=False, reason=note)
     if action in (0, 5):
         return RulePlan(
@@ -473,14 +473,14 @@ def _plan_rule(rule: AsrRule, action: int, prereq_ok: bool, gaps: list[str]) -> 
             allowed_actions=[],
             block_allowed=False,
             audit_allowed=False,
-            reason="Warn is not Audit evidence. DVielle does not convert Warn to Block.",
+            reason="Warn is not Audit evidence. D\'Vielle does not convert Warn to Block.",
         )
     return RulePlan(
         **base,
         allowed_actions=[],
         block_allowed=False,
         audit_allowed=False,
-        reason="That ASR action is not one DVielle will change.",
+        reason="That ASR action is not one D\'Vielle will change.",
     )
 
 
@@ -516,7 +516,7 @@ def _plan_cfa(mode: int | None, name: str, prereq_ok: bool, gaps: list[str], *, 
             [],
             False,
             False,
-            "Block disk modification only is a narrower setting. DVielle does not escalate it to full Enabled without folder Audit.",
+            "Block disk modification only is a narrower setting. D\'Vielle does not escalate it to full Enabled without folder Audit.",
         )
     if mode == 1:
         return CfaPlan(
@@ -527,7 +527,7 @@ def _plan_cfa(mode: int | None, name: str, prereq_ok: bool, gaps: list[str], *, 
             False,
             "CFA is already Enabled. That setting blocks modification and boot-sector writes. It is not a claim about reading or exfiltration.",
         )
-    return CfaPlan(mode, name, [], False, False, "That CFA mode is not one DVielle will change.")
+    return CfaPlan(mode, name, [], False, False, "That CFA mode is not one D\'Vielle will change.")
 
 
 def _option(option_id: str, label: str, what: str, handler: str, action: int, guid: str | None) -> dict[str, Any]:
@@ -788,7 +788,7 @@ def load_recovery(path: Path, *, now: datetime | None = None) -> RecoveryReport:
         restore_stamp,
         moment,
         source="user_declared",
-        detail="These states are what was declared in the local marker. They are not a backup job DVielle ran.",
+        detail="These states are what was declared in the local marker. They are not a backup job D\'Vielle ran.",
         backup_text=backup_text or None,
         restore_text=restore_text or None,
     )
@@ -820,7 +820,7 @@ def write_recovery_declaration(
             raise ValueError("last_restore_test_at must be a timezone-aware ISO timestamp")
     body = "\n".join(
         [
-            "# DVielle recovery acknowledgment. User declaration only. Not a backup.",
+            "# D\'Vielle recovery acknowledgment. User declaration only. Not a backup.",
             f"backup_configured={configured}",
             f"last_backup_at={last_backup_at or ''}",
             f"last_restore_test_at={last_restore_test_at or ''}",

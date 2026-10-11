@@ -1,0 +1,72 @@
+{
+  "started": "2026-10-10T13:54:52.560068+00:00",
+  "state": "activated_identity_verified",
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-5bc7e89952c04ea9bdcfb315dfd2be00",
+    "old_runtime_sha256": "d0d7d6d7df70beb668fd7e93bd3c5b8f6ee467a9884de31f552e8f08850c3811",
+    "new_runtime_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+    "changes": [
+      {
+        "path": "agent/assessment/cryptography.py",
+        "old_sha256": "b6fb3782396024fd572a54e0901226eac59eb5bbb5f75d05f71e928993e1e304",
+        "new_sha256": "337a63ca06a5bf934b8826bc522e936e3e59648c165ead278c715698262561f4"
+      },
+      {
+        "path": "agent/assessment/dependencies.py",
+        "old_sha256": "335e7caf08235b8f2e5a95fe34c688b7259054528cad17b005faadac42f47d46",
+        "new_sha256": "fcedaa778f44e27340cdfac15564eb27ac728a0079968f284a6c7c396e39eb24"
+      },
+      {
+        "path": "agent/assessment/engine.py",
+        "old_sha256": "7d5bca6edea6cff1b4dee5e21a52bfa2251fa42c3feff1261ffa6a81b1d6fc8a",
+        "new_sha256": "01898c0648e6b5afbfa2bda09b71444f32ff1b65cc8ecb9776f3249d6d2c2c63"
+      },
+      {
+        "path": "agent/assessment/evidence.py",
+        "old_sha256": "79aecfb423db38efb959c94b61a8d3741ffb3002403b93a81a3d21bbaff3c0bd",
+        "new_sha256": "fd48e892c8baf125758aa8cbd744475d32a13791a981ee8a45b904d0ae1309c3"
+      },
+      {
+        "path": "agent/assessment/process_identity.py",
+        "old_sha256": null,
+        "new_sha256": "3ad32769194cbfb60dfb3ca336a06f0c66edacd61247f6489b06dcdacd2bf735"
+      },
+      {
+        "path": "agent/assessment/resources.py",
+        "old_sha256": "0818b46d39d37bd37f7732f33cf3e5d06a92bcef07e3623a57cb7fc1a29c46fb",
+        "new_sha256": "89a454288b638e9f7f747d5882e7f0089d4fded202cc038190ee742bfc8b3db8"
+      },
+      {
+        "path": "agent/privilege/readiness.py",
+        "old_sha256": "dfc70a935aaec1069ec6f838aaa5a3ef15a0f73d9a9a35156298c6dba00adef7",
+        "new_sha256": "b2985289a87b31c07ea7e069b29c47e4643924c3a74e6a39c844941399195333"
+      },
+      {
+        "path": "dvielle/gui/assessment.py",
+        "old_sha256": "18f2b429de1b4885d35e015e2084ab6caf60de69d618e9e9e644153a070ed7b8",
+        "new_sha256": "57060cdd6fac7145ec2853cd1ff738c1c1038cbec5307d7817f840a9c35e8be3"
+      }
+    ]
+  },
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "task_enabled": true,
+  "helper_was_running": true,
+  "change_intents": [
+    "agent/assessment/cryptography.py",
+    "agent/assessment/dependencies.py",
+    "agent/assessment/engine.py",
+    "agent/assessment/evidence.py",
+    "agent/assessment/process_identity.py",
+    "agent/assessment/resources.py",
+    "agent/privilege/readiness.py",
+    "dvielle/gui/assessment.py"
+  ],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5789,
+    "manifest_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+    "publisher_authenticated": false
+  },
+  "finished": "2026-10-10T13:55:29.988347+00:00"
+}

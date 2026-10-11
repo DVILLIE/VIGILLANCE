@@ -1,4 +1,4 @@
-"""SQLite persistence for DVielle Agent."""
+"""SQLite persistence for D\'Vielle Agent."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Generator, Iterable
+from uuid import uuid4
 
 
 def utc_now() -> str:
@@ -728,10 +729,10 @@ class AgentStore:
             "summary_window_days": float(window_days),
         }
 
-    def save_finding(self, finding: dict[str, Any]) -> None:
+    def save_finding(self, finding: dict[str, Any], *, action_owner: bool = False) -> bool:
         payload = json.dumps(finding, sort_keys=True)
         with self._conn() as conn:
-            conn.execute(
+            changed = conn.execute(
                 """
                 INSERT INTO findings (id, pillar, kind, subject_identity, status, payload, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -740,6 +741,12 @@ class AgentStore:
                     payload=excluded.payload,
                     updated_at=excluded.updated_at,
                     subject_identity=excluded.subject_identity
+                WHERE (? = 0 AND COALESCE(json_extract(findings.payload, '$.action_claimed'),
+                                CASE WHEN findings.status='in_progress' THEN 1 ELSE 0 END) = 0
+                       AND COALESCE(json_extract(findings.payload, '$.recovery_required'), 0) = 0)
+                   OR (? = 1 AND json_extract(findings.payload, '$.action_claim_token') IS NOT NULL
+                       AND json_extract(findings.payload, '$.action_claim_token') =
+                           json_extract(excluded.payload, '$.action_claim_token'))
                 """,
                 (
                     finding["id"],
@@ -749,8 +756,98 @@ class AgentStore:
                     finding["resolution_status"],
                     payload,
                     finding["updated_at"],
+                    int(action_owner),
+                    int(action_owner),
                 ),
             )
+        return changed.rowcount > 0
+
+    def stage_finding(self, candidate: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+        """Create or refresh one active subject atomically, without stealing actions."""
+        with self._conn() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                """SELECT status, payload FROM findings
+                   WHERE pillar = ? AND subject_identity = ? AND kind = ?
+                     AND status IN ('found', 'in_progress', 'monitoring')
+                   ORDER BY (COALESCE(json_extract(payload, '$.action_claimed'),
+                                      CASE WHEN status='in_progress' THEN 1 ELSE 0 END)
+                             OR COALESCE(json_extract(payload, '$.recovery_required'),0)) DESC,
+                            updated_at DESC LIMIT 1""",
+                (candidate['pillar'], candidate['subject_identity'], candidate['kind']),
+            ).fetchone()
+            if row is None:
+                conn.execute(
+                    "INSERT INTO findings (id,pillar,kind,subject_identity,status,payload,updated_at) VALUES (?,?,?,?,?,?,?)",
+                    (candidate['id'], candidate['pillar'], candidate['kind'], candidate['subject_identity'],
+                     candidate['resolution_status'], json.dumps(candidate, sort_keys=True), candidate['updated_at']),
+                )
+                return candidate, True
+            existing = json.loads(row['payload'])
+            if row['status'] == 'in_progress' and 'action_claimed' not in existing:
+                existing['action_claimed'] = True
+                existing['recovery_required'] = True
+                existing['last_result'] = 'Older unfinished action requires review before retrying.'
+                conn.execute('UPDATE findings SET payload=? WHERE id=?',
+                             (json.dumps(existing, sort_keys=True), existing['id']))
+            if existing.get('action_claimed') or existing.get('recovery_required'):
+                return existing, False
+            if existing.get('snooze_until') and existing['snooze_until'] > candidate['updated_at']:
+                return existing, False
+            for key in ('evidence_refs', 'signals', 'title_simple', 'keep_on_match', 'updated_at',
+                        'why_it_matters', 'if_ignored', 'severity', 'confidence', 'recommended_action',
+                        'resolution_steps', 'action_class', 'reversible', 'options'):
+                existing[key] = candidate[key]
+            if candidate['keep_on_match'] == 'suspicious_mismatch':
+                existing['resolution_status'] = 'found'
+                existing['snooze_until'] = None
+            conn.execute("UPDATE findings SET status=?,payload=?,updated_at=? WHERE id=?",
+                         (existing['resolution_status'], json.dumps(existing, sort_keys=True),
+                          existing['updated_at'], existing['id']))
+            return existing, False
+
+    def claim_finding(self, finding_id: str, updated_at: str) -> dict[str, Any] | None:
+        """Reserve one finding across threads/processes before executing a choice.
+
+        A crashed claimed action stays reserved for explicit recovery: its
+        side effects must be inspected before any automatic retry.
+        """
+        with self._conn() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                "SELECT status, payload, pillar, kind, subject_identity FROM findings WHERE id = ?", (finding_id,)
+            ).fetchone()
+            if row is None or row["status"] not in ("found", "monitoring", "in_progress"):
+                return None
+            finding = json.loads(row["payload"])
+            if row['status'] == 'in_progress' and 'action_claimed' not in finding:
+                finding['action_claimed'] = True
+                finding['recovery_required'] = True
+                finding['last_result'] = 'Older unfinished action requires review before retrying.'
+                conn.execute('UPDATE findings SET payload=? WHERE id=?',
+                             (json.dumps(finding, sort_keys=True), finding_id))
+            if finding.get('action_claimed') or finding.get('recovery_required'):
+                return None
+            # Old duplicate tickets must not allow concurrent dispatch for one subject.
+            occupied = conn.execute(
+                """SELECT id FROM findings WHERE id != ? AND pillar=? AND kind=? AND subject_identity=?
+                   AND (COALESCE(json_extract(payload, '$.action_claimed'),
+                                 CASE WHEN status='in_progress' THEN 1 ELSE 0 END) != 0
+                        OR COALESCE(json_extract(payload, '$.recovery_required'),0) != 0) LIMIT 1""",
+                (finding_id, row['pillar'], row['kind'], row['subject_identity']),
+            ).fetchone()
+            if occupied is not None:
+                return None
+            finding['action_claimed'] = True
+            finding['action_claim_token'] = uuid4().hex
+            finding['action_previous_status'] = finding['resolution_status']
+            finding["resolution_status"] = "in_progress"
+            finding["updated_at"] = updated_at
+            conn.execute(
+                "UPDATE findings SET status = 'in_progress', payload = ?, updated_at = ? WHERE id = ?",
+                (json.dumps(finding, sort_keys=True), updated_at, finding_id),
+            )
+        return finding
 
     def get_finding(self, finding_id: str) -> dict[str, Any] | None:
         with self._conn() as conn:

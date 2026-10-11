@@ -1,0 +1,83 @@
+{
+  "state": "restored_traffic_acceptance_incomplete",
+  "scope": "Actual installed widgets, human Windows and exact-scope consent, one IPv4 TCP endpoint",
+  "installed_component": "C:\\Program Files\\DVielle\\dvielle\\gui\\assessment.py",
+  "automated_consent": false,
+  "mutations": [
+    {
+      "operation_id": "fd6e3c19990d42f794bda481d806cb1f",
+      "operation": "restrict_network"
+    }
+  ],
+  "accessibility_acceptance": "not_tested",
+  "before": {
+    "state": "connected"
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-1bc88baefc6f-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+        "remote": "151.101.0.223",
+        "group": "DVielle",
+        "description": "DVielle invocation ea52d2d91da74f678fd9505c47f080d2",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "fd6e3c19990d42f794bda481d806cb1f",
+    "state": "helper_result",
+    "requested_scope": {
+      "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+      "profile": "Any",
+      "address_families": [
+        "IPv4"
+      ],
+      "remote_addresses": [
+        "151.101.0.223/32"
+      ]
+    }
+  },
+  "during": [
+    {
+      "state": "connected"
+    },
+    {
+      "state": "connected"
+    }
+  ],
+  "recovery": {
+    "v": 1,
+    "nonce": "86d40d9eecc64bac8023b50d5e4ee424",
+    "action": "recover",
+    "state": "recovery_result",
+    "performed": true,
+    "identity": {
+      "state": "approved_runtime_digest_verified",
+      "files": 5792,
+      "manifest_sha256": "090f92667f382616c836b54a4fefe1adb8243de2c94d4b2c60c4aabba66d39e9",
+      "publisher_authenticated": false
+    },
+    "result": {
+      "ok": true,
+      "code": "restored",
+      "performed": true,
+      "journal_state": "restored",
+      "message": "Owned-rule cleanup verified; other rules preserved.",
+      "operation_id": "fd6e3c19990d42f794bda481d806cb1f"
+    }
+  },
+  "after": {
+    "state": "connected"
+  },
+  "callback_errors": []
+}

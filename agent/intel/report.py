@@ -13,7 +13,7 @@ from agent.intel.osv import load_osv
 
 ASSUMPTIONS: tuple[str, ...] = (
     "Feeds are read from local files. Fetch stays off unless a caller turns it on.",
-    "A missing file is unavailable. DVielle does not invent KEV or OSV hits.",
+    "A missing file is unavailable. D\'Vielle does not invent KEV or OSV hits.",
     "Matches run only against a local inventory file the operator supplied.",
     "abuse.ch dumps are not bundled. The default report does not fetch them.",
 )

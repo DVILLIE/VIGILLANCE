@@ -1,4 +1,4 @@
-"""Launch DVielle — GUI by default, headless with --headless."""
+"""Launch D\'Vielle — GUI by default, headless with --headless."""
 
 import sys
 from pathlib import Path

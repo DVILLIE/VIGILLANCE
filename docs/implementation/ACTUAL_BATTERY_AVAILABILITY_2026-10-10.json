@@ -1,0 +1,10 @@
+{
+  "battery_present": true,
+  "battery_reading": {
+    "percent": 100,
+    "secsleft": -2,
+    "power_plugged": true
+  },
+  "controlled_battery_comparison": "not_performed",
+  "mutations": []
+}

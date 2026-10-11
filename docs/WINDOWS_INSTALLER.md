@@ -1,8 +1,20 @@
 # Windows setup executable
 
+Current repair candidate (10 October 2026): bootstrap, default installer runtime and held build metadata now select protected Python 3.14.8; default application location is `C:\Program Files\DVielle`. The public wrapper remains held. The Python 3.12 instructions below describe the preserved historical public 2.4.2 release, not current candidate installation. See `installer/INSTALL.txt` and the current implementation evidence.
+
 ![DVielle logo](images/dvielle-logo.png)
 
 Version 2.4.2. This page is how to produce `DVielle-Setup-2.4.2.exe`. That file is a setup wrapper. It is not a frozen copy of the agent.
+
+**Repair branch status (2026-10-09): the setup wrapper is held.** Its
+`InitializeSetup` returns False before application-file installation; the
+former elevated `{tmp}` bootstrap hook was removed. Protected extraction
+staging and a field installation are required before it can be enabled again.
+The steps below describe the historical 2.4.2 wrapper, not current repair-branch
+availability. The Limited script can install from a verified, protected source
+stage with protected system Python on PATH; it separates protected code from
+installed-user-private data/config. A writable unzip directory or existing
+shared-writable installation is refused. See [the current boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
 
 The public download on the v2.4.2 Release stays the zip. Unzip it and run `installer\Install-DVielle.bat` after Python 3.12 is installed. Use that path until a GitHub Release lists `DVielle-Setup-2.4.2.exe` by name. A GitHub Actions artifact is a build product. It expires, it is unsigned, and it is not that Release file.
 
@@ -13,7 +25,9 @@ The public download on the v2.4.2 Release stays the zip. Unzip it and run `insta
 3. The setup then runs `installer\install-dvielle.ps1 -RunLevel Limited`. The logon task is still `.venv\Scripts\pythonw.exe -m agent.main`. The desktop / Start Menu shortcut targets `.venv\Scripts\DVielle.exe -m dvielle` (branded GUI shim; see below).
 4. Uninstall stays `installer\Uninstall-DVielle.bat`. The setup wrapper does not register its own uninstall entry and does not take ownership of `C:\DVILLIE`.
 
-The wrapper has no switch for a Highest task. `-RunLevel Highest` remains the existing explicit script, and only after the install tree is locked. This setup does not call it.
+The wrapper has no switch for a Highest task. The current script refuses
+`-RunLevel Highest` before changing the installation; code ACL lockdown alone
+is not permission to enable an elevated resident.
 
 The setup does not add a Defender exclusion. It is not an antivirus product. Chat stays removed.
 

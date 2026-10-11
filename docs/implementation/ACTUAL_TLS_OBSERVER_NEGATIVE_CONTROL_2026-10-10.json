@@ -1,0 +1,9 @@
+{
+  "scope": "Actual live TLS handshake with deliberately mismatched hostname; negative control",
+  "host": "negative-control.foo.python.org",
+  "address": "151.101.0.223",
+  "mutations": [],
+  "state": "certificate_rejected_no_success_observation_emitted",
+  "verification_code": 62,
+  "verification_reason": "Hostname mismatch, certificate is not valid for 'negative-control.foo.python.org'."
+}

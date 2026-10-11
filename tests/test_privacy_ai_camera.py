@@ -312,7 +312,7 @@ def test_live_egress_uses_hostname_and_does_not_invent_one(monkeypatch: pytest.M
     monkeypatch.setattr("agent.modules.egress_watch.psutil.CONN_ESTABLISHED", "ESTABLISHED")
     monkeypatch.setattr(
         "agent.modules.connections._reverse_dns",
-        lambda ip, timeout=0.8: "api.openai.com" if ip == "93.184.216.34" else "",
+        lambda ip: "api.openai.com" if ip == "93.184.216.34" else "",
     )
     from agent.modules.egress_watch import collect_egress_facts
 

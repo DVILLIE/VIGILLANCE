@@ -1,0 +1,41 @@
+{
+  "observed_at": "2026-10-11T13:16:45.514656+00:00",
+  "platform": {
+    "system": "Windows",
+    "version": "10.0.26200"
+  },
+  "elevated_session": false,
+  "mutations": [],
+  "holds": [
+    "Private configuration and approved runtime identity require independent authenticated verification.",
+    "Positive native peer authentication, trusted release identity and live enforcement acceptance remain required."
+  ],
+  "claims": "Read-only prerequisite observations; not a release or packet-containment certification.",
+  "runtime": {
+    "python_version": "3.14.8",
+    "privileged_helper_version_supported": true
+  },
+  "code_path_checks": {
+    "interpreter": {
+      "state": "protected_acl_observed"
+    },
+    "source_package": {
+      "state": "protected_acl_observed"
+    }
+  },
+  "service": {
+    "state": "running",
+    "system_account_configured": true,
+    "peer_authentication": "not_measured",
+    "policy_enforcement": "not_measured"
+  },
+  "installation_state": {
+    "state": "not_observed_access_denied",
+    "user_binding": "not_observed",
+    "explanation": "Private helper configuration is inaccessible to this observer; this does not establish invalid configuration."
+  },
+  "release_identity": {
+    "state": "not_observed_access_denied"
+  },
+  "state": "activation_held"
+}

@@ -1,19 +1,16 @@
-"""Privileged helper stub.
+"""Explicit, non-privileged test harness; no deployable privileged service.
 
-This is not a Windows service and it does not change the resident scheduled
-task. It binds 127.0.0.1, requires a per-start token, and dispatches only
-``restrict_network``. Undefined operations never reach a firewall cmdlet.
-
-``agent.privilege.pipe`` defines the named-pipe DACL (SYSTEM and one user SID;
-Everyone is refused) and tests it in process. This stub is still the loopback
-listener. It is not a SYSTEM service. Do not elevate the Limited scheduled task
-to Highest to avoid building that service.
+A bearer token over loopback is not an OS-authenticated approval boundary.
+Production dispatch is refused, and this harness refuses elevated tokens.
+The future service must authenticate callers and check protected, expiring,
+single-use authorization server-side before any privileged operation.
 """
 
 from __future__ import annotations
 
 import hmac
 import json
+import os
 import secrets
 import socket
 import threading
@@ -30,15 +27,29 @@ _MAX_BYTES = 65536
 _ENVELOPE_KEYS = frozenset({"v", "op", "token", "params"})
 
 
+def _is_elevated() -> bool:
+    """Check the effective Windows token; unavailable checks fail closed."""
+    if os.name != "nt":
+        return False
+    try:
+        import ctypes
+
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except (AttributeError, OSError, TypeError, ValueError):
+        return True
+
+
 def _body(ok: bool, code: str, message: str, *, performed: bool = False) -> dict[str, Any]:
     return {"ok": ok, "code": code, "performed": performed, "message": message, "verified": []}
 
 
-def dispatch(envelope: object, *, runner: Runner, expected_token: str) -> dict[str, Any]:
+def dispatch(
+    envelope: object, *, runner: Runner, expected_token: str, test_harness: bool = False
+) -> dict[str, Any]:
     """Refuse undefined work. The one defined operation re-checks every parameter."""
     if not isinstance(envelope, dict) or set(envelope) - _ENVELOPE_KEYS:
         return _body(False, "bad_params", "The helper request was not a versioned object. Nothing was changed.")
-    if envelope.get("v") != PROTOCOL_VERSION:
+    if type(envelope.get("v")) is not int or envelope.get("v") != PROTOCOL_VERSION:
         return _body(False, "bad_params", "The helper request version is not supported. Nothing was changed.")
     op = envelope.get("op")
     if undefined_op(op):
@@ -59,14 +70,22 @@ def dispatch(envelope: object, *, runner: Runner, expected_token: str) -> dict[s
     checked, error = validate_restrict_params(envelope.get("params"))
     if checked is None:
         return _body(False, "bad_params", error + " Nothing was changed.")
-    with apply_scope():
-        return apply_verified(checked, runner)
+    if not test_harness or _is_elevated():
+        return _body(False, "service_unavailable", "The authenticated privileged service is not implemented. Nothing was changed.")
+    try:
+        with apply_scope():
+            return apply_verified(checked, runner)
+    except Exception:
+        # An adapter may have partially acted before failing. Never claim undo.
+        return _body(False, "outcome_unknown", "The test adapter failed. Its outcome is unknown; inspect the adapter state.")
 
 
 class LoopbackHelper:
-    """Smallest process split that CI can run: one loopback listener, one op."""
+    """Opt-in unit adapter transport. Never an elevated mutation service."""
 
-    def __init__(self, runner: Runner, *, assign_job: bool = False) -> None:
+    def __init__(self, runner: Runner, *, test_harness: bool = False, assign_job: bool = False) -> None:
+        if not test_harness or _is_elevated():
+            raise RuntimeError("LoopbackHelper is an explicit non-privileged test harness, not a privileged service.")
         self.runner = runner
         self.token = secrets.token_hex(32)
         # Tests leave this off so a Windows CI process is not hard-capped.
@@ -86,7 +105,7 @@ class LoopbackHelper:
         self._thread.start()
 
     def endpoint(self) -> dict[str, Any]:
-        return {"host": LOOPBACK_HOST, "port": self.port, "token": self.token, "job_cap_applied": self.job["applied"]}
+        return {"host": LOOPBACK_HOST, "port": self.port, "token": self.token, "job_cap_applied": self.job["applied"], "test_harness": True, "privileged_service": False}
 
     def write_endpoint(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -110,13 +129,20 @@ class LoopbackHelper:
                         data += chunk
                 except OSError:
                     continue
+                if len(data) > _MAX_BYTES:
+                    response = _body(False, "bad_params", "The helper request was too large. Nothing was changed.")
+                    try:
+                        conn.sendall((json.dumps(response) + "\n").encode("utf-8"))
+                    except OSError:
+                        pass
+                    continue
                 line = data.split(b"\n", 1)[0]
                 try:
                     envelope = json.loads(line.decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError):
+                except (UnicodeDecodeError, ValueError, RecursionError):
                     response = _body(False, "bad_params", "The helper request was not JSON. Nothing was changed.")
                 else:
-                    response = dispatch(envelope, runner=self.runner, expected_token=self.token)
+                    response = dispatch(envelope, runner=self.runner, expected_token=self.token, test_harness=True)
                 try:
                     conn.sendall((json.dumps(response) + "\n").encode("utf-8"))
                 except OSError:
@@ -132,26 +158,6 @@ class LoopbackHelper:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the stub until interrupted. Writes an endpoint file the Limited agent can read."""
-    import argparse
-
-    from agent.utils import IS_WINDOWS, run_powershell
-
-    parser = argparse.ArgumentParser(description="DVielle privileged helper stub")
-    parser.add_argument("--endpoint-file", required=True)
-    args = parser.parse_args(argv)
-
-    def runner(script: str) -> tuple[str | None, bool]:
-        if not IS_WINDOWS:
-            return None, False
-        return run_powershell(script, timeout=30)
-
-    helper = LoopbackHelper(runner, assign_job=True)
-    helper.write_endpoint(Path(args.endpoint_file))
-    try:
-        threading.Event().wait()
-    except KeyboardInterrupt:
-        return 0
-    finally:
-        helper.close()
-    return 0
+    """Fail closed: no command-line launcher for a token-only mutation server."""
+    print("D\'Vielle's authenticated privileged service is not implemented. No listener was started.")
+    return 2

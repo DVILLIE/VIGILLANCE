@@ -1,0 +1,42 @@
+{
+  "started": "2026-10-10T14:10:39.783681+00:00",
+  "state": "activated_identity_verified",
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-c7b30e1dc71b495e939dd03d79ce56ab",
+    "old_runtime_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+    "new_runtime_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "changes": [
+      {
+        "path": "agent/assessment/engine.py",
+        "old_sha256": "01898c0648e6b5afbfa2bda09b71444f32ff1b65cc8ecb9776f3249d6d2c2c63",
+        "new_sha256": "fd8e2f61e171653337dd4681783a219686144a70eb92015b1f1f8614f2fb25ab"
+      },
+      {
+        "path": "agent/assessment/tls_observer.py",
+        "old_sha256": null,
+        "new_sha256": "112e9e5b74d18118cbe114bd4a95c5988f116f673703f1b11c7040db55b0f45a"
+      },
+      {
+        "path": "dvielle/gui/assessment.py",
+        "old_sha256": "57060cdd6fac7145ec2853cd1ff738c1c1038cbec5307d7817f840a9c35e8be3",
+        "new_sha256": "4b874727cfa92e7bce0c645ccad1208360cf60946f070d408eba0aaae19ee2b0"
+      }
+    ]
+  },
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "task_enabled": true,
+  "helper_was_running": true,
+  "change_intents": [
+    "agent/assessment/engine.py",
+    "agent/assessment/tls_observer.py",
+    "dvielle/gui/assessment.py"
+  ],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5790,
+    "manifest_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "publisher_authenticated": false
+  },
+  "finished": "2026-10-10T14:11:29.475578+00:00"
+}

@@ -1,4 +1,4 @@
-"""System tray integration — minimize/maximize DVielle from taskbar / notification area."""
+"""System tray integration — minimize/maximize D\'Vielle from taskbar / notification area."""
 
 from __future__ import annotations
 

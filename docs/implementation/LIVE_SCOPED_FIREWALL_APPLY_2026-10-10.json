@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "code": "ok",
+  "performed": true,
+  "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+  "verified": [
+    {
+      "name": "DVielle-restrict-efbf0266022c-v4",
+      "enabled": "True",
+      "direction": "Outbound",
+      "action": "Block",
+      "profile": "Any",
+      "address_family": "IPv4",
+      "program": "C:\\Program Files\\DVielle\\.venv\\Scripts\\python.exe",
+      "remote": "192.0.2.1",
+      "group": "DVielle",
+      "description": "DVielle invocation 3fe0cb980b5d44bcae1b8bb435e96f20",
+      "missing": "no"
+    }
+  ],
+  "journal_state": "configuration_verified",
+  "operation_id": "7963a5b31c704fa4855cc64a726fd755"
+}

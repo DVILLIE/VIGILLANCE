@@ -1,6 +1,6 @@
 # VIGILLANCE Design System
 
-**Product:** DVielle / VIGILLANCE Mission Console  
+**Product:** D'Vielle / VIGILLANCE Mission Console  
 **Date:** 2026-08-24  
 **Aesthetic name:** **Phosphor Void**  
 **Mood reference:** `assets/brand/` chrome D + ring (`dvielle-logo-still.png`) and `docs/images/github-social-preview.png`
@@ -65,7 +65,18 @@ Rules:
 
 ---
 
-## Layout grammar (2.4.1 Clear Deck)
+## Nexus Fold Prime (implemented 2026-10-10, source checkout)
+
+The approved redesign is implemented in the repair checkout: a folded pearl
+overview beside a cobalt spatial network stage, six destinations in a bottom
+dock, and a stable Nexus color identity. Header branding uses the approved chrome
+orbital D. Its dimensional artwork has optional perspective/lighting animation;
+navigation and pointer focus have short transitions. Motion can be disabled and
+stops when hidden. Observation labels remain governed by collector freshness.
+See [implementation and verification](NEXUS_FOLD_PRIME.md). This has not been
+released or deployed to the installed runtime.
+
+## Historical layout grammar (2.4.1 Clear Deck)
 
 The console is a shell, not a four-column instrument panel.
 
@@ -117,7 +128,7 @@ Persistence: `<data_dir>/console_ui.json`, key `appearance`, values `dark` or `l
 
 ## Iconography & brand
 
-- Primary brand: chrome **D** + orbital ring (`assets/brand/dvielle-logo-animated.gif`, `dvielle-logo-still.png`, `dvielle.ico`). UI/docs spelling is **DVielle**.
+- Primary brand: chrome **D** + orbital ring (`assets/brand/dvielle-logo-animated.gif`, `dvielle-logo-still.png`, `dvielle.ico`). UI/docs spelling is **D'Vielle**.
 - Prefer geometric line icons (stroke 1.5) over filled skeuomorphism  
 - No emoji in chrome  
 

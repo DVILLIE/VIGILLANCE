@@ -1,6 +1,6 @@
 """Mission Console instruments. Static drawings and live text.
 
-The brand mark in ``logo_mark.py`` is the only animation. These widgets
+Nexus Fold Prime adds optional logo and interaction motion. These instruments
 redraw when a measurement or the theme changes. The clock updates its
 time string once a second; that is a readout, not a motion effect.
 """
@@ -209,7 +209,8 @@ class MatrixRow(ctk.CTkFrame):
 class ClockMono(ctk.CTkLabel):
     """Local and UTC clock. The digits change; the label does not move."""
 
-    def __init__(self, master, **kwargs) -> None:
+    def __init__(self, master, compact: bool = False, **kwargs) -> None:
+        self._compact = compact
         super().__init__(master, text="", font=T.FONT_MONO, text_color=T.TEXT_DIM, **kwargs)
         self._tick()
 
@@ -223,5 +224,5 @@ class ClockMono(ctk.CTkLabel):
             return
         local = datetime.now().strftime("%H:%M:%S")
         utc = datetime.now(timezone.utc).strftime("%H:%M:%S")
-        self.configure(text=f"LOCAL {local}  ·  UTC {utc}")
+        self.configure(text=f"LOCAL {local}" if self._compact else f"LOCAL {local}  ·  UTC {utc}")
         self.after(1000, self._tick)

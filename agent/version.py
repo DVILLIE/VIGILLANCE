@@ -1,4 +1,4 @@
-"""Single runtime version resolver for DVielle / VIGILLANCE.
+"""Single runtime version resolver for D\'Vielle / VIGILLANCE.
 
 Authoritative packaging version lives in ``pyproject.toml`` ``[project].version``.
 Installer DisplayVersion must read that same field.

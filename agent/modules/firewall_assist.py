@@ -18,6 +18,7 @@ interface the rule does not match. That guarantee is UNKNOWN.
 
 from __future__ import annotations
 
+import ipaddress
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -28,15 +29,15 @@ Coverage = Literal["complete", "partial", "unavailable"]
 LEAK_WARNING = (
     "A Windows Firewall app rule is not a leakproof block. "
     "IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic "
-    "onto an interface the rule does not match. DVielle does not claim the app is isolated "
+    "onto an interface the rule does not match. D\'Vielle does not claim the app is isolated "
     "from every network."
 )
 MPSSVC_WARNING = (
-    "DVielle does not stop or start the Windows Firewall service (MpsSvc). "
+    "D\'Vielle does not stop or start the Windows Firewall service (MpsSvc). "
     "Microsoft documents that stopping MpsSvc is unsupported."
 )
 FIREWALL_ASSUMPTIONS: tuple[str, ...] = (
-    "Windows Firewall is the host firewall on Home and Pro. DVielle adds rules; it is not a second engine.",
+    "Windows Firewall is the host firewall on Home and Pro. D\'Vielle adds rules; it is not a second engine.",
     "Profiles are Domain, Private, and Public. A rule on one profile does not cover the others.",
     LEAK_WARNING,
     MPSSVC_WARNING,
@@ -56,11 +57,13 @@ try {
   } else {
     Write-Output ('MPSSVC:' + [string]$svc.Status)
   }
-  $profiles = @(Get-NetFirewallProfile -ErrorAction Stop)
+  $profiles = @(Get-NetFirewallProfile -PolicyStore ActiveStore -ErrorAction Stop)
   foreach ($p in $profiles) {
     Write-Output ('PROFILE:' + $p.Name + ':' + $p.Enabled)
   }
-  $rules = @(Get-NetFirewallRule -DisplayName 'DVielle-restrict-*' -ErrorAction SilentlyContinue)
+  $rules = @(Get-NetFirewallRule -PolicyStore ActiveStore -ErrorAction Stop | Where-Object {
+    [string]$_.Group -eq 'DVielle' -and ([string]$_.Name).StartsWith('DVielle-restrict-')
+  })
   Write-Output ('COUNT:' + $rules.Count)
   foreach ($r in $rules) {
     $app = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $r -ErrorAction SilentlyContinue
@@ -70,7 +73,6 @@ try {
     $fam = ''
     $remote = ''
     if ($addr) {
-      $fam = [string]$addr.AddressFamily
       $remote = (@($addr.RemoteAddress) -join ',')
     }
     $clean = {
@@ -175,6 +177,27 @@ def _split_rule(line: str) -> ObservedRule | None:
     flag = _enabled(enabled)
     if flag is None or not name.startswith("DVielle-restrict-"):
         return None
+    # MSFT_NetAddressFilter exposes RemoteAddress, not AddressFamily. Infer
+    # coverage from the actual addresses rather than the rule's name or label.
+    versions: set[int] = set()
+    try:
+        for item in remote.split(","):
+            token = item.strip()
+            if token.lower() in {"any", "*"}:
+                versions.update({4, 6})
+            elif "-" in token:
+                first, last = token.split("-", 1)
+                left, right = ipaddress.ip_address(first), ipaddress.ip_address(last)
+                if left.version != right.version or int(left) > int(right):
+                    raise ValueError("invalid address range")
+                versions.add(left.version)
+            else:
+                versions.add(ipaddress.ip_network(token, strict=False).version)
+        family = {frozenset({4}): "IPv4", frozenset({6}): "IPv6", frozenset({4, 6}): "Both"}.get(
+            frozenset(versions), "Unknown"
+        )
+    except ValueError:
+        family = "Unknown"
     return ObservedRule(
         name=name,
         enabled=flag,
@@ -226,7 +249,11 @@ def build_proposals(posture: FirewallAssist) -> list[dict[str, Any]]:
     for rule in posture.rules:
         if rule.direction.lower() != "outbound" or rule.action.lower() != "block" or not rule.program:
             continue
-        by_program.setdefault(rule.program, set()).add(rule.address_family)
+        families = by_program.setdefault(rule.program, set())
+        if rule.address_family == "Both":
+            families.update({"IPv4", "IPv6"})
+        elif rule.address_family in {"IPv4", "IPv6"}:
+            families.add(rule.address_family)
     for program, families in sorted(by_program.items()):
         if "IPv4" in families and "IPv6" not in families:
             proposals.append(
@@ -234,7 +261,7 @@ def build_proposals(posture: FirewallAssist) -> list[dict[str, Any]]:
                     program,
                     "Any",
                     ["IPv6"],
-                    why="An existing DVielle block for this program was observed without an IPv6 rule.",
+                    why="An existing D\'Vielle block for this program was observed without an IPv6 rule.",
                 )
             )
         elif "IPv6" in families and "IPv4" not in families:
@@ -243,7 +270,7 @@ def build_proposals(posture: FirewallAssist) -> list[dict[str, Any]]:
                     program,
                     "Any",
                     ["IPv4"],
-                    why="An existing DVielle block for this program was observed without an IPv4 rule.",
+                    why="An existing D\'Vielle block for this program was observed without an IPv4 rule.",
                 )
             )
     if not proposals and posture.profiles.get("public") is True:
@@ -320,15 +347,15 @@ def parse_firewall_observe(stdout: str | None, *, timed_out: bool = False) -> Fi
     if vpns:
         warnings.append(
             "A VPN-like adapter is up (" + ", ".join(vpns) + "). "
-            "DVielle cannot claim a block covers that tunnel."
+            "D\'Vielle cannot claim a block covers that tunnel."
         )
     if mpssvc != "Running":
         warnings.append(
-            "MpsSvc is not Running (" + mpssvc + "). DVielle will not start it and will not stop it. No rule is proposed."
+            "MpsSvc is not Running (" + mpssvc + "). D\'Vielle will not start it and will not stop it. No rule is proposed."
         )
     posture = FirewallAssist(
         coverage="complete",
-        coverage_detail="Firewall profiles and DVielle app rules were read. Nothing was changed.",
+        coverage_detail="Firewall profiles and D\'Vielle app rules were read. Nothing was changed.",
         mpssvc=mpssvc,
         profiles=profiles,
         rules=rules,

@@ -77,22 +77,47 @@ def runtime_paths(config_dir: Path | None = None) -> tuple[dict, dict, Path, Pat
     return config, whitelists, telemetry_path, install_root, resolve_data_dir(config, install_root)
 
 
-def _ingest_keep_on(store, observed: dict, experience=None) -> None:
-    """Feed the latest samples into the keep-on engine. Mutations stay behind DualGate."""
+def _ingest_keep_on(store, observed: dict, experience=None, twin=None) -> list[dict]:
+    """Feed fresh samples only, and publish failures instead of a healthy pulse."""
+    problems = []
+    inputs = {}
+    sample_times = {}
+    now = time.monotonic()
+    for source in observed.get("_expected_sources", ()):
+        sample = observed.get("_samples", {}).get(source)
+        limit = observed.get("_max_ages", {}).get(source, 900.0)
+        if sample is None or not 0 <= now - sample[1] <= limit:
+            problems.append({"source": source, "disposition": "unavailable",
+                             "error": "Fresh sample unavailable"})
+        else:
+            if not sample[2]:
+                problems.append({"source": source, "disposition": "unavailable",
+                                 "error": "Source coverage is incomplete"})
+            else:
+                inputs[source] = sample[0]
+                if len(sample) > 3:
+                    sample_times['disk' if source == 'disks' else source] = sample[3]
     try:
-        from agent.engine.service import collect_startup_items, ingest_monitors
+        from agent.engine.service import ingest_monitors
 
-        ingest_monitors(
+        results = ingest_monitors(
             store,
-            security=observed.get("security"),
-            advice=observed.get("advice") or [],
-            disks=observed.get("disks") or [],
-            startup_items=collect_startup_items(),
+            security=inputs.get("security"),
+            advice=inputs.get("advice") or [],
+            disks=inputs.get("disks") or [],
             collect_live=True,
             experience=experience,
+            sample_times=sample_times,
         )
-    except Exception:
+        problems.extend(row for row in results if row.get("disposition") in {"error", "unavailable"})
+    except Exception as exc:
         logger.exception("keep-on ingest failed")
+        problems.append({"source": "engine", "disposition": "error",
+                         "error": f"{type(exc).__name__}: {exc}"[:500]})
+    if twin:
+        twin.patch(runtime={"keep_on": {"status": "partial" if problems else "ok",
+                                        "sampled_at": _utc(), "problems": problems}})
+    return problems
 
 
 def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir, modes, twin, policy, observed=None):
@@ -101,6 +126,20 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
     providers: dict[str, Any] = {}
     toast_times: dict[str, float] = {}
     observed = observed if observed is not None else {}
+    observed["_samples"] = {}
+    observed["_expected_sources"] = {
+        source for source, module in (("security", "security"), ("advice", "resource_advisor"), ("disks", "disk"))
+        if config.get("modules", {}).get(module, True)
+    }
+
+    def remember(source, value, *, complete=True):
+        observed[source] = value
+        # One tuple assignment publishes the value and its timestamp together.
+        observed["_samples"][source] = (value, time.monotonic(), complete, _utc())
+
+    def invalidate(source):
+        # A failed refresh must not leave the previous success eligible for action.
+        observed['_samples'].pop(source, None)
 
     def provider(name, factory):
         if name not in providers:
@@ -116,7 +155,7 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
                 for key, stamp in list(toast_times.items()):
                     if now - stamp >= 300:
                         toast_times.pop(key, None)
-            show_toast('DVielle', message, severity=severity)
+            show_toast('D\'Vielle', message, severity=severity)
 
     def connections():
         p = provider('connections', lambda: ConnectionMonitor(store, config, whitelists))
@@ -149,23 +188,25 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
         p.run(enable_trim=False)
 
     def advisor():
+        invalidate('advice')
         p = provider('resource_advisor', lambda: ResourceAdvisor(store, config, cortex=cortex))
         # Heartbeat already primed psutil on its own thread. A fresh advisor thread's
         # cpu_percent(interval=0) is an unprimed 0.0, so reuse the timestamped sample.
         system = (twin.as_dict().get('system') or {}) if twin else None
         advice = list(p.run(system=system))
-        observed["advice"] = advice
+        remember("advice", advice, complete=not bool(getattr(p, "collection_error", None)))
         for a in advice:
             toast(f'{a.headline}. {a.suggestion}')
 
     def disk():
+        invalidate('disks')
         p = provider('disk', lambda: DiskMonitor(store, config))
         disks = p.run(enable_cleanup=False)
         if not disks:
             if twin:
                 twin.patch(system={'disk_percent': None, 'disk_free_gb': None, 'disk_sampled_at': _utc()})
             raise RuntimeError('No readable disk samples')
-        observed["disks"] = disks
+        remember("disks", disks, complete=not bool(getattr(p, "collection_error", None)))
         system_drive = os.environ.get('SystemDrive', 'C:').rstrip('\\').lower()
         primary = next((d for d in disks if d.mount.rstrip('\\/').lower() == system_drive), disks[0])
         if twin:
@@ -178,9 +219,10 @@ def _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir,
             raise CollectionIncomplete(p.collection_error)
 
     def security():
+        invalidate('security')
         p = provider('security', lambda: SecurityMonitor(store, config, cortex=cortex))
         sec = p.run()
-        observed["security"] = sec
+        remember("security", sec, complete=not bool(p.collection_error))
         from agent.experiences import resolve_experience
         from agent.modules.passkeys import account_guidance
 
@@ -266,6 +308,10 @@ def run_once(store, config, whitelists, telemetry_file, scripts_dir, modes, modu
     """Explicit diagnostic pass. Collectors stay observe-only; keep-on may act only through DualGate."""
     observed: dict = {}
     callbacks = _collector_callbacks(store, config, whitelists, telemetry_file, scripts_dir, modes, twin, policy, observed)
+    observed['_expected_sources'] = {
+        source for source, module in (('security', 'security'), ('advice', 'resource_advisor'), ('disks', 'disk'))
+        if modules.get(module, True)
+    }
     failed = []
     for name, callback in callbacks.items():
         if not modules.get(name, True):
@@ -277,7 +323,8 @@ def run_once(store, config, whitelists, telemetry_file, scripts_dir, modes, modu
         except Exception:
             failed.append(name)
             logger.exception('collector failed: %s', name)
-    _ingest_keep_on(store, observed, observed.get("experience"))
+    if _ingest_keep_on(store, observed, observed.get("experience"), twin):
+        failed.append("keep_on")
     return failed
 
 
@@ -318,7 +365,10 @@ class Runtime:
                 self.nerve._execute(spec)
                 if spec.status in {'error', 'partial'}:
                     failed.append(name)
-        self._pulse()
+        try:
+            self._pulse()
+        except CollectionIncomplete:
+            failed.append('keep_on')
         self.twin.publish()
         return failed
 
@@ -446,7 +496,8 @@ def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lea
             exceeded=nerve.budget_exceeded, cpu_limit_percent=cpu_limit, rss_limit_mb=rss_limit,
             cpu_contract=contract,
             reason='Optional collection deferred: sustained footprint exceeds budget' if nerve.budget_exceeded
-                  else ('Within configured budget' if own_cpu is not None else 'CPU interval not available')))
+                  else ('Observed resident footprint within budget; helper costs unmeasured' if own_cpu is not None
+                        else 'CPU interval not available; helper costs unmeasured')))
         twin.patch(runtime={'state': 'running', 'heartbeat_at': _utc()})
         status(next(c for c in nerve.collectors if c.name == 'heartbeat'))
         twin.publish()
@@ -467,12 +518,14 @@ def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lea
                                          'security': sec.get('sampled_at')}, 'collectors': data['collectors']}})
             twin.patch(runtime={'cycle_count': data['runtime']['cycle_count'] + 1, 'last_pulse_at': _utc()})
             twin.snapshot()
-            _ingest_keep_on(store, observed, observed.get("experience"))
+            problems = _ingest_keep_on(store, observed, observed.get("experience"), twin)
             if on_pulse:
                 try:
                     on_pulse()
                 except Exception:
                     logger.exception('console callback failed')
+            if problems:
+                raise CollectionIncomplete('Keep-on source coverage is incomplete; see runtime.keep_on.problems')
 
     def capability():
         twin.set_capability(probe_capabilities(deep=True))
@@ -491,6 +544,9 @@ def _build_owned(config, whitelists, telemetry_path, install_root, data_dir, lea
         if not math.isfinite(cadence) or cadence <= 0:
             raise ValueError(f'Invalid cadence for {name}')
         cadence = max(10, cadence)
+        sample_key = {'security': 'security', 'resource_advisor': 'advice', 'disk': 'disks'}.get(name)
+        if sample_key:
+            observed.setdefault('_max_ages', {})[sample_key] = max(cadence * 2, intervals['pulse'] * 2)
         enabled = config.get('modules', {}).get(name, True)
         if name == 'microsoft_guard':
             enabled = enabled and config.get('modes', {}).get('enable_microsoft_guard', True)

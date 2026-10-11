@@ -1,0 +1,12 @@
+{
+  "server_sid": "S-1-5-18",
+  "identity_query_succeeded": true,
+  "process_id": 10952,
+  "process_terminate_denied": true,
+  "process_memory_write_denied": true,
+  "process_create_thread_denied": true,
+  "process_change_dacl_denied": true,
+  "token_duplicate_denied": true,
+  "token_adjust_privileges_denied": true,
+  "token_change_dacl_denied": true
+}

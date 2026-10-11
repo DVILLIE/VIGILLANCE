@@ -1,32 +1,34 @@
-# DVielle — DEEP VIGILLANCE
+# D'Vielle — DEEP VIGILLANCE
+
+Current installed audit repair checkpoint: [11 October 2026 acceptance and remaining coverage](docs/implementation/AUDIT_FINDINGS_REPAIR_AND_ACCEPTANCE_2026-10-11.md). Older implementation records are historical checkpoints.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Download](https://img.shields.io/github/v/release/DVILLIE/VIGILLANCE?label=Download&color=6b4cff)](https://github.com/DVILLIE/VIGILLANCE/releases/latest)
 
 
 <p align="center">
-  <img alt="DVielle logo" src="docs/images/dvielle-logo.png" width="160" />
+  <img alt="D'Vielle logo" src="docs/images/dvielle-logo.png" width="160" />
 </p>
 
-<p align="center"><strong>DVielle</strong> — DEEP VIGILLANCE</p>
+<p align="center"><strong>D'Vielle</strong> — DEEP VIGILLANCE</p>
 
 
-DVielle is a free, local guardian for a Windows PC. It watches that computer, explains what it noticed in plain language, and shows options. It changes the PC only after you choose. A finding is a ticket: **Found → Fix → Resolved** (or still monitoring).
+D'Vielle is a free, local guardian for a Windows PC. It watches that computer, explains what it noticed in plain language, and shows options. It changes the PC only after you choose. A finding is a ticket: **Found → Fix → Resolved** (or still monitoring).
 
 It is open source under the [MIT License](LICENSE). Package `dvielle` **2.4.2**.
 
 <p>
-  <img alt="DVielle console in Dark" src="docs/images/console-dark.png" width="720" />
+  <img alt="D'Vielle console in Dark" src="docs/images/console-dark.png" width="720" />
 </p>
 <p>
-  <img alt="DVielle console in Light" src="docs/images/console-light.png" width="720" />
+  <img alt="D'Vielle console in Light" src="docs/images/console-light.png" width="720" />
 </p>
 
 The pictures above are the 2.4.2 console (Dark and Light) with labeled sample notes. A sample line is not a live Windows reading. On your PC the same window shows this computer’s measurements, and it says when a check is missing or only partial.
 
 ## Download
 
-**[Download DVielle 2.4.2](https://github.com/DVILLIE/VIGILLANCE/releases/latest)**
+**[Download D'Vielle 2.4.2](https://github.com/DVILLIE/VIGILLANCE/releases/latest)**
 
 | File | What it is |
 |------|------------|
@@ -41,7 +43,7 @@ The file to install today is the **zip**, on **Windows 10 or 11 (64-bit)**, with
 
 ## What it does
 
-On the PC where you install it, DVielle:
+On the PC where you install it, D'Vielle:
 
 1. **Observes** — processor, memory, disk, network path, sign-in failures, privacy settings, and Windows security posture (including Defender, where Windows allows the read).
 2. **Explains** — notes in ordinary language, with evidence behind **Why**. Unknown stays unknown. A partial check is labeled partial.
@@ -67,15 +69,15 @@ It complements Windows security. It does not take Windows security’s place.
 | | |
 |--|--|
 | **Primary** | Windows 10 or Windows 11, 64-bit, on a laptop or desktop PC. Python 3.12. |
-| **Limited / partial** | Linux and macOS can run shared keep-on logic only. Windows-only sensors stay unavailable: Defender, the firewall helper, the logon task, Windows Sandbox, and Windows sign-in events. There is no Linux or macOS installer. Do not treat those systems as a full DVielle product. Camera in-use detection on Windows is not available; Linux may only see device links, and no frames are stored. The footprint collector does not invent breach hits. |
-| **Not this product** | A cloud server, a SaaS dashboard, or an install that watches some other machine. Put DVielle on the PC you want watched. The resident task is an interactive logon task. It does not cover the time before anyone logs on. See [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md). |
+| **Limited / partial** | Linux and macOS can run shared keep-on logic only. Windows-only sensors stay unavailable: Defender, the firewall helper, the logon task, Windows Sandbox, and Windows sign-in events. There is no Linux or macOS installer. Do not treat those systems as a full D'Vielle product. Camera in-use detection on Windows is not available; Linux may only see device links, and no frames are stored. The footprint collector does not invent breach hits. |
+| **Not this product** | A cloud server, a SaaS dashboard, or an install that watches some other machine. Put D'Vielle on the PC you want watched. The resident task is an interactive logon task. It does not cover the time before anyone logs on. See [docs/LAPTOP_ONLY.md](docs/LAPTOP_ONLY.md). |
 | **Practical minimum** | A current Windows PC that can run Python 3.12 and the CustomTkinter window. No special GPU. |
 
 Windows Home and Windows Pro are both in scope, with different features. Home does not get Windows Sandbox or App Control authoring. The console shows that instead of pretending the feature is there.
 
 ## How it works
 
-- **Resident task + console.** `Install-DVielle.bat` registers one logon task named `DVielle` that runs the agent in the background. The desktop shortcut opens the native console, which attaches to that agent. A second launch does not start a second set of collectors.
+- **Resident task + console.** `Install-DVielle.bat` registers one logon task named `D'Vielle` that runs the agent in the background. The desktop shortcut opens the native console, which attaches to that agent. A second launch does not start a second set of collectors.
 - **Dual gate.** A change needs your selected option (or a published auto-protect case for that subject) **and** the decision check. Firewall rules, temp cleanup, startup changes, closing an app, and blocking an address all fail closed if either half says no. Closing an app is user-approved only, and it needs a fresh process identity.
 - **Pillars.** Speed, storage, privacy, AI data leaving the PC, camera, online footprint, and protection. Each one is meant to end in a resolution you can see, not a warning with nowhere to go. What is actually shipped, and what is still unchecked, is [docs/FUNCTION_SPEC.md](docs/FUNCTION_SPEC.md) and [docs/CLAIMS.md](docs/CLAIMS.md).
 - **Dark and Light.** Dark is the default. Light is the header control. The choice is stored in local `console_ui.json` and is not uploaded. The calendar day picks an accent pair. **Only the logo animates.**
@@ -85,13 +87,21 @@ Pass and fail checks for those claims: [docs/TRUST_GATES.md](docs/TRUST_GATES.md
 
 ## Install
 
+**Repair branch note (2026-10-09):** the Limited script now requires verified,
+protected source staging and protected system Python on PATH. It protects code
+and makes data/config private to the installed user. Shared-writable old trees
+are refused. Highest and setup-wrapper builds are held pending the service and
+protected extraction boundaries. Published 2.4.2 archives have not been rebuilt;
+the historical steps below do not establish repair-branch field acceptance.
+See [the current constraints](docs/REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
+
 Windows 10/11 and Python 3.12. From the unzipped release:
 
 1. Run `installer\Install-DVielle.bat` **as administrator**.
 2. The installer copies the tree to **`C:\DVILLIE`** (that path is the default in `installer\install-dvielle.ps1`), builds `C:\DVILLIE\.venv`, installs the dependencies from `pyproject.toml`, registers the Limited logon task, and checks that it started.
-3. Open **DVielle - Deep Vigilance** on the desktop.
+3. Open **D'Vielle - Deep Vigilance** on the desktop.
 
-The folder you unzipped is only the source. GitHub may call it `VIGILLANCE-2.4.2` or `VIGILLANCE-main`. DVielle does not install itself into `C:\DVILLIE-main`. A custom destination is `installer\install-dvielle.ps1 -InstallDir 'C:\Apps\DVielle'` from an Administrator PowerShell window. Drive roots and shared Windows folders are rejected.
+The folder you unzipped is only the source. GitHub may call it `VIGILLANCE-2.4.2` or `VIGILLANCE-main`. D'Vielle does not install itself into `C:\DVILLIE-main`. A custom destination is `installer\install-dvielle.ps1 -InstallDir 'C:\Apps\D'Vielle'` from an Administrator PowerShell window. Drive roots and shared Windows folders are rejected.
 
 | Action | From the install folder (default `C:\DVILLIE`) |
 |--------|--------------------------------------------------|
@@ -107,7 +117,7 @@ Copying a new tree over an old install does not refresh `.venv`. Run the install
 
 ## Privacy
 
-Local-first. Notes, keep-on choices, and the theme file stay on this PC. Public-IP lookup is off unless you turn it on. Core monitoring does not call a model. DVielle does not upload its snapshot as part of normal use. Home and Pro diagnostic-data limits are explained in [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md).
+Local-first. Notes, keep-on choices, and the theme file stay on this PC. Public-IP lookup is off unless you turn it on. Core monitoring does not call a model. D'Vielle does not upload its snapshot as part of normal use. Home and Pro diagnostic-data limits are explained in [docs/TELEMETRY_AND_HOME.md](docs/TELEMETRY_AND_HOME.md).
 
 ## Docs
 
@@ -146,6 +156,6 @@ See [docs/DEV.md](docs/DEV.md). Unit tests are not a substitute for a Windows in
 
 **Ravikant R. T. · kt.tradingsystem@gmail.com**
 
-Questions about DVielle can go to that address.
+Questions about D'Vielle can go to that address.
 
 MIT License. Copyright (c) 2026 Ravikant R. Tayade / KT Trading System. See [LICENSE](LICENSE).

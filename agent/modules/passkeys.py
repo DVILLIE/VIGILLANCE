@@ -21,7 +21,7 @@ CHECKLIST = (
         "id": "rp_passkey",
         "text": (
             "Where a site you use offers a passkey, adopt one there. "
-            "DVielle does not sign you in and does not change that account."
+            "D\'Vielle does not sign you in and does not change that account."
         ),
     },
     {
@@ -51,7 +51,7 @@ def account_guidance() -> dict[str, Any]:
         "title": "Passkeys and account protection",
         "adopt": (
             "Adopt a passkey where the site (the relying party) already supports one. "
-            "DVielle does not register it for you."
+            "D\'Vielle does not register it for you."
         ),
         "scope": (
             "A WebAuthn credential is scoped to that relying party. "

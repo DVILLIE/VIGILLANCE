@@ -187,7 +187,7 @@ function Restore-HardeningBackup {
     }
     $backup.Restored = $true
     Save-HardeningBackup $backup $Path
-    Write-Host "Restored saved registry values, hosts content, and DVielle firewall changes from $Path."
+    Write-Host "Restored saved registry values, hosts content, and D'Vielle firewall changes from $Path."
 }
 
 function Test-IsUpdateSafe {
@@ -275,7 +275,7 @@ function Add-HardeningFirewallRules {
         $ruleName = 'DVielle-Telemetry-' + $Backup.OperationId + '-' + $name
         $Backup.FirewallRules = @($Backup.FirewallRules) + $ruleName
         Save-HardeningBackup $Backup $BackupPath
-        New-NetFirewallRule -Name $ruleName -DisplayName ('DVielle telemetry: ' + $name) -Group 'DVielle-TelemetryBlock' -Description ('DVielle backup ' + $Backup.OperationId) -Direction Outbound -Program $program -Action Block -Enabled True -Profile Any -ErrorAction Stop | Out-Null
+        New-NetFirewallRule -Name $ruleName -DisplayName ('D''Vielle telemetry: ' + $name) -Group 'DVielle-TelemetryBlock' -Description ('D''Vielle backup ' + $Backup.OperationId) -Direction Outbound -Program $program -Action Block -Enabled True -Profile Any -ErrorAction Stop | Out-Null
         $rule = Get-NetFirewallRule -Name $ruleName -ErrorAction Stop
         $filter = $rule | Get-NetFirewallApplicationFilter -ErrorAction Stop
         if ($rule.Action -ne 'Block' -or $rule.Enabled -ne 'True' -or $rule.Direction -ne 'Outbound' -or $filter.Program -ine $program) {

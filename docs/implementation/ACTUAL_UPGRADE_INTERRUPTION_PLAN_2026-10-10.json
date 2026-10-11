@@ -1,0 +1,16 @@
+{
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-fb10268250d2433a84d3f7a7b66950a7",
+    "old_runtime_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "new_runtime_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "changes": [
+      {
+        "path": "agent/privilege/readiness.py",
+        "old_sha256": "b2985289a87b31c07ea7e069b29c47e4643924c3a74e6a39c844941399195333",
+        "new_sha256": "568a0beb6726916b967d4dfc8dab3eb77889280be1cd39f95b07f8d43a829adf"
+      }
+    ]
+  },
+  "backup_name": "upgrade-2a1398e62be948f88dd782b56c3c4c7a",
+  "fault_source_sha256": "a58992129b7af661e58ccb81e297c358dd7388a6a53dd59c12dd71e65f4e2d38"
+}

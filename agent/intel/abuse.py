@@ -17,7 +17,7 @@ def abuse_view(*, enabled: bool = False) -> dict[str, Any]:
         "status": "off" if not enabled else "not_fetched",
         "hits": [],
         "detail": (
-            "abuse.ch is off. DVielle does not ship abuse.ch dumps."
+            "abuse.ch is off. D\'Vielle does not ship abuse.ch dumps."
             if not enabled
             else "abuse.ch is enabled in config but this pass did not fetch. No indicators were invented."
         ),

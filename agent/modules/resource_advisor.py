@@ -485,6 +485,9 @@ def _collect_processes(
         try:
             pid = proc.info["pid"]
             name = proc.info["name"] or "unknown"
+            # Idle CPU accounting is unused capacity, never a workload culprit.
+            if pid == 0 or name.casefold() == "system idle process":
+                continue
             # process_iter already sampled cpu_percent; a second call resets its interval.
             cpu = proc.info.get("cpu_percent") or 0.0
             mem = _memory_mb(proc)

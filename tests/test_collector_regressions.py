@@ -216,7 +216,8 @@ def test_missing_policy_remains_null_and_supported_pro_floor_is_one(store, tmp_p
     monkeypatch.setattr(privacy_guard, "_privacy_checks", lambda: [
         {"name": "AllowTelemetry", "hive": None, "path": "", "value": "telemetry", "expected": 0},
         {"name": "Advertising", "hive": None, "path": "", "value": "missing", "expected": 0}])
-    monkeypatch.setattr(privacy_guard, "_read_reg_dword", lambda _, __, name: 0 if name == "telemetry" else None)
+    monkeypatch.setattr(privacy_guard, "_read_reg_observation", lambda _, __, name:
+                        (0, 'observed') if name == "telemetry" else (None, 'access_denied'))
     monkeypatch.setattr(privacy_guard.PrivacyGuard, "_check_hosts_entries", lambda _: [])
     guard = privacy_guard.PrivacyGuard(store, {}, tmp_path / "domains")
     results = guard.run()

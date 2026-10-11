@@ -1,0 +1,5 @@
+{
+  "error_type": "error",
+  "error": "(5, 'GetNamedSecurityInfo', 'Access is denied.')",
+  "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 8, in diagnostic_consent\n  File \"C:\\Program Files\\DVielle\\agent\\privilege\\mediation_client.py\", line 51, in request_consent\n    assert_protected_path(destination)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"C:\\Program Files\\DVielle\\agent\\privilege\\protected_paths.py\", line 27, in assert_protected_path\n    descriptor = win32security.GetNamedSecurityInfo(str(item), win32security.SE_FILE_OBJECT,\n        win32security.OWNER_SECURITY_INFORMATION | win32security.DACL_SECURITY_INFORMATION)\npywintypes.error: (5, 'GetNamedSecurityInfo', 'Access is denied.')\n"
+}

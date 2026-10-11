@@ -1,0 +1,16 @@
+{
+  "jre": {
+    "source": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jre_x64_windows_hotspot_21.0.12.1_1.zip",
+    "sha256": "d35f31e712f0fcf6ac5a093edc90204fbff22f720ba3950bd09d331d5e621636",
+    "version": "21.0.12+101.0.LTS",
+    "checksum_matched_official_api": true
+  },
+  "tla": {
+    "source": "https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar",
+    "sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+    "version": "v1.7.4",
+    "official_asset_digest_matched": false
+  },
+  "system_installation": false,
+  "runtime_application_dependency": false
+}

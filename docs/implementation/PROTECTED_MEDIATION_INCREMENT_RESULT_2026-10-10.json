@@ -1,0 +1,42 @@
+{
+  "started": "2026-10-10T14:37:21.115417+00:00",
+  "state": "activated_identity_verified",
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-a6f088e018e34125a77c9bd0b9f169a4",
+    "old_runtime_sha256": "9a79ee47c21f81e6577b143df75f46f69f5f89d1f0332c82147399d0d77a69aa",
+    "new_runtime_sha256": "4f2ceb115cdc80af78ddfd20efcc76fd84f7717070785d113a456608ef052bbc",
+    "changes": [
+      {
+        "path": "agent/privilege/mediation.py",
+        "old_sha256": null,
+        "new_sha256": "f1a53c8b29d38335a99c0629efaf145bc12c2f0820d825e6d6406e17452bdc82"
+      },
+      {
+        "path": "agent/privilege/mediation_client.py",
+        "old_sha256": null,
+        "new_sha256": "1ab8697005818b81e435ede6a4dbe1006e264eeae44f4a7802edc94d392e7f51"
+      },
+      {
+        "path": "dvielle/gui/assessment.py",
+        "old_sha256": "4b874727cfa92e7bce0c645ccad1208360cf60946f070d408eba0aaae19ee2b0",
+        "new_sha256": "0f5ebc46c47cbf9d2342cad85eb67e2d13fc195c98826bb476006fc8e8c5c139"
+      }
+    ]
+  },
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "task_enabled": true,
+  "helper_was_running": true,
+  "change_intents": [
+    "agent/privilege/mediation.py",
+    "agent/privilege/mediation_client.py",
+    "dvielle/gui/assessment.py"
+  ],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5792,
+    "manifest_sha256": "4f2ceb115cdc80af78ddfd20efcc76fd84f7717070785d113a456608ef052bbc",
+    "publisher_authenticated": false
+  },
+  "finished": "2026-10-10T14:38:05.984664+00:00"
+}

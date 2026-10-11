@@ -1,9 +1,9 @@
-"""DVielle — DEEP VIGILLANCE Windows security agent."""
+"""D\'Vielle — DEEP VIGILLANCE Windows security agent."""
 
 from agent.version import get_version
 
-APP_NAME = "DVielle"
-TAGLINE = "DEEP VIGILLANCE"
+APP_NAME = "D'Vielle"
+TAGLINE = "Intelligent Vigilance"
 VERSION = get_version()
 INSTALL_DIR_NAME = "DVILLIE"
 DATA_DIR_NAME = "DVILLIE"
