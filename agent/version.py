@@ -1,4 +1,4 @@
-"""Single runtime version resolver for DVielle / VIGILLANCE.
+"""Single runtime version resolver for D\'Vielle / VIGILLANCE.
 
 Authoritative packaging version lives in ``pyproject.toml`` ``[project].version``.
 Installer DisplayVersion must read that same field.
@@ -16,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 
 # Keep aligned with pyproject.toml [project].version
-_FALLBACK = "2.4.2"
+_FALLBACK = "2.5.0"
 
 
 def _from_pyproject(root: Path) -> str | None:

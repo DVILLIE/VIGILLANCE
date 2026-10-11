@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
+
+from agent.local_files import atomic_text, file_lock
 
 DECISIONS = ("allow", "deny", "ask_always", "never_warn")
 PILLAR_FILES = {
@@ -17,7 +18,7 @@ PILLAR_FILES = {
     "camera": "camera_allow.txt",
 }
 _HEADER = (
-    "# DVielle keep-on decisions. Local only. Do not upload.\n"
+    "# D\'Vielle keep-on decisions. Local only. Do not upload.\n"
     "# pillar|subject|decision|timestamp|notes\n"
 )
 
@@ -32,10 +33,7 @@ class KeepOnRecord:
 
 
 def _atomic(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    os.replace(tmp, path)
+    atomic_text(path, text)
 
 
 class KeepOnMemory:
@@ -44,6 +42,7 @@ class KeepOnMemory:
         self.master = learn_dir / "keep_on.txt"
         self.records: dict[tuple[str, str], KeepOnRecord] = {}
         self.skipped_lines = 0
+        self.mirror_errors: list[str] = []
         self.load()
 
     def load(self) -> None:
@@ -65,30 +64,44 @@ class KeepOnMemory:
             )
 
     def get(self, pillar: str, subject: str) -> KeepOnRecord | None:
-        return self.records.get((pillar, subject))
+        # The master is atomically replaced; refresh decisions made by another UI.
+        with file_lock(self.learn_dir / ".keep_on.lock"):
+            self.load()
+            return self.records.get((pillar, subject))
 
     def set(self, pillar: str, subject: str, decision: str, updated: str, notes: str = "") -> None:
         if decision not in DECISIONS:
             raise ValueError(f"unknown keep-on decision: {decision}")
         if not subject or "|" in subject or "\n" in subject:
             raise ValueError("subject identity must be one plain token")
-        self.records[(pillar, subject)] = KeepOnRecord(
-            pillar, subject, decision, updated, notes.replace("\n", " ").replace("|", "/")[:200]
-        )
-        self.save()
+        if pillar not in PILLAR_FILES or "\r" in subject or "\n" in updated or "\r" in updated or "|" in updated:
+            raise ValueError("invalid keep-on identity or timestamp")
+        with file_lock(self.learn_dir / ".keep_on.lock"):
+            self.load()
+            self.records[(pillar, subject)] = KeepOnRecord(
+                pillar, subject, decision, updated,
+                notes.replace("\n", " ").replace("\r", " ").replace("|", "/")[:200]
+            )
+            self._save_locked()
 
-    def save(self) -> None:
+    def _save_locked(self) -> None:
         rows = sorted(self.records.values(), key=lambda row: (row.pillar, row.subject))
         body = "".join(
             f"{row.pillar}|{row.subject}|{row.decision}|{row.updated}|{row.notes}\n" for row in rows
         )
         _atomic(self.master, _HEADER + body)
+        self.mirror_errors = []
         for pillar, filename in PILLAR_FILES.items():
             owned = [row for row in rows if row.pillar == pillar]
             owned_body = "".join(
                 f"{row.pillar}|{row.subject}|{row.decision}|{row.updated}|{row.notes}\n" for row in owned
             )
-            _atomic(self.learn_dir / filename, _HEADER + owned_body)
+            try:
+                _atomic(self.learn_dir / filename, _HEADER + owned_body)
+            except OSError:
+                # The master is authoritative and already committed. A failed
+                # convenience mirror must not turn a saved decision into a retry.
+                self.mirror_errors.append(filename)
 
 
 class SafetyBaseline:
@@ -115,11 +128,15 @@ class SafetyBaseline:
                 self.items[parts[0]] = parts[1]
 
     def seed(self, items: list[tuple[str, str]], updated: str) -> None:
-        if self.initialized:
-            return
-        self.items = {subject: path for subject, path in items}
-        self.initialized = True
-        lines = ["# Known startup paths. Not a user allow.", "# subject|path|updated"]
-        for subject, path in sorted(self.items.items()):
-            lines.append(f"{subject}|{path}|{updated}")
-        _atomic(self.path, "\n".join(lines) + "\n")
+        with file_lock(self.path.with_name(self.path.name + '.lock')):
+            self.load()
+            if self.initialized:
+                return
+            if any(any(char in value for char in '|\r\n') for item in items for value in item):
+                raise ValueError('invalid startup baseline identity')
+            self.items = {subject: path for subject, path in items}
+            lines = ["# Known startup paths. Not a user allow.", "# subject|path|updated"]
+            for subject, path in sorted(self.items.items()):
+                lines.append(f"{subject}|{path}|{updated}")
+            _atomic(self.path, "\n".join(lines) + "\n")
+            self.initialized = True

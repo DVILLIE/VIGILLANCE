@@ -8,4 +8,4 @@ GitHub’s repository **Social preview** image is set in the repo UI:
 
 Upload `docs/images/github-social-preview.png`. The GitHub API does not expose a reliable public endpoint for this field for all accounts; an owner upload is required after merge.
 
-Product spelling in all markdown text is **DVielle**.
+Product spelling in all markdown text is **D'Vielle**.

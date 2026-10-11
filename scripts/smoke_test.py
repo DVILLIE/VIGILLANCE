@@ -31,10 +31,10 @@ def main() -> int:
     print("")
 
     def _python_version():
-        if sys.version_info[:2] != (3, 12):
-            raise RuntimeError("DVielle requires the vetted Python 3.12 runtime")
+        if sys.version_info[:2] not in {(3, 12), (3, 14)}:
+            raise RuntimeError("D'Vielle requires a validated Python 3.12 or 3.14 runtime")
 
-    check("Python 3.12", _python_version)
+    check("Supported Python runtime", _python_version)
 
     def _chat_removed():
         try:

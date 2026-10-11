@@ -1,6 +1,6 @@
 # VIGILLANCE Master Architecture Specification
 
-**Product:** DVielle / VIGILLANCE  
+**Product:** D'Vielle / VIGILLANCE  
 **Date:** 2026-08-24  
 **Status:** Binding product thesis for design and code review going forward  
 **Canonical repo:** https://github.com/DVILLIE/VIGILLANCE  

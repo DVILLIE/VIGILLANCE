@@ -30,6 +30,8 @@ class SelfBudget:
     cpu_limit_percent: float | None = None
     rss_limit_mb: float | None = None
     cpu_contract: dict[str, Any] = field(default_factory=dict)
+    measurement_scope: str = "resident_process"
+    helper_costs: str = "unmeasured"
 
 
 @dataclass

@@ -1,0 +1,11 @@
+{
+  "state": "connection_not_accepted",
+  "error_type": "ValueError",
+  "reason": "Oversized handshake message",
+  "require_hybrid": false,
+  "host": "badssl.com",
+  "address": "104.154.89.105",
+  "fallback_attempted": false,
+  "application_data_sent": false,
+  "mutations": []
+}

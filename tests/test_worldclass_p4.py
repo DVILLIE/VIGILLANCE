@@ -102,7 +102,7 @@ def _write(directory: Path, name: str, payload: dict) -> None:
 
 
 def test_version_is_2_2_0():
-    assert get_version() == "2.4.2"
+    assert get_version() == "2.5.0"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 
@@ -160,7 +160,7 @@ def test_inventory_match_is_a_candidate_and_absent_inventory_is_not_compared(tmp
     assert [hit["id"] for hit in kev_hits] == ["CVE-2021-44228"]
     assert kev_hits[0]["kind"] == "name_candidate"
     assert "not proof" in kev_hits[0]["assumption"]
-    assert {hit["version"] for hit in osv_hits} == {"1.0.0", "1.2.0"}
+    assert {hit["version"] for hit in osv_hits} == {"1.0.0", "1.2.0", "1.2.3rc1"}
     assert all(hit["id"] == "GHSA-test-1111" for hit in osv_hits)
     assert "GHSA-withdrawn" not in {hit["id"] for hit in hits}
     assert report["kev"]["endorsement"] == "none"

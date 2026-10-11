@@ -9,7 +9,14 @@ if ($InstallDir -ine $scriptRoot) { throw 'Uninstall must run from the exact ins
 $metadata = Join-Path $InstallDir 'pyproject.toml'
 if (-not (Test-Path -LiteralPath $metadata) -or
     (Get-Content -LiteralPath $metadata -Raw) -notmatch '(?m)^name\s*=\s*"dvielle"\s*$') {
-    throw 'Target is not a validated DVielle installation.'
+    throw 'Target is not a validated D''Vielle installation.'
+}
+# Preserve code and authorization/recovery records while SCM still references
+# a protection helper. Enumeration failures stop uninstall rather than imply
+# absence. Removal is an exact-installation administrative operation.
+$helpers = @([System.ServiceProcess.ServiceController]::GetServices() | Where-Object { $_.ServiceName -eq 'DViellePrivilegedHelper' })
+if ($helpers.Count -gt 0) {
+    throw 'Protection helper is still registered. Stop it and use the trusted installed service_install remove command before uninstalling application code. Recovery records and firewall ownership must be reviewed separately.'
 }
 Disable-DvielleOwnedTasks $InstallDir
 Stop-DvielleOwnedRuntime $InstallDir
@@ -22,7 +29,7 @@ foreach ($name in @('DVielle', 'DVielleGUI')) {
 }
 $shell = New-Object -ComObject WScript.Shell
 foreach ($directory in @([Environment]::GetFolderPath('Programs'), [Environment]::GetFolderPath('Desktop'))) {
-    foreach ($name in @('DVielle - Deep Vigilance.lnk', 'Uninstall DVielle.lnk')) {
+    foreach ($name in @('DVielle - Deep Vigilance.lnk', 'Uninstall DVielle.lnk', "D'Vielle - Intelligent Vigilance.lnk", "Uninstall D'Vielle.lnk")) {
         $path = Join-Path $directory $name
         if (Test-Path -LiteralPath $path) {
             $shortcut = $shell.CreateShortcut($path)
@@ -46,9 +53,9 @@ if (-not $KeepData) {
         $deleteRoot = Resolve-DvielleRoot $InstallDir
         if ($deleteRoot -ine $scriptRoot) { throw 'Deletion target changed; stopping.' }
         Assert-DvielleTreeNoReparse $deleteRoot $deleteRoot
-        if (@(Get-DvielleOwnedProcesses $deleteRoot).Count -gt 0) { throw 'DVielle restarted; deletion cancelled.' }
+        if (@(Get-DvielleOwnedProcesses $deleteRoot).Count -gt 0) { throw 'D''Vielle restarted; deletion cancelled.' }
         Remove-Item -LiteralPath $deleteRoot -Recurse -Force
         Write-Host "Removed $deleteRoot."
     } else { Write-Host "Files retained at $InstallDir." }
 }
-Write-Host 'DVielle startup registration removed. Optional Windows hardening remains; restore it using its saved backup before deleting files.'
+Write-Host 'D''Vielle startup registration removed. Optional Windows hardening remains; restore it using its saved backup before deleting files.'

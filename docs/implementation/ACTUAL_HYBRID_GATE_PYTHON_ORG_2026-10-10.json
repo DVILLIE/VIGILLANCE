@@ -1,0 +1,36 @@
+{
+  "state": "verified_handshake_observed",
+  "observed_at": "2026-10-10T14:47:29.861446+00:00",
+  "host": "www.python.org",
+  "address": "151.101.0.223",
+  "port": 443,
+  "tls_version": "TLSv1.3",
+  "cipher": [
+    "TLS_AES_128_GCM_SHA256",
+    "TLSv1.3",
+    128
+  ],
+  "certificate_and_hostname_verified": true,
+  "finished_verified": true,
+  "key_exchange_group_id": 4588,
+  "hybrid_only_policy": "accepted",
+  "application_data_sent": false,
+  "fallback_attempted": false,
+  "key_exchange_group": "X25519MLKEM768",
+  "post_quantum_hybrid_exchange": "observed",
+  "peer_certificate": {
+    "state": "observed",
+    "public_key_algorithm": "RSA",
+    "public_key_size_bits": 2048,
+    "certificate_signature_oid": "1.2.840.113549.1.1.11",
+    "certificate_sha256": "a162964cfe4209e308f700e88028757eb83d227b2bb35f67f186a6e70e1e201a",
+    "quantum_migration": "review_classical_certificate_key",
+    "negotiated_key_exchange": "not_measured",
+    "negotiated_authentication": "not_measured"
+  },
+  "post_quantum_authentication": "not_established_by_this_observer",
+  "private_keys_saved": false,
+  "traffic_secrets_saved": false,
+  "scope": "One actual TLS handshake; no HTTP or policy mutation",
+  "mutations": []
+}

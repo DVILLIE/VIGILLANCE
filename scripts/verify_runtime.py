@@ -94,10 +94,10 @@ def main() -> int:
     deadline = time.monotonic() + args.timeout
     while True:
         if resident_is_current(read_json(snapshot_path)):
-            print("Verified a current DVielle resident heartbeat and process identity.")
+            print("Verified a current D'Vielle resident heartbeat and process identity.")
             return 0
         if time.monotonic() >= deadline:
-            print(f"No current DVielle resident heartbeat verified at {snapshot_path}.", file=sys.stderr)
+            print(f"No current D'Vielle resident heartbeat verified at {snapshot_path}.", file=sys.stderr)
             return 1
         time.sleep(min(0.25, max(0, deadline - time.monotonic())))
 

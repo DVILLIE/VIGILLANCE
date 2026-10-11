@@ -9,13 +9,13 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'hardening-common.ps1')
 $domains = @(Get-TelemetryDomains $DomainsFile | Sort-Object -Unique)
-Write-Host "Hosts plan: replace only DVielle's managed section with $($domains.Count) domains."
+Write-Host "Hosts plan: replace only D'Vielle's managed section with $($domains.Count) domains."
 $domains | ForEach-Object { Write-Host "  $_" }
 if ($BlockTelemetryPrograms) { Write-Host 'Optional outbound blocks: CompatTelRunner.exe and DeviceCensus.exe where present.' }
 Write-Host 'Update, delivery, certificate, account, and settings-win.data.microsoft.com endpoints are excluded from this domain list.'
 if (-not $Apply) { Write-Host 'Preview only. Add -Apply after reviewing.'; return }
 Assert-HardeningAdmin
-if (-not $SkipRestorePoint) { Checkpoint-Computer -Description 'DVielle pre-network-hardening' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop }
+if (-not $SkipRestorePoint) { Checkpoint-Computer -Description 'D''Vielle pre-network-hardening' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop }
 $state = New-HardeningBackup (Split-Path -Parent $PSScriptRoot)
 Write-Host "Reversible backup: $($state.Path)"
 try {

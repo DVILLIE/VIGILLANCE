@@ -485,6 +485,9 @@ def _collect_processes(
         try:
             pid = proc.info["pid"]
             name = proc.info["name"] or "unknown"
+            # Idle CPU accounting is unused capacity, never a workload culprit.
+            if pid == 0 or name.casefold() == "system idle process":
+                continue
             # process_iter already sampled cpu_percent; a second call resets its interval.
             cpu = proc.info.get("cpu_percent") or 0.0
             mem = _memory_mb(proc)
@@ -891,7 +894,7 @@ def close_pids(
         except psutil.AccessDenied:
             return False, f"Refused: PID {pid} not accessible — run as Administrator"
         if pname in protected or pid == foreground_pid or _protected_ancestry(proc, workload_names):
-            return False, f"Refused: PID {pid} ({pname}) is protected (system / DVielle)."
+            return False, f"Refused: PID {pid} ({pname}) is protected (system / D'Vielle)."
         if observed_at is None or pid not in expected or not _identity_matches(proc, expected[pid], protected):
             return False, f"Refused: PID {pid} identity is missing or changed; refresh and confirm again"
         targets.append(proc)

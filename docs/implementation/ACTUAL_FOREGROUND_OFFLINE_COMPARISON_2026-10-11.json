@@ -1,0 +1,102 @@
+{
+  "started": "2026-10-11T13:30:13.231918+00:00",
+  "finished": "2026-10-11T13:30:28.919119+00:00",
+  "state": "completed",
+  "scope": "This fixed SHA-256 foreground workload with one local assessment added; resident protection stayed enabled.",
+  "trials": [
+    {
+      "phase": "before",
+      "elapsed_seconds": 0.7113127999473363,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "before",
+      "elapsed_seconds": 0.760205400059931,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "before",
+      "elapsed_seconds": 0.6865279000485316,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "before",
+      "elapsed_seconds": 0.7518184001091868,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "assessment_active",
+      "elapsed_seconds": 1.1241461000172421,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "assessment_active",
+      "elapsed_seconds": 0.7609959000255913,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "assessment_active",
+      "elapsed_seconds": 0.7779357000254095,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "assessment_active",
+      "elapsed_seconds": 1.0369641999714077,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "after",
+      "elapsed_seconds": 0.8523950000526384,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "after",
+      "elapsed_seconds": 0.7830281999194995,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "after",
+      "elapsed_seconds": 0.9642293000360951,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    },
+    {
+      "phase": "after",
+      "elapsed_seconds": 0.867826999980025,
+      "processed_bytes": 629145600,
+      "result_sha256": "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83"
+    }
+  ],
+  "baseline_median_seconds": 0.7716167999897152,
+  "concurrent_median_seconds": 0.9074499499984086,
+  "concurrent_over_baseline_ratio": 1.1760370562311548,
+  "python_network_attempts_blocked": [],
+  "assessment_errors": [],
+  "assessment_id": "984a27d2-265d-4845-b243-9a5981b06a58",
+  "assessment_state": "completed",
+  "attack_path_count": 20,
+  "battery": {
+    "available": true,
+    "power_plugged": true,
+    "percent": 100,
+    "discharge_comparison": "not_measured"
+  },
+  "mutations": [],
+  "acceptance": "not_evaluated",
+  "limits": [
+    "One host and workload; ongoing user activity is not controlled.",
+    "Sequential phases are not randomized or a whole-app disabled comparison.",
+    "Python audit denial does not isolate Windows services or subprocess network behavior.",
+    "No universal slowdown, independent privacy, or battery-life certification."
+  ]
+}

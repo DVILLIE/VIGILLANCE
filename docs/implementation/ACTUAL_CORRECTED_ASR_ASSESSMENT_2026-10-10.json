@@ -1,0 +1,1234 @@
+{
+  "schema_version": 1,
+  "id": "a14ade0e-c990-4316-a58e-7035deba1c07",
+  "started": "2026-10-10T15:33:23.054021+00:00",
+  "state": "completed",
+  "scope": {
+    "target": "local",
+    "authority": "Local computer read-only review",
+    "authorized": false,
+    "expires_at": 0,
+    "share_runtime_versions": false,
+    "tls_handshake_only": false,
+    "require_hybrid": false
+  },
+  "findings": [
+    {
+      "id": "45ec863f-5b4a-4510-ae6a-b29442ef1527",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.366245+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "6476fa74-427f-4de2-97e7-ddd59f7c6bbf",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.373188+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "83e6bd59-815f-49b4-9c7b-da1e97152271",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.380333+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "058023df-5b7b-4ea2-8d22-94ee9c020b92",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.387215+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "14b8a4fb-c75c-4796-b388-267f4bb67917",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.387252+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "3ea1aeb4-4348-4bcc-9512-29fdeb2fda21",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.394416+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "0b435e5d-8e20-40ed-ab6a-a87e74480922",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.408797+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "05e3c806-6a5c-4d1e-a7c2-c56f88ae081c",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427679+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "094cae22-ee9b-484b-a399-886d9f8bb02f",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427716+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "e3250894-bfba-4a5c-8199-b47648fa6174",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427729+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "546dda7d-893a-4d1a-adea-4421b90b5349",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427750+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "63687536-478a-4e8b-bfd1-f0c68212c365",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427761+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "188cea7b-12fd-4771-af8c-fb52c5318088",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427770+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "01ef01ca-0884-4945-9952-c1482767146f",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.427781+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "40657c87-fe5b-46aa-8054-777581f6df71",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.434862+00:00",
+      "observation": "A listener on port 5040 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "98956d96-8a07-46ff-b5c4-9a432c453951",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.434899+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "36f86f71-5ac0-4235-b020-793e6dbf01dc",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.434918+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "7ef39510-811d-4f18-af01-af704c6099bd",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.435049+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "9b520d97-522c-444f-8158-8f6e4d5cb376",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:23.435065+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "7d0fe841-2f99-4c06-8bdb-f280abdbdfea"
+      ]
+    },
+    {
+      "id": "03bee006-7a91-4dfa-8db8-7319c42cb1fa",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:28.275648+00:00",
+      "observation": "Controlled folder access reports Disabled.",
+      "resolution": "Review application compatibility and recovery backups before considering Audit or Enabled mode. This control does not prevent reading or exfiltration.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "bf285c05-4ff3-4371-9caf-1e5b15341862"
+      ]
+    },
+    {
+      "id": "7d58d8f0-87e5-4be5-b1eb-8832387328d3",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:28.275673+00:00",
+      "observation": "Vulnerable signed-driver ASR rule has observed action 5; it is not configured in Block mode.",
+      "resolution": "Review effective protection, managed policy and audit compatibility before changing this rule.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "bf285c05-4ff3-4371-9caf-1e5b15341862"
+      ]
+    },
+    {
+      "id": "f8a61a1c-544c-4e4b-8d06-7f1009d88ec6",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:28.275684+00:00",
+      "observation": "LSASS credential-access ASR rule has observed action 5; it is not configured in Block mode.",
+      "resolution": "Review effective protection, managed policy and audit compatibility before changing this rule.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "bf285c05-4ff3-4371-9caf-1e5b15341862"
+      ]
+    },
+    {
+      "id": "d6b6a4b7-bf5b-4075-a874-7cc8db2c0d01",
+      "kind": "quantum_readiness",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T15:33:28.325042+00:00",
+      "observation": "Runtime cryptographic provider recorded; post-quantum exchange and authentication were not measured.",
+      "resolution": "Inventory actual protocols and peers, then verify supported negotiated exchange and authentication separately.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.cryptography"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "52ab7791-f4b6-4d3d-b374-cb36779bc92d"
+      ]
+    }
+  ],
+  "observations": {
+    "platform": {
+      "system": "Windows",
+      "release": "11",
+      "version": "10.0.26200",
+      "python": "3.14.8"
+    },
+    "runtime_packages": [
+      {
+        "name": "cryptography",
+        "version": "50.0.1",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "Pillow",
+        "version": "12.3.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "customtkinter",
+        "version": "6.0.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "PyYAML",
+        "version": "6.0.3",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "pywin32",
+        "version": "312",
+        "ecosystem": "PyPI"
+      }
+    ],
+    "cryptography": {
+      "python_ssl_provider": "OpenSSL 3.5.9 29 Sep 2026",
+      "tls13_runtime_support": true,
+      "post_quantum_exchange": "not_measured",
+      "post_quantum_authentication": "not_measured",
+      "local_provider_checks": {
+        "state": "observed",
+        "scope": "Local cryptographic primitive execution only",
+        "negotiated_key_exchange": "not_measured",
+        "negotiated_authentication": "not_measured",
+        "private_keys_saved": false,
+        "ml_kem_768": {
+          "state": "passed",
+          "encapsulation_decapsulation_matched": true,
+          "invalid_length_rejected": true
+        },
+        "ml_dsa_65": {
+          "state": "passed",
+          "signature_verified": true,
+          "modified_message_rejected": true,
+          "wrong_context_rejected": true
+        },
+        "elapsed_seconds": 0.039569599903188646
+      }
+    },
+    "dependency_review": {
+      "state": "not_queried",
+      "reason": "Version sharing was not authorized."
+    },
+    "listeners": [
+      {
+        "address": "127.0.0.1",
+        "port": 28385,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49673,
+        "pid": 1052,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1052,
+          "created_epoch_seconds": 1790947149.892046,
+          "name": "services.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\services.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 135,
+        "pid": 1384,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1384,
+          "created_epoch_seconds": 1790947150.4845223,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49664,
+        "pid": 1080,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1080,
+          "created_epoch_seconds": 1790947149.9300597,
+          "name": "lsass.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\lsass.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49665,
+        "pid": 1012,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1012,
+          "created_epoch_seconds": 1790947149.82299,
+          "name": "wininit.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\wininit.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "127.0.0.1",
+        "port": 28390,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49673,
+        "pid": 1052,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1052,
+          "created_epoch_seconds": 1790947149.892046,
+          "name": "services.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\services.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49668,
+        "pid": 4588,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4588,
+          "created_epoch_seconds": 1790947153.142784,
+          "name": "spoolsv.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\spoolsv.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::1",
+        "port": 49669,
+        "pid": 5524,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 5524,
+          "created_epoch_seconds": 1790947154.3328712,
+          "name": "jhi_service.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\dal.inf_amd64_64d7fcfcde9b9c10\\jhi_service.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "127.0.0.1",
+        "port": 49351,
+        "pid": 19380,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 19380,
+          "created_epoch_seconds": 1791520629.3108418,
+          "name": "esrv.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Program Files\\Intel\\SUR\\QUEENCREEK\\x64\\esrv.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::1",
+        "port": 42050,
+        "pid": 7300,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 7300,
+          "created_epoch_seconds": 1791562674.3030393,
+          "name": "OneDrive.Sync.Service.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Program Files\\Microsoft OneDrive\\26.173.0906.0008\\OneDrive.Sync.Service.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49667,
+        "pid": 3164,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 3164,
+          "created_epoch_seconds": 1790947151.4484525,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "127.0.0.1",
+        "port": 49350,
+        "pid": 21244,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 21244,
+          "created_epoch_seconds": 1791644758.2996433,
+          "name": "esrv_svc.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Program Files\\Intel\\SUR\\QUEENCREEK\\x64\\esrv_svc.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49666,
+        "pid": 1408,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1408,
+          "created_epoch_seconds": 1790947150.77177,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 5357,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49668,
+        "pid": 4588,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4588,
+          "created_epoch_seconds": 1790947153.142784,
+          "name": "spoolsv.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\spoolsv.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 49665,
+        "pid": 1012,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1012,
+          "created_epoch_seconds": 1790947149.82299,
+          "name": "wininit.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\wininit.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49667,
+        "pid": 3164,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 3164,
+          "created_epoch_seconds": 1790947151.4484525,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 445,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "192.168.31.168",
+        "port": 139,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 445,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 5040,
+        "pid": 9812,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 9812,
+          "created_epoch_seconds": 1790947162.6651213,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 135,
+        "pid": 1384,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1384,
+          "created_epoch_seconds": 1790947150.4845223,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49666,
+        "pid": 1408,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1408,
+          "created_epoch_seconds": 1790947150.77177,
+          "name": "svchost.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\svchost.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "127.0.0.1",
+        "port": 18080,
+        "pid": 18480,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 18480,
+          "created_epoch_seconds": 1791646218.328848,
+          "name": "ssh.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "::",
+        "port": 5357,
+        "pid": 4,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 4,
+          "created_epoch_seconds": 0.0,
+          "name": "System",
+          "executable_image": {
+            "state": "observed",
+            "path": "",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      },
+      {
+        "address": "0.0.0.0",
+        "port": 49664,
+        "pid": 1080,
+        "owner_identity": {
+          "state": "observed",
+          "pid": 1080,
+          "created_epoch_seconds": 1790947149.9300597,
+          "name": "lsass.exe",
+          "executable_image": {
+            "state": "observed",
+            "path": "C:\\Windows\\System32\\lsass.exe",
+            "scope": "Executable path rules affect all instances; launchers and child images may differ."
+          },
+          "meaning": "Owner identity at a later checkpoint; socket-owner association is not atomic or permission to act."
+        }
+      }
+    ],
+    "windows_posture": {
+      "antivirus_enabled": true,
+      "realtime_enabled": true,
+      "firewall_enabled": true,
+      "profiles": {
+        "domain": true,
+        "private": true,
+        "public": true
+      },
+      "defender_health": {
+        "coverage": "complete",
+        "am_running_mode": "Normal",
+        "signature_age_days": 0,
+        "signature_last_updated": "10/10/2026 04:35:09",
+        "signature_version": "1.459.649.0",
+        "engine_version": "1.1.26080.3",
+        "product_version": "4.18.26080.4",
+        "signatures_out_of_date": false,
+        "active_mode": "AVAILABLE",
+        "realtime": "AVAILABLE",
+        "query_state": "AVAILABLE"
+      },
+      "asr_cfa": {
+        "coverage": "complete",
+        "rules": {
+          "56a863a9-875e-4185-98a7-b882c64b5ce5": 5,
+          "9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2": 5,
+          "e6db77e5-3df2-4cf1-b95a-636979351e5b": 5,
+          "7674ba52-37eb-4a4f-a9a1-f0f9a1619a2c": 5,
+          "d4f940ab-401b-4efc-aadc-ad5f3c50688a": 5,
+          "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550": 5,
+          "01443614-cd74-433a-b99e-2ecdc07bfc25": 5,
+          "5beb7efe-fd9a-4556-801d-275e5ffc04cc": 5,
+          "d3e037e1-3eb8-44c8-a917-57927947596d": 5,
+          "3b576869-a4ec-4529-8536-b80a7769e899": 5,
+          "75668c1f-73b5-4cf0-bb93-3ecf5cb7cc84": 5,
+          "26190899-1602-49e8-8b27-eb1d0a1ce869": 5,
+          "d1e49aac-8f56-4280-b9ba-993a6d77406c": 5,
+          "33ddedf1-c6e0-47cb-833e-de6133960387": 5,
+          "b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4": 5,
+          "c0033c00-d16d-4114-a5a0-dc9b3a7d2ceb": 5,
+          "a8f5898e-1dc8-49a9-9878-85004b8a61e6": 5,
+          "92e97fa1-2edf-4476-bdd6-9dd0b4dddc7b": 5,
+          "c1db55ab-c21a-4637-bb3f-a12568109d35": 5
+        },
+        "cfa_mode": 0,
+        "cfa_mode_name": "Disabled"
+      }
+    },
+    "assessment_resources": {
+      "scope": "Assessment process and descendants visible at checkpoints; not every D'Vielle process.",
+      "samples": [
+        {
+          "observed_monotonic": 699280.0534867,
+          "elapsed_seconds": null,
+          "process_count": 1,
+          "rss_sum_bytes": 29904896,
+          "cpu_core_percent": null,
+          "cpu_lower_bound_core_percent": null,
+          "cpu_coverage": "warming_up",
+          "cpu_machine_percent": null,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 1,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699280.3237911,
+          "elapsed_seconds": 0.2703043998917565,
+          "process_count": 1,
+          "rss_sum_bytes": 41476096,
+          "cpu_core_percent": 57.805200382446756,
+          "cpu_lower_bound_core_percent": 57.805200382446756,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 14.451300095611689,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699280.3398126,
+          "elapsed_seconds": 0.016021500108763576,
+          "process_count": 1,
+          "rss_sum_bytes": 41934848,
+          "cpu_core_percent": 97.52519984975255,
+          "cpu_lower_bound_core_percent": 97.52519984975255,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 24.38129996243814,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699280.4434789,
+          "elapsed_seconds": 0.10366629995405674,
+          "process_count": 1,
+          "rss_sum_bytes": 42790912,
+          "cpu_core_percent": 90.43440350581481,
+          "cpu_lower_bound_core_percent": 90.43440350581481,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 22.608600876453703,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699282.0930598,
+          "elapsed_seconds": 1.6495808999752626,
+          "process_count": 1,
+          "rss_sum_bytes": 47161344,
+          "cpu_core_percent": 9.472102883971507,
+          "cpu_lower_bound_core_percent": 9.472102883971507,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 2.368025720992877,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699283.8899364,
+          "elapsed_seconds": 1.7968766000121832,
+          "process_count": 1,
+          "rss_sum_bytes": 47165440,
+          "cpu_core_percent": 0.8695644430949827,
+          "cpu_lower_bound_core_percent": 0.8695644430949827,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 0.21739111077374568,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699285.284097,
+          "elapsed_seconds": 1.3941606000298634,
+          "process_count": 1,
+          "rss_sum_bytes": 47173632,
+          "cpu_core_percent": 0.0,
+          "cpu_lower_bound_core_percent": 0.0,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 0.0,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 699285.3336241,
+          "elapsed_seconds": 0.04952709993813187,
+          "process_count": 1,
+          "rss_sum_bytes": 47173632,
+          "cpu_core_percent": 0.0,
+          "cpu_lower_bound_core_percent": 0.0,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 0.0,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        }
+      ],
+      "sampled_peak_rss_sum_bytes": 47173632,
+      "total_samples": 8,
+      "retained_sample_capacity": 1024,
+      "discarded_sample_details": 0,
+      "coverage": "sampled",
+      "notes": [
+        "Shared pages can be counted in more than one RSS; this is not unique physical memory.",
+        "Short-lived processes between checkpoints and exited-process final CPU are not measured.",
+        "New processes require a second sample for a CPU delta; missing costs are not zero.",
+        "Checkpoint peaks are not continuous peaks or foreground-workload benchmarks.",
+        "No hard CPU cap, no zero-slowdown guarantee and no other user process termination."
+      ]
+    }
+  },
+  "coverage": [
+    "Runtime package inventory only; not an all-software census.",
+    "TCP listeners observed; UDP exposure and external reachability not established.",
+    "Privileged remediation unavailable in this workspace; no Windows policy was changed."
+  ],
+  "mutations": [],
+  "claims": "Observed assessment only; no enforcement or exploitability certification.",
+  "evidence_records": {
+    "observations.platform": {
+      "id": "04fde12a-f699-41bf-9bb1-a2398c49b898",
+      "ts": "2026-10-10T15:33:23.327725+00:00",
+      "sensor": "assessment.platform",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.platform",
+        "sha256": "6de6b92b2f9ddc7dd7613780945741bf703b051b7905037515b95cea8d2ed3e9",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.runtime_packages": {
+      "id": "5c063727-c692-42b9-9aa4-f6ce495ca6a4",
+      "ts": "2026-10-10T15:33:23.327841+00:00",
+      "sensor": "assessment.runtime_packages",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.runtime_packages",
+        "sha256": "2d1890d7ffd801efadc8f563f872261002d69adf4ed3d8a2a8a7cf242457a788",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.cryptography": {
+      "id": "52ab7791-f4b6-4d3d-b374-cb36779bc92d",
+      "ts": "2026-10-10T15:33:23.327927+00:00",
+      "sensor": "assessment.cryptography",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.cryptography",
+        "sha256": "2020fb01136eac1d2b434d43e56dcf9618e2656b66cee3cc9b92c403d5f3fcec",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "scope.target": {
+      "id": "952f6845-5d35-4994-9147-aac2cd9f23bb",
+      "ts": "2026-10-10T15:33:23.327965+00:00",
+      "sensor": "assessment.target",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "scope.target",
+        "sha256": "ea17e25c6c7aa6ef9407f976a670e87e37bc7e2a86b7bd4a3305bb16f1ba6052",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.dependency_review": {
+      "id": "e886125a-d4c2-4a0e-aaf9-92d23f8a1be5",
+      "ts": "2026-10-10T15:33:23.338884+00:00",
+      "sensor": "assessment.dependency_review",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.dependency_review",
+        "sha256": "f412827aa43058659a6d2dd94c65139236ebab54c9b1e2284dc50e5533b47795",
+        "coverage": "not_queried",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.listeners": {
+      "id": "7d0fe841-2f99-4c06-8bdb-f280abdbdfea",
+      "ts": "2026-10-10T15:33:23.445270+00:00",
+      "sensor": "assessment.listeners",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.listeners",
+        "sha256": "a9fd97d2b24a3fdaa0a675bf183b82155ad66cfef88b1e31f6411eed77599baa",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.windows_posture": {
+      "id": "bf285c05-4ff3-4371-9caf-1e5b15341862",
+      "ts": "2026-10-10T15:33:28.284647+00:00",
+      "sensor": "assessment.windows_posture",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.windows_posture",
+        "sha256": "dd441bf2738f23cddf65299e1d7cba34b5fc04ea0afeb9a4e7a215046b883eef",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.assessment_resources": {
+      "id": "0816b693-3921-4bcc-84c2-c1de40423ced",
+      "ts": "2026-10-10T15:33:28.334003+00:00",
+      "sensor": "assessment.assessment_resources",
+      "entity": "a14ade0e-c990-4316-a58e-7035deba1c07",
+      "payload": {
+        "source_path": "observations.assessment_resources",
+        "sha256": "65142bc73300f4ed8393c1c3ed360dba0a55e4f1b9fc998cd1a2382d4b05d3f9",
+        "coverage": "sampled",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    }
+  },
+  "finished": "2026-10-10T15:33:28.325213+00:00",
+  "history_maintenance": {
+    "deleted": 0,
+    "enabled": false
+  }
+}

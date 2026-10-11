@@ -14,7 +14,9 @@ LOGO_64_PNG = BRAND_DIR / "dvielle_64.png"
 LOGO_128_PNG = BRAND_DIR / "dvielle_128.png"
 LOGO_STILL_PNG = BRAND_DIR / "dvielle-logo-still.png"
 LOGO_ANIMATED_GIF = BRAND_DIR / "dvielle-logo-animated.gif"
-ICON_ICO = BRAND_DIR / "dvielle.ico"
+NEXUS_LOGO = BRAND_DIR / "quantum-key.png"
+NEXUS_ICON = BRAND_DIR / "quantum-key.ico"
+ICON_ICO = NEXUS_ICON if NEXUS_ICON.exists() else BRAND_DIR / "dvielle.ico"
 
 # Stable Windows identity so the taskbar does not inherit the Python interpreter icon.
 APP_USER_MODEL_ID = "DVILLIE.VIGILLANCE.MissionConsole.1.5"
@@ -27,6 +29,8 @@ def brand_png(preferred: int = 88) -> Path:
         88: LOGO_88_PNG,
         128: LOGO_128_PNG,
     }
+    if NEXUS_LOGO.exists():
+        return NEXUS_LOGO
     path = candidates.get(preferred, LOGO_88_PNG)
     if path.exists():
         return path
@@ -61,6 +65,16 @@ def load_brand_pil_image(size: int = 64):
     except ImportError:
         return None
 
+    if NEXUS_LOGO.exists():
+        try:
+            with Image.open(NEXUS_LOGO) as source:
+                image = source.convert("RGBA")
+                image.thumbnail((size, size), Image.Resampling.LANCZOS)
+                square = Image.new("RGBA", (size, size))
+                square.alpha_composite(image, ((size-image.width)//2, (size-image.height)//2))
+                return square
+        except OSError:
+            pass
     if ICON_ICO.exists():
         try:
             with Image.open(ICON_ICO) as ico:

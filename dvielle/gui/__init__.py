@@ -1,1 +1,1 @@
-"""DVielle GUI package."""
+"""D\'Vielle GUI package."""

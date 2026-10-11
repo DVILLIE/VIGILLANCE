@@ -1,0 +1,92 @@
+{
+  "started": "2026-10-10T13:41:37.541798+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5788,
+    "manifest_sha256": "d0d7d6d7df70beb668fd7e93bd3c5b8f6ee467a9884de31f552e8f08850c3811",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielle\\.venv\\Scripts\\python.exe",
+    "remote_address": "151.101.0.223",
+    "port": 443,
+    "profile": "Any"
+  },
+  "state": "observations_recorded",
+  "mutations": [
+    {
+      "operation_id": "093c9adb89174d58af8b13127194867c",
+      "operation": "restrict_network"
+    }
+  ],
+  "packet_drop_attribution": "not_measured",
+  "excluded": [
+    "IPv6",
+    "UDP",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "children",
+    "competing policy",
+    "crash recovery"
+  ],
+  "before": {
+    "state": "connected",
+    "elapsed_seconds": 0.011958600021898746
+  },
+  "before_verified_tls": {
+    "version": "TLSv1.3",
+    "hostname_verified": true
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-d411044631ca-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielle\\.venv\\Scripts\\python.exe",
+        "remote": "151.101.0.223",
+        "group": "DVielle",
+        "description": "DVielle invocation bbbaf81b12d64fc8b11fa4a6f459d467",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "093c9adb89174d58af8b13127194867c"
+  },
+  "during_new_tcp": [
+    {
+      "state": "connected",
+      "elapsed_seconds": 0.0038883000379428267
+    },
+    {
+      "state": "connected",
+      "elapsed_seconds": 0.0036357999779284
+    }
+  ],
+  "during_existing_tls": {
+    "state": "response_received",
+    "received_bytes": 1265
+  },
+  "recovery": {
+    "ok": true,
+    "code": "restored",
+    "performed": true,
+    "journal_state": "restored",
+    "message": "Owned-rule cleanup verified; other rules preserved.",
+    "operation_id": "093c9adb89174d58af8b13127194867c"
+  },
+  "after": {
+    "state": "connected",
+    "elapsed_seconds": 0.02107709995470941
+  },
+  "finished": "2026-10-10T13:41:48.465137+00:00",
+  "acceptance": "observations_only_not_full_network_certification"
+}

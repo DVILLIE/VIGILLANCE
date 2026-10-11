@@ -22,7 +22,7 @@ from datetime import date
 # Cool paper for Light. Accents stay calm (sky, mint, lilac), never neon on white.
 # Dark stays rich. The day's name still changes. See SPECTRA.
 LIGHT: dict[str, str] = {
-    "void": "#F4F7FA",
+    "void": "#EDF2F8",
     "panel": "#FFFFFF",
     "panel_alt": "#E8EEF4",
     "border": "#D2DCE6",
@@ -40,16 +40,16 @@ LIGHT: dict[str, str] = {
 }
 
 DARK: dict[str, str] = {
-    "void": "#090712",
-    "panel": "#14101C",
-    "panel_alt": "#1C1728",
-    "border": "#342C44",
+    "void": "#050D1B",
+    "panel": "#0A1A32",
+    "panel_alt": "#102845",
+    "border": "#294568",
     "accent": "#DDD6FE",
     "accent_dim": "#C4B5FD",
     "accent_hot": "#EDE9FE",
     "orbit": "#FDBA74",
-    "ink": "#F6F1FB",
-    "mute": "#B7A9C8",
+    "ink": "#F2F7FF",
+    "mute": "#B4C8E2",
     "ok": "#3DDC9A",
     "warn": "#E2A93B",
     "crit": "#FF5C74",
@@ -61,9 +61,9 @@ DARK: dict[str, str] = {
 # ``orbit`` is the second drawn color. It is not used for body text.
 SPECTRA: tuple[dict, ...] = (
     {
-        "name": "Violet",
-        "light": {"accent": "#5C5280", "accent_dim": "#4C4570", "accent_hot": "#736A96", "on_accent": "#F6F5FA", "orbit": "#3E756C"},
-        "dark": {"accent": "#DDD6FE", "accent_dim": "#C4B5FD", "accent_hot": "#EDE9FE", "on_accent": "#1E1033", "orbit": "#FDBA74"},
+        "name": "Nexus Fold Prime",
+        "light": {"accent": "#174D84", "accent_dim": "#103C6D", "accent_hot": "#235F9C", "on_accent": "#FFFFFF", "orbit": "#876123"},
+        "dark": {"accent": "#91C9FF", "accent_dim": "#68B2F2", "accent_hot": "#DAEDFF", "on_accent": "#07172E", "orbit": "#E6B56C"},
     },
     {
         "name": "Coral",
@@ -136,7 +136,8 @@ def install_day(when: date | None = None) -> dict:
     _motif["phase"] = (ordinal * 47) % 360
     _motif["waves"] = 2 + (ordinal % 3)
     _motif["shift"] = (ordinal * 13) % 20
-    install_spectrum(ordinal % len(SPECTRA))
+    # The approved brand is stable; date only changes the subtle etched motif.
+    install_spectrum(0)
     return current_motif()
 
 

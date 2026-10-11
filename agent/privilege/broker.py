@@ -1,7 +1,8 @@
-"""Limited-side client for the privileged helper.
+"""Production refuses the token-only helper; explicit unit transport remains.
 
-Sends one checked ``restrict_network`` request over the loopback IPC stub.
-Does not run firewall cmdlets. If the helper is not listening, nothing is changed.
+The native route requires an OS-authenticated SYSTEM service and server-owned
+one-use grant. Protected installation is still required. The resident agent
+cannot opt into privilege by discovering a loopback endpoint file.
 """
 
 from __future__ import annotations
@@ -27,8 +28,10 @@ def discover_endpoint(data_dir: Path) -> dict[str, Any] | None:
     if not path.is_file():
         return None
     try:
+        if path.stat().st_size > _MAX_BYTES:
+            return None
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeError, ValueError, RecursionError):
         return None
     return _endpoint_ok(payload)
 
@@ -43,7 +46,7 @@ def _endpoint_ok(payload: object) -> dict[str, Any] | None:
         return None
     if port < 1 or port > 65535:
         return None
-    if not isinstance(token, str) or len(token) < 32 or any(ch not in "0123456789abcdef" for ch in token):
+    if not isinstance(token, str) or not 32 <= len(token) <= 128 or any(ch not in "0123456789abcdef" for ch in token):
         return None
     return {"host": host, "port": port, "token": token}
 
@@ -66,7 +69,7 @@ def _exchange(endpoint: dict[str, Any], envelope: dict[str, Any]) -> dict[str, A
                     break
     except OSError:
         return _refused(
-            "The privileged helper is not available. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "The privileged helper is not available. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="helper_unavailable",
         )
     line = data.split(b"\n", 1)[0]
@@ -74,12 +77,12 @@ def _exchange(endpoint: dict[str, Any], envelope: dict[str, Any]) -> dict[str, A
         body = json.loads(line.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
         return _refused(
-            "The privileged helper returned an unreadable result. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "The privileged helper returned an unreadable result. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="helper_unavailable",
         )
     if not isinstance(body, dict):
         return _refused(
-            "The privileged helper returned an unreadable result. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "The privileged helper returned an unreadable result. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="helper_unavailable",
         )
     return body
@@ -89,24 +92,39 @@ def submit_restrict_network(
     params: dict[str, Any],
     *,
     endpoint: dict[str, Any] | None,
+    test_harness: bool = False,
+    grant_id: str | None = None,
 ) -> dict[str, Any]:
     """Validate, require the dual-gate mutate context, then ask the helper."""
     checked, error = validate_restrict_params(params)
     if checked is None:
         return _refused(
-            error + " DVielle did not add a firewall rule. Traffic was not stopped.",
+            error + " D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="bad_params",
         )
     if not cortex_mutate_active():
         return _refused(
-            "Refusing a firewall change without Cortex authorization. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "Refusing a firewall change without Cortex authorization. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="refused",
         )
+    if not test_harness and grant_id is not None:
+        from agent.privilege.native_client import submit
+        try:
+            return submit(checked, grant_id)
+        except Exception:
+            return {"ok": False, "code": "outcome_unknown", "performed": False,
+                    "state_unknown": True, "verified": [],
+                    "message": "The authenticated service exchange did not complete. Check the protected operation record before retrying."}
     target = _endpoint_ok(endpoint) if endpoint is not None else None
     if target is None:
         return _refused(
-            "The privileged helper is not available. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "The privileged helper is not available. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="helper_unavailable",
+        )
+    if not test_harness:
+        return _refused(
+            "A protected service installation and one-use administrative grant are required. D\'Vielle did not add a firewall rule.",
+            code="service_unavailable",
         )
     envelope = {
         "v": PROTOCOL_VERSION,
@@ -117,7 +135,7 @@ def submit_restrict_network(
     body = _exchange(target, envelope)
     if "performed" not in body:
         body = _refused(
-            "The privileged helper did not confirm a rule. DVielle did not add a firewall rule. Traffic was not stopped.",
+            "The privileged helper did not confirm a rule. D\'Vielle did not add a firewall rule. Traffic was not stopped.",
             code="verify_failed",
         )
     return body

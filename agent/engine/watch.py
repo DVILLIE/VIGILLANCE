@@ -89,7 +89,7 @@ def observation_from_egress(fact: dict) -> Observation | None:
             title = f"{name} is talking to the internet"
             why = (
                 f"{name} has a connection off this computer ({where}). "
-                "That is not automatically dangerous. DVielle did not read what was sent."
+                "That is not automatically dangerous. D\'Vielle did not read what was sent."
             )
         kind = "unexpected_egress"
         suggest = "Allow this app's internet, or block its network, after you pick one option."
@@ -133,6 +133,22 @@ def observation_from_egress(fact: dict) -> Observation | None:
 def observation_from_camera(fact: dict) -> Observation | None:
     """Local webcam/USB use only. Never carries an image."""
     name = _name(fact)
+    if fact.get('evidence_kind') == 'windows_camera_activity_record':
+        if not name or any(mark in name for mark in ('|', '\n', '\r')):
+            return None
+        return Observation(
+            pillar='camera', kind='camera_activity_record',
+            subject_identity='camera-record:' + name.casefold(),
+            title_simple='Windows recorded camera access for ' + name,
+            why_it_matters='This is Windows privacy activity metadata, not proof the camera is currently on or that a process still owns it.',
+            if_ignored='Review unfamiliar recorded applications in Windows camera privacy settings.',
+            evidence_refs=[str(fact.get('registry_key', '')), str(fact.get('last_start_utc', '')),
+                           'No image, frame, or verified live process identity was collected.'],
+            severity='low', confidence='low',
+            recommended_action='Review Windows camera privacy settings.',
+            resolution_steps=['Open Settings > Privacy & security > Camera.'],
+            reversible='partial', identity_ok=False, expected=False, suspicious_mismatch=False,
+            action_class='ask_user', signals=dict(fact))
     try:
         pid = int(fact.get("pid") or 0)
     except (TypeError, ValueError):
@@ -156,7 +172,7 @@ def observation_from_camera(fact: dict) -> Observation | None:
     if not name:
         title = "The camera is in use, but the app could not be named"
         why = (
-            "A local camera looks busy and DVielle could not name the program. "
+            "A local camera looks busy and D\'Vielle could not name the program. "
             "A hardware cover is still stronger than a software alert. No picture was stored."
         )
     elif mismatch:
@@ -170,7 +186,7 @@ def observation_from_camera(fact: dict) -> Observation | None:
         title = f"{name} is using the camera"
         why = (
             f"{name} appears to be using a local camera ({device}). "
-            "If you already allowed this app and it is really open, DVielle stays quiet. "
+            "If you already allowed this app and it is really open, D\'Vielle stays quiet. "
             "No picture was stored."
         )
     return Observation(
@@ -179,7 +195,7 @@ def observation_from_camera(fact: dict) -> Observation | None:
         subject_identity=subject,
         title_simple=title,
         why_it_matters=why,
-        if_ignored="The camera can stay in use until you pick an option. DVielle will not turn it off by itself.",
+        if_ignored="The camera can stay in use until you pick an option. D\'Vielle will not turn it off by itself.",
         evidence_refs=[
             f"Device: {device}",
             f"App: {name or 'unnamed'}",

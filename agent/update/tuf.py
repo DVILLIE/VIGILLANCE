@@ -23,9 +23,11 @@ import hashlib
 import json
 import os
 import re
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -89,6 +91,23 @@ def verify_update(
     *,
     now: datetime | None = None,
 ) -> dict[str, Any]:
+    """Serialize an offline verification/activation cycle in the trusted store."""
+    store = Path(store)
+    try:
+        store.mkdir(parents=True, exist_ok=True)
+        with _store_lock(store):
+            return _verify_update_locked(store, repository, target, now=now)
+    except (OSError, _Stop) as exc:
+        view = attestation_view(store)
+        view["last_result"] = "rejected"
+        view["last_reason"] = exc.reason if isinstance(exc, _Stop) else "io_error"
+        view["message"] = "The update store could not be locked or accessed. No update cycle was started."
+        return view
+
+
+def _verify_update_locked(
+    store: Path, repository: Path, target: str, *, now: datetime | None = None
+) -> dict[str, Any]:
     """Verify one local repository against the trusted store.
 
     ``repository`` is a directory of metadata and the package file. Nothing is
@@ -98,7 +117,21 @@ def verify_update(
     repository = Path(repository)
     start = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     store.mkdir(parents=True, exist_ok=True)
-    before = _artifact_sha(store)
+    try:
+        _recover_install(store)
+        if (store / "installed.json").is_file():
+            installed = _read_json(store / "installed.json")
+            name, digest, length = installed.get("target"), installed.get("sha256"), installed.get("length")
+            if (not isinstance(name, str) or not _NAME.fullmatch(name) or name.startswith(".")
+                    or not isinstance(digest, str) or not _HEX64.fullmatch(digest)
+                    or isinstance(length, bool) or not isinstance(length, int) or not 0 <= length <= MAX_TARGET_BYTES):
+                raise _Stop("rejected", "recovery_required", "The installation record is unreadable or invalid.")
+        before = _artifact_sha(store)
+    except (OSError, _Stop, ValueError, RecursionError):
+        view = attestation_view(store)
+        view.update(last_result="rejected", last_reason="recovery_required",
+                    message="Interrupted activation could not be recovered. No new update was attempted.")
+        return view
     try:
         if PRIVILEGED_AUTO_UPDATE:
             raise _Stop("rejected", "refused", "Privileged auto-update is not part of this version." + _KEPT)
@@ -109,11 +142,35 @@ def verify_update(
         after = _artifact_sha(store)
         if before != after:
             raise RuntimeError("update failure replaced the installed file") from stop
-        _record(store, stop.code, stop.reason, stop.message)
+        try:
+            _record(store, stop.code, stop.reason, stop.message)
+        except OSError:
+            pass
         view = attestation_view(store)
+        view.update(last_result=stop.code, last_reason=stop.reason)
         view["message"] = stop.message
         return view
+    except (OSError, ValueError, RecursionError):
+        try:
+            _recover_install(store, rollback=True)
+            kept = before == _artifact_sha(store)
+        except (OSError, _Stop, ValueError):
+            kept = False
+        reason = "io_error" if kept else "recovery_required"
+        message = "The update encountered a storage error." + (_KEPT if kept else " Activation recovery is required.")
+        try:
+            _record(store, "rejected", reason, message)
+        except OSError:
+            pass
+        view = attestation_view(store)
+        view.update(last_result="rejected", last_reason=reason, message=message)
+        return view
+    try:
+        _record(store, "accepted", "", "Verified metadata and activated the hash-matching package.")
+    except OSError:
+        pass
     view = attestation_view(store)
+    view.update(last_result="accepted", last_reason="")
     view["message"] = (
         "Verified root, timestamp, snapshot, and targets. The package hash matched. "
         "Privileged auto-update is not enabled. The running process was not measured."
@@ -183,11 +240,11 @@ def _update_timestamp(
         if new_version < old_version:
             raise _Stop("rejected", "rollback", "Timestamp metadata moved to an older version." + _KEPT)
         if new_version == old_version:
-            raise _Stop(
-                "unchanged",
-                "same_version",
-                "The timestamp version matches the trusted timestamp. Nothing was installed.",
-            )
+            # Discard the same-version remote envelope, but resume unfinished target
+            # work using trusted cached metadata. Expired cached metadata is refused.
+            _verify_role(previous, root, "timestamp")
+            _check_expiry(previous["signed"], start)
+            return previous
         if _meta_entry(new["signed"], "snapshot.json", MAX_META_BYTES)["version"] < _meta_entry(
             previous["signed"], "snapshot.json", MAX_META_BYTES
         )["version"]:
@@ -280,30 +337,22 @@ def _install_target(
     checked = _meta_entry({"meta": {target: entry}}, target, MAX_TARGET_BYTES)
     digest = checked["hashes"]["sha256"]
     filename = f"{digest}.{target}" if consistent else target
-    raw = _require(repository / filename, limit=MAX_TARGET_BYTES)
-    _bind(raw, checked)
     custom = info.get("custom") if isinstance(info.get("custom"), dict) else {}
     version = custom.get("version")
     shown = version if isinstance(version, str) and _VERSION.fullmatch(version) else "UNKNOWN"
-    destination = store / "files" / target
-    _atomic_bytes(destination, raw)
     attestation = hashlib.sha256(canonical(targets["signed"])).hexdigest()
-    atomic_json(
-        store / "installed.json",
-        {
+    installed = {
             "version": shown,
             "target": target,
             "sha256": digest,
-            "length": len(raw),
+            "length": checked["length"],
             "metadata_attestation_sha256": attestation,
-        },
-    )
-    _record(
-        store,
-        "accepted",
-        "",
-        "Verified root, timestamp, snapshot, and targets. The package hash matched.",
-    )
+        }
+    if _read_json(store / "installed.json") == installed and _artifact_sha(store) == digest:
+        raise _Stop("unchanged", "same_version", "Trusted metadata and the installed target already match.")
+    raw = _require(repository / filename, limit=MAX_TARGET_BYTES)
+    _bind(raw, checked)
+    _commit_install(store, target, raw, installed)
 
 
 def _record(store: Path, code: str, reason: str, message: str) -> None:
@@ -322,7 +371,7 @@ def _record(store: Path, code: str, reason: str, message: str) -> None:
 def _envelope(raw: bytes, expected: str) -> dict[str, Any]:
     try:
         body = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as exc:
         raise _Stop("rejected", "bad_metadata", "Metadata was not JSON." + _KEPT) from exc
     if not isinstance(body, dict):
         raise _Stop("rejected", "bad_metadata", "Metadata was not an object." + _KEPT)
@@ -488,25 +537,33 @@ def _read_file(path: Path, limit: int) -> bytes | None:
         raise _Stop("rejected", "bad_metadata", "A repository file name was not accepted." + _KEPT)
     if not path.is_file():
         return None
-    size = path.stat().st_size
-    if size > limit:
+    with path.open("rb") as stream:
+        raw = stream.read(limit + 1)
+    if len(raw) > limit:
         raise _Stop("rejected", "endless_data", f"{path.name} is larger than the client limit." + _KEPT)
-    return path.read_bytes()
+    return raw
 
 
 def _atomic_bytes(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_name(f".{path.name}.tmp")
-    temp.write_bytes(payload)
-    os.replace(temp, path)
+    temp = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+    try:
+        with temp.open("xb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return {}
     try:
-        body = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        raw = _read_file(path, MAX_META_BYTES)
+        body = json.loads(raw.decode("utf-8")) if raw is not None else {}
+    except (OSError, UnicodeError, ValueError, _Stop, RecursionError):
         return {}
     return body if isinstance(body, dict) else {}
 
@@ -519,4 +576,102 @@ def _artifact_sha(store: Path) -> str | None:
     path = store / "files" / target
     if not path.is_file():
         return None
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    raw = _read_file(path, MAX_TARGET_BYTES)
+    return hashlib.sha256(raw).hexdigest() if raw is not None else None
+
+
+@contextmanager
+def _store_lock(store: Path):
+    """OS releases this lock on crash; a leftover file never means a stale lock."""
+    with (store / "update.lock").open("a+b") as stream:
+        stream.seek(0, os.SEEK_END)
+        if stream.tell() == 0:
+            stream.write(b"\0")
+            stream.flush()
+        stream.seek(0)
+        if os.name == "nt":
+            import msvcrt
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError as exc:
+                raise _Stop("rejected", "busy", "Another update cycle owns this store.") from exc
+            try:
+                yield
+            finally:
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            try:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as exc:
+                raise _Stop("rejected", "busy", "Another update cycle owns this store.") from exc
+            try:
+                yield
+            finally:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+
+
+def _commit_install(store: Path, target: str, raw: bytes, installed: dict[str, Any]) -> None:
+    destination = store / "files" / target
+    backup_name = ".rollback-" + uuid4().hex
+    backup = store / "files" / backup_name
+    previous_bytes = _read_file(destination, MAX_TARGET_BYTES)
+    previous = _read_json(store / "installed.json")
+    if previous_bytes is not None:
+        _atomic_bytes(backup, previous_bytes)
+    journal = {"target": target, "backup": backup_name if previous_bytes is not None else None,
+               "backup_sha256": hashlib.sha256(previous_bytes).hexdigest() if previous_bytes is not None else None,
+               "previous": previous, "next": installed}
+    try:
+        _atomic_bytes(store / "activation.json", json.dumps(journal, allow_nan=False).encode("utf-8"))
+    except OSError:
+        backup.unlink(missing_ok=True)
+        raise
+    # Journal precedes both replacements. Recovery chooses a complete commit or
+    # restores both old bytes and their corresponding installation record.
+    _atomic_bytes(destination, raw)
+    _atomic_bytes(store / "installed.json", json.dumps(installed, allow_nan=False).encode("utf-8"))
+    _recover_install(store)
+
+
+def _recover_install(store: Path, *, rollback: bool = False) -> None:
+    path = store / "activation.json"
+    if not path.is_file():
+        return
+    raw = _require(path)
+    try:
+        journal = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, ValueError, RecursionError) as exc:
+        raise _Stop("rejected", "recovery_required", "Activation journal is invalid.") from exc
+    if not isinstance(journal, dict):
+        raise _Stop("rejected", "recovery_required", "Activation journal must be an object.")
+    target = journal.get("target")
+    previous, next_record = journal.get("previous"), journal.get("next")
+    backup_name = journal.get("backup")
+    if (not isinstance(target, str) or not _NAME.fullmatch(target) or target.startswith(".")
+            or not isinstance(previous, dict) or not isinstance(next_record, dict)
+            or (backup_name is not None and not re.fullmatch(r"\.rollback-[0-9a-f]{32}", str(backup_name)))):
+        raise _Stop("rejected", "recovery_required", "Activation journal fields are invalid.")
+    destination = store / "files" / target
+    current = _read_file(destination, MAX_TARGET_BYTES)
+    complete = (_read_json(store / "installed.json") == next_record and current is not None
+                and hashlib.sha256(current).hexdigest() == next_record.get("sha256"))
+    if rollback or not complete:
+        if backup_name is not None:
+            old = _require(store / "files" / backup_name, MAX_TARGET_BYTES)
+            if hashlib.sha256(old).hexdigest() != journal.get("backup_sha256"):
+                raise _Stop("rejected", "recovery_required", "Activation backup hash is invalid.")
+            _atomic_bytes(destination, old)
+        else:
+            destination.unlink(missing_ok=True)
+        if previous:
+            _atomic_bytes(store / "installed.json", json.dumps(previous, allow_nan=False).encode("utf-8"))
+        else:
+            (store / "installed.json").unlink(missing_ok=True)
+    path.unlink()
+    if backup_name is not None:
+        try:
+            (store / "files" / backup_name).unlink(missing_ok=True)
+        except OSError:
+            pass  # Commit/recovery is complete; an unused backup may remain.

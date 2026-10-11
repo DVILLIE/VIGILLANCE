@@ -86,7 +86,7 @@ def published_contract(config: dict[str, Any] | None = None, *, job: dict[str, A
             DFSS_NOTE,
             "Nested jobs take a portion of the parent rate. Minimum rates across jobs cannot sum above 100%.",
             MEASURED_NOTE,
-            "20% (CpuRate 2000) is DVielle's published analysis-helper cap. It is not a Microsoft-mandated agent budget.",
+            "20% (CpuRate 2000) is D\'Vielle's published analysis-helper cap. It is not a Microsoft-mandated agent budget.",
         ],
     }
 

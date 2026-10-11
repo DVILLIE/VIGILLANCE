@@ -1,0 +1,22 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-702c8bca42b24c65b08c14c4ddb2a322",
+  "old_runtime_sha256": "4f2ceb115cdc80af78ddfd20efcc76fd84f7717070785d113a456608ef052bbc",
+  "new_runtime_sha256": "ca393448f5436bc26376f2146d73ca9e3400929543d8baca00fbf538a66a5fe8",
+  "changes": [
+    {
+      "path": "agent/assessment/engine.py",
+      "old_sha256": "fd8e2f61e171653337dd4681783a219686144a70eb92015b1f1f8614f2fb25ab",
+      "new_sha256": "21b6e53bfdabafffc0dfb8f7691e54bc46c85362285a59328cd2cb3caefbfe6f"
+    },
+    {
+      "path": "agent/assessment/tls_observer.py",
+      "old_sha256": "112e9e5b74d18118cbe114bd4a95c5988f116f673703f1b11c7040db55b0f45a",
+      "new_sha256": "e4b3b82bfd754b2111314d907b24db2a90ca3ee148e7ddf1e8402774d973dbfd"
+    },
+    {
+      "path": "dvielle/gui/assessment.py",
+      "old_sha256": "0f5ebc46c47cbf9d2342cad85eb67e2d13fc195c98826bb476006fc8e8c5c139",
+      "new_sha256": "a8fb16226e81524c2a947572d5a588d2ad440eb82f5a384b79c2c813dc738d74"
+    }
+  ]
+}

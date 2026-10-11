@@ -1,6 +1,6 @@
-# Install and run DVielle on Windows
+# Install and run D'Vielle on Windows
 
-Updated 2026-09-30 for DVielle 2.4.2. These commands apply to the Windows PC where monitoring will run. DVielle is not a cloud or server install. The resident task starts at interactive logon for the account that installed it. It does not watch the machine while that account is logged off.
+Updated 2026-09-30 for D'Vielle 2.4.2. These commands apply to the Windows PC where monitoring will run. D'Vielle is not a cloud or server install. The resident task starts at interactive logon for the account that installed it. It does not watch the machine while that account is logged off.
 
 ## Where the files live
 
@@ -14,7 +14,7 @@ A selected `-InstallDir` is that installation’s only config and data root. Sta
 2. Open the unzipped project folder (the source tree, with `installer` next to `agent` and `pyproject.toml`) and run `installer\Install-DVielle.bat`. Approve its Windows elevation prompt. The default destination is `C:\DVILLIE`.
 3. The installer uses `C:\DVILLIE\.venv` (or `<InstallDir>\.venv` when you passed `-InstallDir`), syncs `[project].dependencies` (including `cryptography`) with `pip install --upgrade --upgrade-strategy only-if-needed -e ".[windows]"`, checks imports, requests failure auditing, registers one resident task, starts it and verifies a fresh heartbeat from its process. A file copy onto an existing install does not refresh `.venv` by itself. From that install root, run the same pip command, then `python -m pip check` and `scripts\smoke_test.py`, before starting the resident. `smoke_test.py` imports `agent.update.tuf`, which needs `cryptography`. The install stops before the task is enabled if that import fails.
 
-Existing configuration and data are preserved when copying from another checkout. Existing DVielle startup triggers are disabled before the old runtime is asked to stop gracefully. If its windows remain open, exit DVielle from its tray menu and retry. An older installation without the shared runtime protocol may also need to be closed manually. No arbitrary Python process is force-killed.
+Existing configuration and data are preserved when copying from another checkout. Existing D'Vielle startup triggers are disabled before the old runtime is asked to stop gracefully. If its windows remain open, exit D'Vielle from its tray menu and retry. An older installation without the shared runtime protocol may also need to be closed manually. No arbitrary Python process is force-killed.
 
 Installation stops on a failed prerequisite or native command. A failed update may leave startup disabled and partially updated application files; preserve configuration and retry from a complete checkout after resolving the reported error. This installer does not provide an atomic package rollback.
 

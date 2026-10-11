@@ -205,7 +205,7 @@ def _fresh(security: dict) -> dict:
 
 
 def test_version_is_2_1_0():
-    assert get_version() == "2.4.2"
+    assert get_version() == "2.5.0"
     assert PRIVILEGED_AUTO_UPDATE is False
 
 
@@ -390,7 +390,7 @@ def test_pro_launch_is_limited_until_a_network_probe_and_refuses_a_bad_probe(tmp
         )
     finally:
         _mutate_depth.reset(token)
-    assert verified["isolation"] == "VERIFIED"
+    assert verified["isolation"] == "LIMITED"  # A network probe cannot attest the entire guest boundary.
     assert verified["network_verification"] == "verified"
     assert any("Group Policy" in item for item in verified["assumptions"])
     assert "not a claim that malware cannot leave the sandbox" in verified["message"]
@@ -650,7 +650,8 @@ def test_pipe_acl_refuses_strangers_and_undefined_ops(tmp_path: Path):
     sddl = build_pipe_sddl("S-1-5-21-100-200-300-400")
     assert "S-1-5-21-100-200-300-400" in sddl
     assert "S-1-1-0" not in sddl
-    assert "(A;;GRGW;;;SY)" in sddl
+    assert "(A;;GA;;;SY)" in sddl
+    assert "(A;;0x0012019b;;;S-1-5-21-100-200-300-400)" in sddl
     with pytest.raises(ValueError):
         build_pipe_sddl("S-1-1-0")
     with pytest.raises(ValueError):

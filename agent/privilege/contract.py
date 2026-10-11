@@ -28,15 +28,20 @@ def undefined_op(op: object) -> bool:
     return op != DEFINED_OP
 
 
-def _path_ok(program: str) -> str | None:
-    if not isinstance(program, str) or not program.strip():
+def _path_ok(program: str, *, must_exist: bool = True) -> str | None:
+    if not isinstance(program, str) or not program.strip() or len(program) > 32767:
         return "A program path is required."
     if any(ch in program for ch in _UNSAFE_PATH) or any(ord(ch) < 32 for ch in program):
         return "The program path was not safe to pass to the firewall."
     candidate = Path(program)
     if not candidate.is_absolute() or ".." in candidate.parts:
         return "The program path must be an absolute file path."
-    if not candidate.is_file():
+    if candidate.anchor.startswith("\\\\"):
+        return "The program path must be local; network and device namespace paths are refused."
+    try:
+        if must_exist and not candidate.is_file():
+            return "No program file was identified."
+    except (OSError, ValueError):
         return "No program file was identified."
     return None
 
@@ -54,21 +59,23 @@ def _remote_ok(value: str, families: set[str]) -> str | None:
     return str(network)
 
 
-def validate_restrict_params(params: object) -> tuple[dict[str, Any] | None, str]:
+def validate_restrict_params(params: object, *, recovery_only: bool = False) -> tuple[dict[str, Any] | None, str]:
     """Return a normalized parameter dict, or an error string. Does not mutate."""
     if not isinstance(params, dict):
         return None, "Firewall parameters must be an object."
     if set(params) - _PARAM_KEYS:
         return None, "The firewall request contains a parameter that is not allowed."
     program = params.get("program")
-    path_error = _path_ok(program) if isinstance(program, str) else "A program path is required."
+    # Recovery compares the saved path against an owned rule and never runs
+    # that file. Uninstalling an app must not strand its restriction journal.
+    path_error = _path_ok(program, must_exist=not recovery_only) if isinstance(program, str) else "A program path is required."
     if path_error:
         return None, path_error
     profile = params.get("profile", "Any")
-    if profile not in _PROFILES:
+    if not isinstance(profile, str) or profile not in _PROFILES:
         return None, "The firewall profile must be Domain, Private, Public, or Any."
     raw_families = params.get("address_families", ["IPv4", "IPv6"])
-    if not isinstance(raw_families, list) or not raw_families:
+    if not isinstance(raw_families, list) or not 1 <= len(raw_families) <= 2:
         return None, "At least one address family is required."
     if any(not isinstance(item, str) for item in raw_families):
         return None, "Address families must be IPv4, IPv6, or both."

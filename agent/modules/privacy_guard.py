@@ -32,14 +32,22 @@ class PrivacyCheckResult:
 
 
 def _read_reg_dword(hive, path: str, name: str) -> int | None:
+    return _read_reg_observation(hive, path, name)[0]
+
+
+def _read_reg_observation(hive, path: str, name: str) -> tuple[int | None, str]:
     if not IS_WINDOWS or winreg is None:
-        return None
+        return None, 'unsupported'
     try:
         with winreg.OpenKey(hive, path) as key:
             value, kind = winreg.QueryValueEx(key, name)
-            return value if kind == winreg.REG_DWORD and type(value) is int else None
-    except OSError:
-        return None
+            return (value, 'observed') if kind == winreg.REG_DWORD and type(value) is int else (None, 'invalid_type')
+    except FileNotFoundError:
+        return None, 'not_configured'
+    except PermissionError:
+        return None, 'access_denied'
+    except OSError as exc:
+        return None, 'access_denied' if getattr(exc, 'winerror', None) == 5 else 'unavailable'
 
 
 def _windows_edition() -> str | None:
@@ -119,20 +127,26 @@ class PrivacyGuard:
         results: list[PrivacyCheckResult] = []
         edition = _windows_edition()
         for check in _privacy_checks():
-            value = _read_reg_dword(check["hive"], check["path"], check["value"])
+            value, state = _read_reg_observation(check["hive"], check["path"], check["value"])
             expected = check["expected"]
             result = PrivacyCheckResult(check["name"], str(expected),
-                                        str(value) if value is not None else "not configured or unreadable",
-                                        None if value is None else value == expected)
+                                        str(value) if value is not None else state.replace('_', ' '),
+                                        False if state == 'not_configured' else None if value is None else value == expected)
             if check["name"] == "AllowTelemetry":
                 floor = _diagnostic_floor(edition)
                 result.expected = f"supported policy minimum {floor}" if floor is not None else "edition unavailable"
                 result.passed = (max(floor, value) == floor
                                  if floor is not None and value in (0, 1, 2, 3) else None)
+                if state == 'not_configured':
+                    result.passed = False  # observed absence needs review, not a read failure
                 result.detail = (f"Edition: {edition or 'unavailable'}. "
                                  f"Supported diagnostic policy floor: {floor if floor is not None else 'unavailable'}. "
                                  "A configured 0 does not turn diagnostics off on Home/Pro. "
                                  "Registry policy does not prove effective enforcement or zero Microsoft traffic.")
+                if state == 'not_configured':
+                    result.detail += (' This policy is absent. Windows permits required diagnostic data '
+                                      'and user choice of optional data when the policy is not configured; '
+                                      'the effective user/MDM settings were not measured.')
             results.append(result)
         results.extend(self._check_hosts_entries())
         for result in results:

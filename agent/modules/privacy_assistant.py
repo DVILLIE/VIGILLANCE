@@ -137,7 +137,7 @@ def assess_microsoft_block(
     check = maps if maps is not None else (maps_reader or query_maps)()
     result = check.result if isinstance(check, MapsCheck) else "unavailable"
     consequence = (
-        "DVielle will not block MAPS, Windows Update, or certificate revocation endpoints. "
+        "D\'Vielle will not block MAPS, Windows Update, or certificate revocation endpoints. "
         "Blocking them can degrade cloud-delivered protection, definition updates, and TLS validation. "
         f"MAPS ValidateMapsConnection result: {result}. {MAPS_GUIDANCE}"
     )

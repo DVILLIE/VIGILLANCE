@@ -133,13 +133,13 @@ def test_light_colors_stay_cool_on_paper() -> None:
     assert blue >= red
     assert T.LIGHT["accent"].upper() != "#9D174D"
     assert T.LIGHT["orbit"].upper() != "#B45309"
-    assert T.DARK["accent"].upper() == "#FBCFE8"
+    assert T.DARK["accent"].upper() == "#91C9FF"
     mark = draw_emblem(56, 1.0)
     assert mark.size == (56, 56)
     assert mark.getextrema()[3][1] > 200
 
 
-def test_the_day_changes_color_and_orbit() -> None:
+def test_approved_brand_stays_stable_and_day_changes_etched_motif() -> None:
     from datetime import date
 
     from dvielle.gui import graphics as drawings
@@ -148,10 +148,10 @@ def test_the_day_changes_color_and_orbit() -> None:
     rose = drawings.ring_pair("Processor", 40)[1]
     second = T.install_day(date(2026, 10, 1))
     nxt = drawings.ring_pair("Processor", 40)[1]
-    assert first["name"] != second["name"]
+    assert first["name"] == second["name"] == "Nexus Fold Prime"
     assert first["phase"] != second["phase"]
     assert rose.tobytes() != nxt.tobytes()
-    assert "Today ·" in (ROOT / "dvielle" / "gui" / "app.py").read_text(encoding="utf-8")
+    assert 'text="NEXUS FOLD PRIME"' not in (ROOT / "dvielle" / "gui" / "app.py").read_text(encoding="utf-8")
 
 
 def test_selected_tab_label_uses_on_accent() -> None:
@@ -176,7 +176,7 @@ def test_selected_tab_label_uses_on_accent() -> None:
     paint_selected_segment(object())
 
 
-def test_only_the_logo_animates() -> None:
+def test_observation_instruments_remain_quiet_with_interaction_motion() -> None:
     plan = motion_plan()
     assert plan["animates"] == "logo"
     assert plan["intro_angles"][0] != 0
@@ -218,7 +218,8 @@ def test_only_the_logo_animates() -> None:
         icon = drawings.icon_pair(name)[1]
         assert icon.size == (drawings.NAV_ICON, drawings.NAV_ICON)
         assert _accent_pixels(icon) > 8
-    assert "RingCard" in app
+    assert "MetricTile" in app
+    assert "SpatialStage" in app
     assert "StatusOrb" in app
     assert "link_map" in app
     assert "Still picture" not in app

@@ -15,7 +15,7 @@ logger = logging.getLogger('dvielle')
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description='DVielle monitoring agent')
+    parser = argparse.ArgumentParser(description='D\'Vielle monitoring agent')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--once', action='store_true', help='One observe-only diagnostic pass')
     group.add_argument('--stop', action='store_true', help='Request graceful shutdown of the current owner')
@@ -27,10 +27,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if request_shutdown(data_dir) else 1
         rt = build_runtime(config_dir=args.config_dir)
     except RuntimeAlreadyRunning:
-        print('DVielle is already running; no duplicate collector was started.')
+        print('D\'Vielle is already running; no duplicate collector was started.')
         return 0 if not args.once else 2
     except Exception as exc:
-        print(f'DVielle startup failed: {exc}', file=sys.stderr)
+        print(f"D'Vielle startup failed: {exc}", file=sys.stderr)
         return 1
 
     from dvielle.gui.notify_policy import set_notification_mode

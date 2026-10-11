@@ -76,7 +76,7 @@ def failed_logon_copy(rows: list[dict[str, Any]] | None, coverage: str) -> str:
     if not rows:
         return (
             "No failed logons were stored in the covered window. "
-            "This is only the events DVielle recorded."
+            "This is only the events D\'Vielle recorded."
         )
     return "\n".join(_format_logon_rows(rows))
 

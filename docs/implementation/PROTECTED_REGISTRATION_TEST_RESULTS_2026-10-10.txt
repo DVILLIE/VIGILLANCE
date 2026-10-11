@@ -1,0 +1,277 @@
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 32%]
+......................................................................ss [ 43%]
+ssssss.................................................................. [ 54%]
+........................................................................ [ 65%]
+........................................................................ [ 76%]
+........................................................................ [ 87%]
+........................................................................ [ 98%]
+.........                                                                [100%]
+============================== warnings summary ===============================
+tests/test_logo_animation.py::test_quantum_timing_and_electrical_frames
+tests/test_logo_animation.py::test_quantum_timing_and_electrical_frames
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+tests/test_logo_animation.py::test_brand_gif_builds_intro_and_idle
+tests/test_logo_animation.py::test_brand_gif_builds_intro_and_idle
+  C:\DVILLIE-main-repairs\tests\test_logo_animation.py:19: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for a, b in zip(left.getdata(), right.getdata()):
+
+tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
+  C:\DVILLIE-main-repairs\tests\test_logo_animation.py:72: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for pixel in idle[0].getdata():
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_nexus_fold_prime.py:65: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:87: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:102: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:136: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:163: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:175: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:205: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+SKIPPED [1] tests\test_nexus_fold_prime.py:221: Tk unavailable: Can't find a usable tk.tcl in the following directories: 
+    C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tcl8.6/tk8.6 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/lib/tk8.6 C:/Users/ravik/AppData/Local/lib/tk8.6 C:/Users/ravik/AppData/Local/Python/library
+
+C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl: couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+couldn't read file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl": no such file or directory
+    while executing
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/scrlbar.tcl"
+    (in namespace eval "::" script line 1)
+    invoked from within
+"namespace eval :: [list source -encoding utf-8 [file join $::tk_library $file.tcl]]"
+    (procedure "SourceLibFile" line 2)
+    invoked from within
+"SourceLibFile scrlbar"
+    (in namespace eval "::tk" script line 9)
+    invoked from within
+"namespace eval ::tk {
+	SourceLibFile icons
+	SourceLibFile button
+	SourceLibFile entry
+	SourceLibFile listbox
+	SourceLibFile menu
+	SourceLibFile panedw..."
+    (file "C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl" line 506)
+    invoked from within
+"source -encoding utf-8 C:/Users/ravik/AppData/Local/Python/pythoncore-3.12-64/tcl/tk8.6/tk.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list source -encoding utf-8 $file]"
+
+
+This probably means that tk wasn't installed properly.
+649 passed, 8 skipped, 9 warnings in 99.88s (0:01:39)

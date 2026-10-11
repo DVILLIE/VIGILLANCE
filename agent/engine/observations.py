@@ -26,9 +26,9 @@ def from_security(status: SecurityStatus) -> list[Observation]:
                 title_simple=title,
                 why_it_matters=(
                     "If this protection is off, unwanted connections have an easier time reaching the computer. "
-                    "DVielle only reports a status it could actually read."
+                    "D\'Vielle only reports a status it could actually read."
                 ),
-                if_ignored="It stays off until you turn it on or tell DVielle to leave it.",
+                if_ignored="It stays off until you turn it on or tell D\'Vielle to leave it.",
                 evidence_refs=[f"{component} reported off."],
                 severity="high",
                 confidence="high",
@@ -75,7 +75,7 @@ def from_speed_sample(
         evidence_refs=[f"App: {name}", f"Process id: {pid}"] + ([f"File: {path}"] if path else []),
         severity="medium",
         confidence="high" if identity_ok else "medium",
-        recommended_action="Pause it if you are not using it, or tell DVielle this app is OK.",
+        recommended_action="Pause it if you are not using it, or tell D\'Vielle this app is OK.",
         resolution_steps=["Keep it on, close it, or leave it for now."],
         reversible="partial",
         identity_ok=identity_ok and bool(name),
@@ -115,7 +115,7 @@ def from_disk_status(status) -> Observation | None:
         title_simple="Free space on this computer is very low" if critical else "Temporary files may be taking up space",
         why_it_matters=(
             f"About {free_gb:.1f} GB is free on {status.mount}. "
-            "DVielle can remove leftover temporary files, and it will not delete documents."
+            "D\'Vielle can remove leftover temporary files, and it will not delete documents."
         ),
         if_ignored="The disk can fill up, and saving files or updates may fail.",
         evidence_refs=[
@@ -179,7 +179,7 @@ def _startup(item: dict, *, mismatch: bool, new: bool, expected_path: str, basel
         severity, confidence = "medium", "medium"
     else:
         title = f"{name} is still set to start with the computer"
-        why = "You already made a choice about this startup. DVielle is checking that it still matches."
+        why = "You already made a choice about this startup. D\'Vielle is checking that it still matches."
         kind = "suspicious_startup"
         severity, confidence = "medium", "high"
     return Observation(

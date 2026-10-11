@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "id": "40eb69a6-8a7b-407e-be6a-e7837f48dbce",
+  "started": "2026-10-10T14:08:17.815514+00:00",
+  "state": "completed",
+  "scope": {
+    "target": "[redacted origin]",
+    "authority": "[redacted]",
+    "authorized": true,
+    "expires_at": 1791641597.7886584,
+    "share_runtime_versions": false,
+    "tls_handshake_only": true
+  },
+  "findings": [
+    {
+      "id": "1f3af6c3-425d-4cea-9fc3-a13349d3546a",
+      "kind": "quantum_readiness",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T14:08:18.067150+00:00",
+      "observation": "The measured TLS connection presents a classical certificate key.",
+      "resolution": "Treat hybrid key exchange and certificate authentication as separate migration requirements.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.tls"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "c1b89cb3-27ef-4cbd-8b0e-c309f294e747"
+      ]
+    }
+  ],
+  "observations": {
+    "tls": {
+      "state": "verified_handshake_observed",
+      "port": 443,
+      "tls_version": "TLSv1.3",
+      "cipher": [
+        "TLS_AES_128_GCM_SHA256",
+        "TLSv1.3",
+        128
+      ],
+      "certificate_and_hostname_verified": true,
+      "finished_verified": true,
+      "key_exchange_group_id": 4588,
+      "key_exchange_group": "X25519MLKEM768",
+      "post_quantum_hybrid_exchange": "observed",
+      "peer_certificate": {
+        "state": "observed",
+        "public_key_algorithm": "RSA",
+        "public_key_size_bits": 2048,
+        "certificate_signature_oid": "1.2.840.113549.1.1.11",
+        "quantum_migration": "review_classical_certificate_key",
+        "negotiated_key_exchange": "not_measured",
+        "negotiated_authentication": "not_measured"
+      },
+      "post_quantum_authentication": "not_established_by_this_observer",
+      "private_keys_saved": false,
+      "traffic_secrets_saved": false,
+      "scope": "One actual TLS handshake; no HTTP or policy mutation"
+    },
+    "assessment_resources": {
+      "scope": "Assessment process and descendants visible at checkpoints; not every D'Vielle process.",
+      "samples": [
+        {
+          "observed_monotonic": 694174.8057323,
+          "elapsed_seconds": null,
+          "process_count": 1,
+          "rss_sum_bytes": 30015488,
+          "cpu_core_percent": null,
+          "cpu_lower_bound_core_percent": null,
+          "cpu_coverage": "warming_up",
+          "cpu_machine_percent": null,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 1,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 694175.0756116,
+          "elapsed_seconds": 0.26987929991446435,
+          "process_count": 1,
+          "rss_sum_bytes": 41185280,
+          "cpu_core_percent": 63.685877373505164,
+          "cpu_lower_bound_core_percent": 63.685877373505164,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 15.921469343376291,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        }
+      ],
+      "sampled_peak_rss_sum_bytes": 41185280,
+      "total_samples": 2,
+      "retained_sample_capacity": 1024,
+      "discarded_sample_details": 0,
+      "coverage": "sampled",
+      "notes": [
+        "Shared pages can be counted in more than one RSS; this is not unique physical memory.",
+        "Short-lived processes between checkpoints and exited-process final CPU are not measured.",
+        "New processes require a second sample for a CPU delta; missing costs are not zero.",
+        "Checkpoint peaks are not continuous peaks or foreground-workload benchmarks.",
+        "No hard CPU cap, no zero-slowdown guarantee and no other user process termination."
+      ]
+    }
+  },
+  "coverage": [
+    "One verified TLS handshake to the authorized origin; no HTTP request or policy mutation."
+  ],
+  "mutations": [],
+  "claims": "Observed assessment only; no enforcement or exploitability certification.",
+  "finished": "2026-10-10T14:08:18.067196+00:00",
+  "evidence_records": {
+    "observations.tls": {
+      "id": "c1b89cb3-27ef-4cbd-8b0e-c309f294e747",
+      "ts": "2026-10-10T14:08:18.104648+00:00",
+      "sensor": "assessment.tls",
+      "entity": "40eb69a6-8a7b-407e-be6a-e7837f48dbce",
+      "payload": {
+        "source_path": "observations.tls",
+        "sha256": "3dc4b8e531b03044fc251bb1aac6cedbc7da942e5be8679dd843484975fa4dfa",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.assessment_resources": {
+      "id": "6fa73889-0308-41f0-ae90-01c1e462da3a",
+      "ts": "2026-10-10T14:08:18.090435+00:00",
+      "sensor": "assessment.assessment_resources",
+      "entity": "40eb69a6-8a7b-407e-be6a-e7837f48dbce",
+      "payload": {
+        "source_path": "observations.assessment_resources",
+        "sha256": "5176217fc61d45a03e2d08557ab5a2231cd08cd1288d86ad42f60977085ef8c8",
+        "coverage": "sampled",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "scope.target": {
+      "id": "4e06c9ed-5e73-4c6d-83e2-3fb9be4d46a2",
+      "ts": "2026-10-10T14:08:18.104807+00:00",
+      "sensor": "assessment.target",
+      "entity": "40eb69a6-8a7b-407e-be6a-e7837f48dbce",
+      "payload": {
+        "source_path": "scope.target",
+        "sha256": "e2933f77dc7541884e8a224eb7cbb9d311ca0ae2adcd06ff3c5421629400725c",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    }
+  },
+  "history_maintenance": {
+    "deleted": 0,
+    "enabled": false
+  },
+  "export": {
+    "created": "2026-10-10T14:08:18.104850+00:00",
+    "identifiers_included": false
+  }
+}

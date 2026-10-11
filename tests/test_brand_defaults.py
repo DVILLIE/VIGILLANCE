@@ -61,7 +61,7 @@ def test_editor_rules_are_not_part_of_the_product_tree() -> None:
 def test_windows_agent_note_names_dvielle() -> None:
     text = (ROOT / "WINDOWS_SYSTEM_AGENT.md").read_text(encoding="utf-8")
     assert "cursor.com" not in text.lower()
-    assert "DVielle" in text
+    assert "D'Vielle" in text
 
 def test_brand_icon_and_gif_paths_resolve() -> None:
     from dvielle.brand import ICON_ICO, LOGO_ANIMATED_GIF, LOGO_STILL_PNG, load_brand_pil_image

@@ -20,16 +20,16 @@
 
 [Setup]
 AppId={{8F4C1A2E-6B7D-4E91-9C3A-D5E2F80B14C6}
-AppName=DVielle
+AppName=D'Vielle
 AppVersion={#AppVersion}
-AppVerName=DVielle {#AppVersion}
+AppVerName=D'Vielle {#AppVersion}
 AppPublisher=Ravikant R. T.
 AppPublisherURL=https://github.com/DVILLIE/VIGILLANCE
 AppSupportURL=https://github.com/DVILLIE/VIGILLANCE
 AppCopyright=Copyright (c) 2026 Ravikant R. Tayade / KT Trading System
 VersionInfoVersion={#VersionInfoVersion}
-VersionInfoProductName=DVielle
-VersionInfoDescription=DVielle setup (official Python 3.12 bootstrap plus the Limited installer)
+VersionInfoProductName=D'Vielle
+VersionInfoDescription=D'Vielle setup (held pending protected bootstrap staging)
 DefaultDirName={autopf}\DVielle
 CreateAppDir=no
 DisableDirPage=yes
@@ -54,29 +54,15 @@ LicenseFile=..\LICENSE
 
 [Files]
 Source: "{#PayloadDir}/*"; DestDir: "{tmp}\DViellePayload"; Flags: recursesubdirs createallsubdirs ignoreversion
-Source: "{#PythonInstaller}"; DestDir: "{tmp}"; DestName: "python-3.12.10-amd64.exe"; Flags: ignoreversion
+Source: "{#PythonInstaller}"; DestDir: "{tmp}"; DestName: "python-3.14.8-amd64.exe"; Flags: ignoreversion
 
 [Code]
-procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ResultCode: Integer;
-  Params: String;
+function InitializeSetup: Boolean;
 begin
-  if CurStep <> ssPostInstall then
-    Exit;
-  Params :=
-    '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{tmp}\DViellePayload\installer\bootstrap-dvielle.ps1') + '" ' +
-    '-SourceRoot "' + ExpandConstant('{tmp}\DViellePayload') + '" ' +
-    '-InstallDir "C:\DVILLIE" ' +
-    '-PythonInstaller "' + ExpandConstant('{tmp}\python-3.12.10-amd64.exe') + '"';
-  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
-  begin
-    MsgBox('Could not start the DVielle installer.', mbError, MB_OK);
-    Abort;
-  end;
-  if ResultCode <> 0 then
-  begin
-    MsgBox('DVielle installation failed with exit code ' + IntToStr(ResultCode) + '. The logon task was not set to a higher run level by this setup.', mbError, MB_OK);
-    Abort;
-  end;
+  { The current payload target is user-writable temporary storage. Do not
+    execute an elevated script from it and then attempt an ACL preflight.
+    InitializeSetup=False aborts before application-file installation:
+    https://jrsoftware.org/ishelp/topic_scriptevents.htm }
+  MsgBox('This setup wrapper is held until protected bootstrap staging is implemented. Use the Limited installer from a verified, protected source stage. See docs/REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md.', mbError, MB_OK);
+  Result := False;
 end;

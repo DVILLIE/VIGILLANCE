@@ -43,7 +43,20 @@ def test_motion_plan_waits_until_the_mark_is_visible() -> None:
     assert plan["hidden_ms"] >= 50
     assert IDLE_GAINS[0] == 1.0
     assert IDLE_GAINS[1] > 1.05
-    assert plan["source"] == "brand_gif_or_drawn"
+    assert plan["source"] == "quantum_key_or_brand_gif_or_drawn"
+
+
+def test_quantum_timing_and_electrical_frames():
+    from dvielle.gui.quantum import render, CIRCUIT_SECONDS, THUNDER_SECONDS, OUTER, INNER, position
+    assert CIRCUIT_SECONDS == 45
+    assert THUNDER_SECONDS == 5
+    quiet = render(128, 2)
+    surge = render(128, .575)
+    assert _changed_pixels(quiet, surge) > 100
+    assert position(OUTER, .12) == position(OUTER, 1.12) or __import__("math").dist(position(OUTER, .12), position(OUTER, 1.12)) < 1e-9
+    distances = [(t/100, __import__('math').dist(position(OUTER,t/4500+.12),position(INNER,t/4500+.62))) for t in range(4500)]
+    assert min(d for t,d in distances) < 10
+    assert max(d for t,d in distances) > 135
 
 
 def test_intro_turns_and_idle_pulse_changes_pixels() -> None:
@@ -144,7 +157,7 @@ def test_intro_waits_for_a_visible_window_then_plays(monkeypatch, emblem_root) -
     emblem_root.update()
     assert mark.winfo_viewable()
     _pump(emblem_root, 0.45)
-    assert mark._intro_i >= 3
+    assert mark._idle_i >= 3
     assert mark._current.tobytes() != hidden
     assert mark._photo is not None
     mark._set_scaling(1.5, 1.5)
@@ -187,7 +200,9 @@ def test_missing_image_falls_back_to_letters(monkeypatch, emblem_root) -> None:
     def _boom(_size: int):
         raise OSError("brand image missing")
 
+    monkeypatch.setattr(__import__("dvielle.gui.quantum", fromlist=["MASTER"]), "MASTER", ROOT / "missing-quantum.png")
     monkeypatch.setattr(logo_mark, "build_brand_gif_frames", lambda _size: None)
+    monkeypatch.setattr(logo_mark, "build_nexus_frames", lambda _size: None)
     monkeypatch.setattr(logo_mark, "build_frames", _boom)
     monkeypatch.setattr(logo_mark, "IDLE_MS", 20)
     monkeypatch.setattr(logo_mark, "HIDDEN_MS", 10)

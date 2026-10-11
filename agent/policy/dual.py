@@ -54,7 +54,7 @@ HANDLER_KIND: dict[str, ActionKind] = {
 }
 
 _UNDO: dict[ActionKind, str] = {
-    ActionKind.RESTRICT_NETWORK: "Remove the DVielle outbound firewall rule for this program.",
+    ActionKind.RESTRICT_NETWORK: "Remove the D\'Vielle outbound firewall rule for this program.",
     ActionKind.DISABLE_STARTUP: "Rename the .dvielle-disabled startup file back to its original name.",
     ActionKind.SET_ASR_RULE: "Set the same ASR rule back to the mode recorded before this change.",
     ActionKind.SET_CFA_MODE: "Set controlled folder access back to the mode recorded before this change.",

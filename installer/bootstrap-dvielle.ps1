@@ -1,51 +1,53 @@
 #Requires -Version 5.1
 <#
   Entry point for the setup executable.
-  Installs the pinned official Python 3.12.10 build only when 3.12 is missing,
+  Installs pinned official Python 3.14.8 when the protected runtime is missing,
   then calls install-dvielle.ps1 with -RunLevel Limited.
   This script has no RunLevel parameter. It does not elevate the resident task.
 #>
 [CmdletBinding()]
 param(
     [string]$SourceRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$InstallDir = 'C:\DVILLIE',
+    [string]$InstallDir = (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)) 'DVielle'),
     [string]$PythonInstaller = ''
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 
-function Get-DviellePython312Pin {
-    $pinPath = Join-Path $PSScriptRoot 'python-3.12.10.pin.json'
+function Get-DviellePython314Pin {
+    $pinPath = Join-Path $PSScriptRoot 'python-3.14.8.pin.json'
     if (-not (Test-Path -LiteralPath $pinPath)) { throw "Missing Python pin: $pinPath" }
     return (Get-Content -LiteralPath $pinPath -Raw | ConvertFrom-Json)
 }
 
-function Test-DviellePython312 {
-    foreach ($candidate in @(@('py', '-3.12'), @('python3.12'), @('python'))) {
-        try {
-            $program = $candidate[0]
-            $prefix = @($candidate | Select-Object -Skip 1)
-            $result = & $program @prefix -c 'import sys; print(sys.executable); sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)' 2>$null
-            if ($LASTEXITCODE -eq 0 -and $result -and (Test-Path -LiteralPath ([string]$result).Trim())) {
-                return ([string]$result).Trim()
-            }
-        } catch { continue }
-    }
-    return $null
+function Test-DviellePython314 {
+    return (Get-DvielleTrustedPython314)
 }
 
-function Install-DviellePinnedPython312 {
+function Install-DviellePinnedPython314 {
     param([Parameter(Mandatory)][string]$InstallerPath)
-    $pin = Get-DviellePython312Pin
+    $pin = Get-DviellePython314Pin
     $resolved = (Resolve-Path -LiteralPath $InstallerPath).Path
-    $hash = (Get-FileHash -LiteralPath $resolved -Algorithm SHA256).Hash
+    Assert-DvielleTrustedExecutionTree $resolved
+    $lease = [IO.File]::Open($resolved,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    try {
+    $hash = ([BitConverter]::ToString($algorithm.ComputeHash($lease))).Replace('-','')
     $expected = ([string]$pin.sha256).Trim().ToUpperInvariant()
     if ($hash -ne $expected) {
         throw 'Python installer hash does not match the pin. Refusing to run it.'
     }
-    $length = (Get-Item -LiteralPath $resolved).Length
+    $length = $lease.Length
     if ([int64]$length -ne [int64]$pin.size) {
         throw 'Python installer size does not match the pin. Refusing to run it.'
+    }
+    $signature = Get-AuthenticodeSignature -LiteralPath $resolved
+    if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'CN=Python Software Foundation(?:,|$)') {
+        throw 'Valid Python Software Foundation signature required.'
+    }
+    $runtimeTarget = [string]$pin.target_directory
+    if ((Test-Path -LiteralPath $runtimeTarget) -or -not (Test-DvielleProtectedAncestors $runtimeTarget)) {
+        throw 'Runtime destination exists or has unsafe ancestors; review it before replacement.'
     }
     $log = Join-Path $env:SystemRoot ('Temp\DVielle-' + [string]$pin.filename + '.log')
     $arguments = New-Object 'System.Collections.Generic.List[string]'
@@ -69,26 +71,29 @@ function Install-DviellePinnedPython312 {
     if ($proc.ExitCode -eq 3010) {
         Write-Host 'Python reported that a reboot may be required (exit 3010). Continuing this install.'
     }
+    } finally { $algorithm.Dispose(); $lease.Dispose() }
 }
 
-if (-not (Test-DvielleAdmin)) { throw 'Run the DVielle setup as Administrator.' }
-Write-Host 'DVielle setup. The resident logon task stays Limited.'
+if (-not (Test-DvielleAdmin)) { throw 'Run the D''Vielle setup as Administrator.' }
+$SourceRoot = Resolve-DvielleRoot $SourceRoot
+Assert-DvielleTrustedExecutionTree $SourceRoot
+Write-Host 'D''Vielle setup. The resident logon task stays Limited.'
 
-$python = Test-DviellePython312
+$python = Test-DviellePython314
 if (-not $python) {
     if (-not $PythonInstaller) {
-        throw 'Python 3.12 is not installed. Use the DVielle setup executable, which bundles the official installer, or install Python 3.12 from python.org and run Install-DVielle.bat.'
+        throw 'Protected Python 3.14.8 is unavailable. Use the verified official runtime installer from the protected stage.'
     }
-    Install-DviellePinnedPython312 -InstallerPath $PythonInstaller
-    $python = Test-DviellePython312
+    Install-DviellePinnedPython314 -InstallerPath $PythonInstaller
+    $python = Test-DviellePython314
     if (-not $python) {
-        throw 'The Python installer finished, but Python 3.12 was not found on PATH. See C:\Windows\Temp\DVielle-python-3.12.10-amd64.exe.log'
+        throw 'The installer finished, but protected Python 3.14.8 was not found. Inspect the Windows Temp installer log.'
     }
 }
 
-& $python -c 'import tkinter'
+& $python -I -c 'import tkinter'
 if ($LASTEXITCODE -ne 0) {
-    throw 'Python 3.12 is present, but tkinter did not import. CustomTkinter needs Tcl/Tk from the official installer (Include_tcltk=1).'
+    throw 'Python 3.14 is present, but tkinter did not import. The official installer must include Tcl/Tk (Include_tcltk=1).'
 }
 
-& (Join-Path $PSScriptRoot 'install-dvielle.ps1') -SourceRoot $SourceRoot -InstallDir $InstallDir -RunLevel Limited
+& (Join-Path $PSScriptRoot 'install-dvielle.ps1') -SourceRoot $SourceRoot -InstallDir $InstallDir -PythonExecutable $python -RunLevel Limited

@@ -1,0 +1,33 @@
+
+  DVIELLE SMOKE TEST
+  ==================
+  Root: C:\DVILLIE-main-repairs
+
+  PASS  Supported Python runtime
+  PASS  import dvielle
+  PASS  chat assistant removed
+  PASS  import agent.main
+  PASS  import agent.controller
+  PASS  import agent.store.db
+  PASS  resource_advisor
+  PASS  microsoft_guard
+  PASS  defender_health
+  PASS  edition_matrix
+  PASS  prevention
+  PASS  prevention_apply
+  PASS  firewall_assist
+  PASS  privilege
+  PASS  cpu_contract
+  PASS  sandbox
+  PASS  tuf
+  PASS  privilege_pipe
+  PASS  intel
+  PASS  privacy_assistant
+  PASS  experiences
+  PASS  passkeys
+  PASS  gui modules
+  PASS  config.yaml
+
+  ALL CHECKS PASSED
+
+No broken requirements found.

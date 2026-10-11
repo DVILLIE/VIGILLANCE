@@ -160,7 +160,7 @@ class AttacksWindow(ctk.CTkToplevel):
         if not live_rows:
             live = (
                 "No attack-related events yet.\n\n"
-                "With the agent STARTED, DVielle records:\n"
+                "With the agent STARTED, D\'Vielle records:\n"
                 "  - Failed Windows logons (Event 4625)\n"
                 "  - Browser watch (fake browsers, stealer/adware name hits, ad sidecars)\n"
                 "  - Suspicious outbound connections\n"
@@ -181,7 +181,7 @@ class AttacksWindow(ctk.CTkToplevel):
             browser_txt = (
                 "Browser watch has not reported yet.\n"
                 "Open a web browser you already use and keep the agent STARTED — "
-                "DVielle checks each cycle for lookalike browsers, stealer/adware "
+                "D\'Vielle checks each cycle for lookalike browsers, stealer/adware "
                 "process names, and non-browser ad-network connections.\n\n"
                 "Honest limit: this is heuristic defense, not a full antivirus or EDR. "
                 "We do not read your passwords or keystrokes."

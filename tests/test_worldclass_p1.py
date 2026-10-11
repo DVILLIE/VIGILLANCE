@@ -91,19 +91,25 @@ class _Prefs:
 
     def runner(self, script: str, timeout: float = 25):
         self.calls.append(script)
-        if "DVIELLE_ASR_SET" in script:
-            guid, action = _asr_set_args(script)
+        if "DVIELLE_ASR_SET" in script or "DVIELLE_ASR_REMOVE" in script:
             if self.deny:
                 return "SET:ACCESS_DENIED\nDETAIL:Access is denied\n", False
             if self.stick:
-                self.rules[guid] = action
-            return "SET:OK\n", False
-        if "DVIELLE_ASR_REMOVE" in script:
-            guid = _guid(script)
-            if self.deny:
-                return "SET:ACCESS_DENIED\nDETAIL:Access is denied\n", False
-            if self.stick:
-                self.rules.pop(guid, None)
+                # Model Microsoft's replacement semantics, not an additive Set.
+                if "Set-MpPreference -AttackSurfaceReductionRules_Ids" in script:
+                    ids = re.search(r"-AttackSurfaceReductionRules_Ids @\(([^)]*)\)", script)
+                    actions = re.search(r"-AttackSurfaceReductionRules_Actions @\(([^)]*)\)", script)
+                    assert ids and actions
+                    self.rules = dict(zip(re.findall(r"'([^']+)'", ids.group(1)),
+                                          (int(value) for value in actions.group(1).split(","))))
+                elif "Add-MpPreference -AttackSurfaceReductionRules_Ids" in script:
+                    match = re.search(r"Add-MpPreference -AttackSurfaceReductionRules_Ids '([^']+)' -AttackSurfaceReductionRules_Actions (\d+)", script)
+                    assert match
+                    self.rules[match.group(1)] = int(match.group(2))
+                else:
+                    match = re.search(r"Remove-MpPreference -AttackSurfaceReductionRules_Ids '([^']+)'", script)
+                    assert match
+                    self.rules.pop(match.group(1), None)
             return "SET:OK\n", False
         if "DVIELLE_CFA_SET" in script:
             mode = int(script.split("-EnableControlledFolderAccess", 1)[1].split()[0])
@@ -151,7 +157,7 @@ def _invoke(tmp_path: Path, prefs: _Prefs, handler: str, signals: dict):
 
 
 def test_version_is_past_the_1_9_0_prevention_release():
-    assert get_version() == "2.4.2"
+    assert get_version() == "2.5.0"
     text = (ROOT / "docs" / "FUNCTION_SPEC.md").read_text(encoding="utf-8")
     assert "1.9.0" in text
 
@@ -537,7 +543,10 @@ def test_p1_sources_do_not_add_exclusions_or_block_maps():
     )
     assert "ExclusionPath" not in blob
     assert "AttackSurfaceReductionOnlyExclusions" not in blob
-    assert "Add-MpPreference" not in blob
+    # Add is the documented safe operation for an absent ASR ID. Exclusion
+    # additions remain forbidden; banning the entire cmdlet hid the Set defect.
+    assert "Add-MpPreference -Exclusion" not in blob
+    assert "Add-MpPreference -AttackSurfaceReductionOnlyExclusions" not in blob
     assert "Set-MpPreference" not in (ROOT / "agent" / "modules" / "security.py").read_text(encoding="utf-8")
     assert "Get-MpPreference" in OBSERVE_PS
     assert "Set-MpPreference" not in OBSERVE_PS

@@ -1,6 +1,15 @@
 # Trust gates
 
-Pass/fail checklist for a DVielle change. Version 2.3.0 ships P5 on top of the 2.2.0 P4 path. The current tree is 2.3.2. Boxes are for a human or CI run against the tree that is about to ship. The claims page is [CLAIMS.md](CLAIMS.md). A green box records the run named in that box. It does not carry forward to a later commit.
+Current repair branch (2026-10-09): production loopback mutation and Highest
+installation are refused. The pipe descriptor is a definition only; no OS
+server, caller authentication or remote rejection is deployed. The setup
+wrapper aborts initialization before its former elevated temporary-script hook.
+The normal Limited installer requires protected staging and validates private
+data/config separately. Historical checked boxes below record earlier tests,
+not field acceptance of these repairs. See
+[the installation/helper boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
+
+Pass/fail checklist for a D'Vielle change. Version 2.3.0 ships P5 on top of the 2.2.0 P4 path. The current tree is 2.3.2. Boxes are for a human or CI run against the tree that is about to ship. The claims page is [CLAIMS.md](CLAIMS.md). A green box records the run named in that box. It does not carry forward to a later commit.
 
 Authority for claim language: `docs/FUNCTION_SPEC.md` (v0.9.3, 2026-09-29) and the primary-source brief of that date. A green box means the check was actually run. An empty box means it was not.
 

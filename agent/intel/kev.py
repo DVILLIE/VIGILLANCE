@@ -8,11 +8,13 @@ import re
 from pathlib import Path
 from typing import Any
 
+from agent.intel.io import MAX_SIDECAR_BYTES, read_bounded
+
 _CVE = re.compile(r"^CVE-\d{4}-\d{4,}$")
 
 KEV_DISCLAIMER = (
     "CISA KEV is used under CC0 1.0. This is not a CISA or DHS endorsement. "
-    "DVielle does not display the CISA logo or the DHS seal. "
+    "D\'Vielle does not display the CISA logo or the DHS seal. "
     "Third-party links in the catalog keep their own licenses."
 )
 
@@ -21,12 +23,12 @@ def load_kev(path: Path | None) -> dict[str, Any]:
     if path is None or not path.is_file():
         return _unavailable("No CISA KEV file is present. No exploited-vulnerability rows were invented.")
     try:
-        raw = path.read_bytes()
+        raw = read_bounded(path)
         payload = json.loads(raw.decode("utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+    except (OSError, UnicodeError, ValueError, RecursionError):
         return _invalid("The KEV file is not UTF-8 JSON. No rows were invented.")
     rows = payload.get("vulnerabilities") if isinstance(payload, dict) else None
-    if not isinstance(rows, list):
+    if not isinstance(rows, list) or len(rows) > 50000:
         return _invalid("The KEV file has no vulnerabilities list. No rows were invented.")
     kept: list[dict[str, str]] = []
     for row in rows:
@@ -80,8 +82,10 @@ def _sidecar(path: Path) -> dict[str, Any]:
     if not extra.is_file():
         return {}
     try:
-        payload = json.loads(extra.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        payload = json.loads(read_bounded(extra, MAX_SIDECAR_BYTES).decode("utf-8"))
+        if payload.get("sha256") != hashlib.sha256(read_bounded(path)).hexdigest():
+            return {}
+    except (OSError, UnicodeError, ValueError, AttributeError, RecursionError):
         return {}
     return payload if isinstance(payload, dict) else {}
 

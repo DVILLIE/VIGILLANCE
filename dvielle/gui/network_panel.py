@@ -1,4 +1,4 @@
-"""Network / VPN status panel for DVielle GUI."""
+"""Network / VPN status panel for D\'Vielle GUI."""
 
 from __future__ import annotations
 

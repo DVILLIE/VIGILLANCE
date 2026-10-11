@@ -183,7 +183,7 @@ class SecurityMonitor:
                 action=ActionKind.RECOMMEND,
                 action_level=LEVEL_RECOMMEND,
                 confidence=0.9,
-                evidence_summary=issues + ["Level-2 recommendation — DVielle takes no automatic action"],
+                evidence_summary=issues + ["Level-2 recommendation — D\'Vielle takes no automatic action"],
                 authorization=Authorization.AUTOMATIC_POLICY,
                 target="windows_security_posture",
                 initiator="security",

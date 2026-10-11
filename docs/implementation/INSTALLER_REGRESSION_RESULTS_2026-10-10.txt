@@ -1,0 +1,9 @@
+Command: C:\DVILLIE-main\.venv\Scripts\python.exe -m pytest -q
+Working directory: C:\DVILLIE-main-repairs
+Completed process exit code: 0
+Actual final summary captured from the process:
+640 passed, 1 skipped, 9 warnings in 87.36s (0:01:27)
+
+This is the final result summary, not a full console transcript.
+Warnings: existing Pillow Image.getdata deprecations in logo animation tests.
+The skip reason was not emitted by this invocation; it is not a verified pass.

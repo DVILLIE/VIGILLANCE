@@ -30,7 +30,9 @@ if (-not (Test-Path -LiteralPath $RceditPath -PathType Leaf)) {
 }
 
 $pinPath = Join-Path $InstallDir 'installer\rcedit-x64.pin.json'
-if (Test-Path -LiteralPath $pinPath -PathType Leaf) {
+if (-not (Test-Path -LiteralPath $pinPath -PathType Leaf)) {
+    throw 'Missing mandatory installer/rcedit-x64.pin.json; refusing to execute the branding tool.'
+}
     $pin = Get-Content -LiteralPath $pinPath -Raw | ConvertFrom-Json
     $hash = (Get-FileHash -LiteralPath $RceditPath -Algorithm SHA256).Hash
     $expected = ([string]$pin.sha256).Trim().ToUpperInvariant()
@@ -38,7 +40,6 @@ if (Test-Path -LiteralPath $pinPath -PathType Leaf) {
     if ($hash -ne $expected -or [int64]$size -ne [int64]$pin.size) {
         throw "rcedit-x64.exe does not match installer/rcedit-x64.pin.json (hash or size)."
     }
-}
 
 if (-not $Version) {
     $meta = Get-Content -LiteralPath (Join-Path $InstallDir 'pyproject.toml') -Raw
@@ -75,8 +76,8 @@ Copy-Item -LiteralPath $venvPythonw -Destination $guiExe -Force
 & $RceditPath `
     $guiExe `
     --set-icon $IconPath `
-    --set-version-string FileDescription 'DVielle - Deep Vigilance' `
-    --set-version-string ProductName DVielle `
+    --set-version-string FileDescription 'D''Vielle - Intelligent Vigilance' `
+    --set-version-string ProductName 'D''Vielle' `
     --set-version-string CompanyName DVielle `
     --set-version-string OriginalFilename DVielle.exe `
     --set-product-version $Version `

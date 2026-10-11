@@ -21,6 +21,7 @@ PAGES = (
     ("findings", "Findings"),
     ("protection", "Protection"),
     ("apps", "Apps"),
+    ("assessment", "Ethical Hacking"),
 )
 
 
@@ -143,8 +144,14 @@ class FindingCards(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.limit = limit
         self._cards: list[ctk.CTkFrame] = []
+        self._empty = ctk.CTkLabel(self, text="Waiting for monitoring observations", font=T.FONT_BODY,
+                                   text_color=T.TEXT_DIM, fg_color=T.BG_PANEL, corner_radius=10, height=58)
+        self._empty.pack(fill="x")
 
     def push(self, line: str) -> None:
+        if self._empty is not None:
+            self._empty.destroy()
+            self._empty = None
         word, tone = line_status(line)
         card = ctk.CTkFrame(
             self,
@@ -170,13 +177,16 @@ class FindingCards(ctk.CTkFrame):
             width=118,
             anchor="w",
         ).pack(side="left", padx=(14, 8))
-        ctk.CTkLabel(
+        detail = ctk.CTkLabel(
             card,
             text=line.strip()[:180],
-            font=T.FONT_BODY,
+            font=("Segoe UI", 12),
             text_color=T.TEXT,
             anchor="w",
-        ).pack(side="left", fill="x", expand=True, padx=(0, 14))
+            justify="left", wraplength=320,
+        )
+        detail.pack(side="left", fill="x", expand=True, padx=(0, 14))
+        card.bind("<Configure>", lambda event: detail.configure(wraplength=max(120, event.width-218)), add="+")
         if self._cards:
             card.pack(fill="x", pady=(0, 8), before=self._cards[0])
         else:

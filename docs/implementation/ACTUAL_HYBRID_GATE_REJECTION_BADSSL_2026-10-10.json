@@ -1,0 +1,11 @@
+{
+  "state": "connection_not_accepted",
+  "error_type": "SSLError",
+  "reason": "[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] ssl/tls alert handshake failure (_ssl.c:1082)",
+  "require_hybrid": true,
+  "host": "badssl.com",
+  "address": "104.154.89.105",
+  "fallback_attempted": false,
+  "application_data_sent": false,
+  "mutations": []
+}

@@ -1,0 +1,19 @@
+{
+  "state": "observed",
+  "scope": "Local cryptographic primitive execution only",
+  "negotiated_key_exchange": "not_measured",
+  "negotiated_authentication": "not_measured",
+  "private_keys_saved": false,
+  "ml_kem_768": {
+    "state": "passed",
+    "encapsulation_decapsulation_matched": true,
+    "invalid_length_rejected": true
+  },
+  "ml_dsa_65": {
+    "state": "passed",
+    "signature_verified": true,
+    "modified_message_rejected": true,
+    "wrong_context_rejected": true
+  },
+  "elapsed_seconds": 0.03025569999590516
+}

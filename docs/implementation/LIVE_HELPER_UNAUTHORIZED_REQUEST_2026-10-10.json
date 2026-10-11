@@ -1,0 +1,8 @@
+{
+  "ok": false,
+  "code": "unauthorized",
+  "performed": false,
+  "verified": [],
+  "state_unknown": false,
+  "message": "The scoped grant or executable identity did not authorize this request."
+}

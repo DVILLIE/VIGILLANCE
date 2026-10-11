@@ -1,0 +1,37 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-c02e5042097a40e1943f731779be2517",
+  "old_runtime_sha256": "090f92667f382616c836b54a4fefe1adb8243de2c94d4b2c60c4aabba66d39e9",
+  "new_runtime_sha256": "143411b911539f26650d2882c0f8423e8780aacbf3476f8ea121660f7e1b925a",
+  "changes": [
+    {
+      "path": "agent/engine/service.py",
+      "old_sha256": "001232a9d7400dfbc5eb31458d498e2f1edfafe123f24420521610b73d26ceb4",
+      "new_sha256": "64810d47261547f1244eea4441541cd8c8412f9fffe495575f3004ca25788bb5"
+    },
+    {
+      "path": "agent/engine/watch.py",
+      "old_sha256": "4a45c59a40d079178369a495e58232855868c42e4d8545740ff5aa99dd35bf2c",
+      "new_sha256": "610268ee45d6bd574605ccecf2c8123e76ac6728db9accb16b27e7d83c7a7698"
+    },
+    {
+      "path": "agent/modules/camera_guard.py",
+      "old_sha256": "337a4da7e8908745f20f0cca0e35ae97a44be0e4a706b7ce55fff8a532fd4389",
+      "new_sha256": "6eeb8299f5b8483c195f4b2f69bf4e253b3d82c5d933cf34a95a8a1bc6da1bbe"
+    },
+    {
+      "path": "agent/modules/privacy_guard.py",
+      "old_sha256": "4abd486205a607ff7961719f0bc5fe59230e6a5502d8bb45008eab7ef8ee29bc",
+      "new_sha256": "3257a0011d49a8b4d9bb07b7c7f313e904969e0cba23fa6308909e6bffdb3305"
+    },
+    {
+      "path": "agent/modules/resource_advisor.py",
+      "old_sha256": "70c32ae57b79ae3bcc21c9e082dee2ddb3921cc15a91a37298de72727d66d943",
+      "new_sha256": "3c1e6f8965b9ba262dff1888d97168de10a636559ba8b5fde11b510674e6f2bc"
+    },
+    {
+      "path": "agent/privilege/readiness.py",
+      "old_sha256": "b2985289a87b31c07ea7e069b29c47e4643924c3a74e6a39c844941399195333",
+      "new_sha256": "ddb14db4216681fd2ed101a6e52ba88400cfdcf77f285429665d1851e374391e"
+    }
+  ]
+}

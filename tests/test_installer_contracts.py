@@ -61,6 +61,89 @@ Invoke-DvielleNative $env:DVIELLE_TEST_PYTHON @('-c', 'raise SystemExit(0)')
 """)
 
 
+def test_protected_bootstrap_body_parses_without_executing_or_elevating():
+    run_ps(LOAD + r"""
+$errors = $null
+$ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $env:DVIELLE_TEST_ROOT 'scripts/stage_activation_payload.ps1'), [ref]$null, [ref]$errors)
+Assert-True (-not $errors) 'Staging launcher parse failure.'
+$strings = @($ast.FindAll({ param($node)
+    $node -is [Management.Automation.Language.StringConstantExpressionAst] -and
+    $node.Value.Contains('function Assert-ProtectedObject')
+}, $true))
+Assert-True ($strings.Count -eq 1) 'Expected one snapshotted bootstrap.'
+$body = $strings[0].Value
+$null = [Management.Automation.Language.Parser]::ParseInput($body, [ref]$null, [ref]$errors)
+Assert-True (-not $errors) 'Elevated bootstrap parse failure.'
+Assert-True ($body.IndexOf('ComputeHash') -lt $body.IndexOf('CreateDirectory($stage')) 'Stage precedes approved digest check.'
+Assert-True ($body.Contains('[IO.FileMode]::CreateNew')) 'Stage extraction must refuse overwrites.'
+Assert-True (-not $body.Contains('Invoke-Expression')) 'Staging must not execute candidate strings.'
+""")
+
+
+def test_resident_task_registration_matches_activation_and_removal():
+    # Parse only: never run the installer or mutate Task Scheduler.
+    run_ps(LOAD + r"""
+$path = Join-Path $env:DVIELLE_TEST_ROOT 'installer/install-dvielle.ps1'
+$errors = $null
+$ast = [Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$errors)
+Assert-True (-not $errors) 'Installer could not be parsed.'
+$commands = $ast.FindAll({ param($node)
+    $node -is [Management.Automation.Language.CommandAst] -and
+    $node.GetCommandName() -in @('Register-ScheduledTask', 'Start-ScheduledTask', 'Enable-ScheduledTask', 'Disable-ScheduledTask')
+}, $true)
+$registered = @()
+$activated = @()
+foreach ($command in $commands) {
+    $elements = $command.CommandElements
+    for ($i = 0; $i -lt ($elements.Count - 1); $i++) {
+        if ($elements[$i] -is [Management.Automation.Language.CommandParameterAst] -and
+            $elements[$i].ParameterName -eq 'TaskName') {
+            Assert-True ($elements[$i + 1] -is [Management.Automation.Language.StringConstantExpressionAst]) 'Task identity must be explicit.'
+            $name = $elements[$i + 1].Value
+            if ($command.GetCommandName() -eq 'Register-ScheduledTask') { $registered += $name }
+            else { $activated += $name }
+        }
+    }
+}
+Assert-True ($registered.Count -eq 1 -and $registered[0] -ceq 'DVielle') 'Resident task identity differs from upgrade/uninstall identity.'
+Assert-True ($activated.Count -ge 3) 'Expected activation and failure cleanup checks.'
+foreach ($name in $activated) { Assert-True ($name -ceq $registered[0]) 'Activation references another task.' }
+""")
+
+
+def test_offline_bundle_refuses_tampering_missing_and_unlisted_artifacts(tmp_path):
+    run_ps(LOAD + r"""
+$root = $env:DVIELLE_TEST_DIRECTORY
+$wheels = Join-Path $root 'wheels'
+$null = New-Item -ItemType Directory -Path $wheels
+$artifact = Join-Path $wheels 'contract-1.0-py3-none-any.whl'
+# Contract bytes exercise the hash boundary only; not a dependency artifact.
+[IO.File]::WriteAllText($artifact, 'contract bytes')
+$hash = Get-DvielleArtifactSha256 $artifact
+$lock = Join-Path $root 'requirements.lock'
+[IO.File]::WriteAllText($lock, "contract==1.0 --hash=sha256:$hash`n")
+Assert-DvielleOfflineDependencies $root
+function Assert-Rejected {
+    $rejected = $false
+    try { Assert-DvielleOfflineDependencies $root } catch { $rejected = $true }
+    Assert-True $rejected 'Invalid offline dependency set accepted.'
+}
+[IO.File]::WriteAllText($artifact, 'changed bytes')
+Assert-Rejected
+[IO.File]::WriteAllText($artifact, 'contract bytes')
+[IO.File]::WriteAllText((Join-Path $wheels 'extra.whl'), 'extra')
+Assert-Rejected
+Remove-Item -LiteralPath (Join-Path $wheels 'extra.whl')
+[IO.File]::WriteAllText($lock, "--index-url https://example.invalid`n")
+Assert-Rejected
+[IO.File]::WriteAllText($lock, '')
+Assert-Rejected
+[IO.File]::WriteAllText($lock, "contract==1.0 --hash=sha256:$hash`n")
+Remove-Item -LiteralPath $artifact
+Assert-Rejected
+""", extra_env={'DVIELLE_TEST_DIRECTORY': str(tmp_path)})
+
+
 def test_legacy_global_python_blocks_upgrade_without_termination():
     run_ps(LOAD + r"""
 function Get-CimInstance {
@@ -70,7 +153,7 @@ function Get-CimInstance {
 function Invoke-DvielleNative { throw 'Must not request stop before identifying legacy processes' }
 function Get-Process { throw 'Must not terminate or signal an ambiguous process' }
 $rejected = $false
-try { Stop-DvielleOwnedRuntime 'C:\DVILLIE' } catch { $rejected = $_.Exception.Message -match 'Legacy or external DVielle.*54321' }
+try { Stop-DvielleOwnedRuntime 'C:\DVILLIE' } catch { $rejected = $_.Exception.Message -match 'Legacy or external D''Vielle.*54321' }
 Assert-True $rejected 'Upgrade failed to stop before legacy collector interference.'
 """)
 
@@ -89,6 +172,11 @@ Assert-True (Test-DvielleTaskOwner $task $root) 'Expected owned task was rejecte
 $action.Arguments = '-m agent.main --config-dir C:\Other'
 Assert-True (-not (Test-DvielleTaskOwner $task $root)) 'Task with another configuration was accepted.'
 $action.Arguments = '-m agent.main'
+$action.Execute = 'C:\Other\pythonw.exe'
+Assert-True (-not (Test-DvielleTaskOwner $task $root)) 'External interpreter task was accepted.'
+$action.Execute = 'pythonw.exe'
+Assert-True (-not (Test-DvielleTaskOwner $task $root)) 'Relative interpreter task was accepted.'
+$action.Execute = Join-Path $root '.venv\Scripts\pythonw.exe'
 $action.WorkingDirectory = $root + '-other'
 Assert-True (-not (Test-DvielleTaskOwner $task $root)) 'Neighbor installation task was accepted.'
 """, extra_env={"DVIELLE_TEST_DIRECTORY": str(tmp_path)})

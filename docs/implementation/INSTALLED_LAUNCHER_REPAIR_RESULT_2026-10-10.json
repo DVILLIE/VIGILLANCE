@@ -1,0 +1,16 @@
+{
+  "state": "launcher_bytes_verified",
+  "runtime_changed": false,
+  "firewall_mutations": [],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5789,
+    "manifest_sha256": "12687b2721b0a7564693014235ee4a6443814bd6659405999ae38c7ec1057bf0",
+    "publisher_authenticated": false
+  },
+  "changed": [
+    "C:\\Program Files\\DVielle\\installer\\Install-DVielle.bat",
+    "C:\\Program Files\\DVielle\\installer\\Launch-DVielle.bat"
+  ],
+  "backup": "C:\\ProgramData\\DVielle\\privileged\\launcher-repair-dcb56a3f3eeb4d93b732fe638455edb3"
+}

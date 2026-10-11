@@ -12,7 +12,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'hardening-common.ps1')
 if ($RestoreFrom) {
-    Write-Host "Restore saved DVielle hardening changes from: $RestoreFrom"
+    Write-Host "Restore saved D'Vielle hardening changes from: $RestoreFrom"
     if (-not $Apply) { Write-Host 'Preview only. Add -Apply to restore.'; return }
     Restore-HardeningBackup $RestoreFrom
     return
@@ -32,7 +32,7 @@ $domains = @()
 if (-not $SkipHosts) { $domains = @(Get-TelemetryDomains (Join-Path $root 'config\telemetry-domains.txt') | Sort-Object -Unique) }
 Write-Host "Hardening plan for Windows edition $edition (AllowTelemetry=$telemetry)."
 foreach ($setting in $settings) { Write-Host ("  {0}\{1} = {2}" -f $setting.Path, $setting.Name, $setting.Value) }
-if (-not $SkipHosts) { Write-Host "  Replace DVielle's hosts block with $($domains.Count) reviewed domains:"; $domains | ForEach-Object { Write-Host "    $_" } }
+if (-not $SkipHosts) { Write-Host "  Replace D'Vielle's hosts block with $($domains.Count) reviewed domains:"; $domains | ForEach-Object { Write-Host "    $_" } }
 if ($BlockTelemetryPrograms) { Write-Host '  Block outbound CompatTelRunner.exe and DeviceCensus.exe where present.' }
 Write-Host 'No application packages, Windows Search, Update, Defender, or certificate settings will be removed.'
 if ($SkipBloatware) { Write-Host '-SkipBloatware is retained for compatibility; no package removal is performed.' }
@@ -40,7 +40,7 @@ if (-not $Apply) { Write-Host 'Preview only. Re-run with -Apply after reviewing;
 Assert-HardeningAdmin
 if (-not $SkipRestorePoint) {
     # A failed restore point is a hard stop; only the explicit switch opts out.
-    Checkpoint-Computer -Description 'DVielle pre-hardening' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
+    Checkpoint-Computer -Description 'D''Vielle pre-hardening' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
 }
 $state = New-HardeningBackup $root
 Write-Host "Reversible backup: $($state.Path)"

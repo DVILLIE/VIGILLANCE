@@ -64,10 +64,10 @@ def test_bootstrap_stays_on_the_limited_installer():
     assert "elevate.ps1" not in text
     assert "ExclusionPath" not in text
     assert "Add-MpPreference" not in text
-    assert "Get-FileHash" in text
+    assert "ComputeHash($lease)" in text
     assert "Include_tcltk" in text
     call = text.index("& (Join-Path $PSScriptRoot 'install-dvielle.ps1')")
-    assert text.index("Get-FileHash") < call
+    assert text.index("ComputeHash($lease)") < call
 
 
 def test_setup_script_does_not_own_the_install_tree():
@@ -77,7 +77,10 @@ def test_setup_script_does_not_own_the_install_tree():
     assert "CreateUninstallRegKey=no" in text
     assert "PrivilegesRequired=admin" in text
     assert "bootstrap-dvielle.ps1" in text
-    assert '-InstallDir "C:\\DVILLIE"' in text
+    assert "function InitializeSetup: Boolean" in text
+    assert "Result := False;" in text
+    assert "not Exec(" not in text
+    assert "CurStepChanged" not in text
     assert "Highest" not in text
     assert "ExclusionPath" not in text
     assert "Add-MpPreference" not in text
@@ -87,7 +90,7 @@ def test_setup_script_does_not_own_the_install_tree():
 def test_build_script_checks_pins_and_stages_the_license():
     text = _text("scripts/build_windows_installer.ps1")
     assert "Get-FileHash" in text
-    assert "python-3.12.10.pin.json" in text
+    assert "python-3.14.8.pin.json" in text
     assert "inno-setup-6.4.0.pin.json" in text
     assert "'LICENSE'" in text
     assert "gh release" not in text
@@ -110,7 +113,7 @@ def test_readme_keeps_the_zip_as_the_download():
     readme = _text("README.md")
     guide = _text("docs/USER_GUIDE.md")
     notice = _text("installer/SETUP_NOTICE.txt")
-    assert "DVielle-2.4.2-windows-installer.zip" in readme
+    assert "DVielle-2.4.0-windows-installer.zip" in readme
     assert "Not on this Release" in readme
     assert "not a PyInstaller freeze" in readme
     assert "Chat is gone" in readme or "Not a chat assistant" in readme

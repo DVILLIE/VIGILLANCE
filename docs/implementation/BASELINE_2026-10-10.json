@@ -1,0 +1,1240 @@
+{
+  "timestamp_utc": "20261010T073436Z",
+  "source_root": "C:\\DVILLIE-main-repairs",
+  "commit": "ea3dedbc32849bea4961e3c27d65866877ca2eae",
+  "backup": "C:\\Users\\ravik\\.codex\\backups\\dvielle\\20261010T073436Z",
+  "preexisting_files": [
+    {
+      "path": "README.md",
+      "sha256": "b34131b303f5fc073c8bcaf75a2dd440dc05a0346cb81475aaaa2e8ad584d9ca",
+      "bytes": 11641
+    },
+    {
+      "path": "agent/cpu_contract.py",
+      "sha256": "49a4a99a2fbdb346cf997cffd6685795a375364fd57a6a3af4c358fc58f1905a",
+      "bytes": 6622
+    },
+    {
+      "path": "agent/edition_matrix.py",
+      "sha256": "bb881ff4e56f68c59e744123adc3dbd01b947276bc809b8b263046a512ef0697",
+      "bytes": 6437
+    },
+    {
+      "path": "agent/engine/catalogs.py",
+      "sha256": "8f5c983bbe94ea8cd3bcb6fc0cde4b9097d8036bba074a8d24bbc1292cd8ed96",
+      "bytes": 11210
+    },
+    {
+      "path": "agent/engine/footprint.py",
+      "sha256": "2013e3c207dbc259efb08bd11ebc8f77c23f11284a560c2e09df0e169949627a",
+      "bytes": 8303
+    },
+    {
+      "path": "agent/engine/handlers.py",
+      "sha256": "a81dc8ea4dbed7a817dcdcbd67b69f8f82877212cc16d3ce6ec7fe46eb9fbbca",
+      "bytes": 23326
+    },
+    {
+      "path": "agent/engine/loop.py",
+      "sha256": "638b6e6a77aed69ed60ef1d9b387b534dedf55a617501e7e7e167d3eaf7ef82e",
+      "bytes": 18771
+    },
+    {
+      "path": "agent/engine/net_block.py",
+      "sha256": "bf38062cf9c6d5d9e1cd4d0bebe18d62379db75eb7103e148a3068a2bf3a98d6",
+      "bytes": 2075
+    },
+    {
+      "path": "agent/engine/observations.py",
+      "sha256": "be2e2c6ab026606f62ea38254759379fa0d49b6ea6d4834615eea288b248778d",
+      "bytes": 9292
+    },
+    {
+      "path": "agent/engine/service.py",
+      "sha256": "001232a9d7400dfbc5eb31458d498e2f1edfafe123f24420521610b73d26ceb4",
+      "bytes": 9133
+    },
+    {
+      "path": "agent/engine/watch.py",
+      "sha256": "4a45c59a40d079178369a495e58232855868c42e4d8545740ff5aa99dd35bf2c",
+      "bytes": 7867
+    },
+    {
+      "path": "agent/intel/NOTICES.txt",
+      "sha256": "481e758e207a97c10fec1fb6f35f3c5ab48838d95c40f6dfecd7682221c28a91",
+      "bytes": 1532
+    },
+    {
+      "path": "agent/intel/abuse.py",
+      "sha256": "b28188dd7bb328e2c124fc6638db586333f94f92810a28423ba294932261aebd",
+      "bytes": 3879
+    },
+    {
+      "path": "agent/intel/fetch.py",
+      "sha256": "eae0be18d0f3d39bc31debf2733c2a31736fc6ea0a43033460e0fcf3de66bbf8",
+      "bytes": 8874
+    },
+    {
+      "path": "agent/intel/inventory.py",
+      "sha256": "6d0bfe8c6055153d7c793e3498c6d552bc1f76514c3d9d9ec6aa912b70007232",
+      "bytes": 2494
+    },
+    {
+      "path": "agent/intel/io.py",
+      "sha256": "6b294204e9e801bd2baa03e76d47db104f96a22796803ebb822f1faf5b37b219",
+      "bytes": 1033
+    },
+    {
+      "path": "agent/intel/kev.py",
+      "sha256": "c5c761e2564596d0e134ce23eb8a2f2875af7ba2a77f75873becc0d1f0622732",
+      "bytes": 4105
+    },
+    {
+      "path": "agent/intel/match.py",
+      "sha256": "8cb43c22a298b1c041155b6ac542142fd77883d93915a81c0a609b5d7153a628",
+      "bytes": 9736
+    },
+    {
+      "path": "agent/intel/osv.py",
+      "sha256": "42547e989d0ff50cccc8204f571263ebeb385a88517c3509b0d03cc5163fcbf7",
+      "bytes": 9137
+    },
+    {
+      "path": "agent/intel/report.py",
+      "sha256": "932eb3f1b024867912dd45e067e5a6bf1b8b1e9584436377b028c9e351cf982d",
+      "bytes": 1840
+    },
+    {
+      "path": "agent/learn/memory.py",
+      "sha256": "17bcb11066c337c7f1480f364f2d6d04ea7fc0e86eef9b8218e5801545b570fa",
+      "bytes": 5577
+    },
+    {
+      "path": "agent/local_files.py",
+      "sha256": "6a3ba098c044c6f4ec03b28b218ad1bed831cd2d9b250004d4554c0fa4e71350",
+      "bytes": 2378
+    },
+    {
+      "path": "agent/main.py",
+      "sha256": "9d42cd7e3bd48eb4553e5f1b7ffbe257e98a116f338cbc301719d26c231d9dd3",
+      "bytes": 2226
+    },
+    {
+      "path": "agent/modules/defender_health.py",
+      "sha256": "f98440e286b781abf492e0a741a034ad305667c8ed4b2b075079d26ebcc73c9a",
+      "bytes": 16915
+    },
+    {
+      "path": "agent/modules/egress_watch.py",
+      "sha256": "65221b440f3fa03fe2fd57a0a6eba3d210e61cd42d1bef389bcd5a68ac291a23",
+      "bytes": 5307
+    },
+    {
+      "path": "agent/modules/firewall_apply.py",
+      "sha256": "4531558052de78670f36d400476a5f355843aaf976e8284f81577b460f1e4997",
+      "bytes": 13768
+    },
+    {
+      "path": "agent/modules/firewall_assist.py",
+      "sha256": "0785759db131001529c32fd107ed2475e120684b62d96f98a674191497c6c194",
+      "bytes": 15028
+    },
+    {
+      "path": "agent/modules/passkeys.py",
+      "sha256": "66d8ad457ac99205e8ef546e2a59489251b2b79e77dad3a864e500206e25ab15",
+      "bytes": 3756
+    },
+    {
+      "path": "agent/modules/prevention.py",
+      "sha256": "4d966e42a664705fa986ecede4633d6690588e7367a905cdd9f0ab14da305330",
+      "bytes": 32196
+    },
+    {
+      "path": "agent/modules/prevention_apply.py",
+      "sha256": "bbc5066b357bbea3c6ac851a55000fd9e32540cd8a014fe096ac89af7935f037",
+      "bytes": 23135
+    },
+    {
+      "path": "agent/modules/privacy_assistant.py",
+      "sha256": "ace1179040ec8c7eb5af4ba165aa599de345d6a8690d1c0db24e65b3b2fd166c",
+      "bytes": 17451
+    },
+    {
+      "path": "agent/modules/sandbox.py",
+      "sha256": "f880844690f64d8330bed65294bdcab05c6a543b45c1088d8485f25d6f97feeb",
+      "bytes": 15821
+    },
+    {
+      "path": "agent/modules/security.py",
+      "sha256": "a9ecc01708624b4c7e2b37f7970d3665cb600fd646f8455e648541a59611f3c3",
+      "bytes": 8625
+    },
+    {
+      "path": "agent/policy/dual.py",
+      "sha256": "3516c613255ada45e1f03eb6ade8f1af25a228e16254d343c053b08bc797fa86",
+      "bytes": 9126
+    },
+    {
+      "path": "agent/privilege/broker.py",
+      "sha256": "1c45e7af39ddf7dd0143e21542e3f37dd4e21ee04101d9af98d2c1d972dcaad8",
+      "bytes": 5093
+    },
+    {
+      "path": "agent/privilege/contract.py",
+      "sha256": "74197aade25e771d034e3f478e40f030ea0b985575c779e7f988553e87a7adfa",
+      "bytes": 4529
+    },
+    {
+      "path": "agent/privilege/helper.py",
+      "sha256": "91693ce7d6a69335e48a3d02c070debc6c625cf0f9667268f918d65a6025ed0c",
+      "bytes": 7172
+    },
+    {
+      "path": "agent/privilege/pipe.py",
+      "sha256": "3b934dd37d9e7b8956c50c1178099b88439243b3dbe31a34abdc8aec60227bc4",
+      "bytes": 5204
+    },
+    {
+      "path": "agent/runtime.py",
+      "sha256": "f1e1ac4090d26dccc410c1ab86c80d3ec8adc1a2b19baf90379343e5ac50cf39",
+      "bytes": 28295
+    },
+    {
+      "path": "agent/store/db.py",
+      "sha256": "41324a6210225fe1a3a0095cf6c965154291be23645cbdfd3e95cdf5a7683c5b",
+      "bytes": 39189
+    },
+    {
+      "path": "agent/twin.py",
+      "sha256": "6feaab9735986bef7e3cbc11c6c24972cc1d3c6b91ccc408c40968d3d1728cdd",
+      "bytes": 6993
+    },
+    {
+      "path": "agent/update/tuf.py",
+      "sha256": "d53d2ddec085b7de3b05fa076e621b4717a019490fc49a52ecbb11bccc509fb4",
+      "bytes": 31363
+    },
+    {
+      "path": "agent/utils.py",
+      "sha256": "67238641b3fb5c5ec7364fa217ffed160469aeb994d4f0941e0af78a727dadb5",
+      "bytes": 10820
+    },
+    {
+      "path": "agent/version.py",
+      "sha256": "92f91d74d4aedf3376835945b44517d296b1fd550d95dcaaf96c35d5eb646cdf",
+      "bytes": 1340
+    },
+    {
+      "path": "assets/brand/README.md",
+      "sha256": "46b0f24d5bd8b2fed770831be2260cdb20e4796ea60860e6dbee19b3c00e8985",
+      "bytes": 2357
+    },
+    {
+      "path": "assets/brand/dvielle-logo-animated.gif",
+      "sha256": "4c162d450ad1487cc858f2344874819a281d01f3257525b8b4e85d6b190f2779",
+      "bytes": 4324011
+    },
+    {
+      "path": "assets/brand/dvielle-logo-still.png",
+      "sha256": "6185f532b7241ccc0951ca70aafee0de4093d1b9f7b065e5d35b96d79ecb2456",
+      "bytes": 302146
+    },
+    {
+      "path": "assets/brand/dvielle.ico",
+      "sha256": "40c3b49e793596b634314eace06012bf25916ef350c9e612c459561e56b3e1be",
+      "bytes": 114406
+    },
+    {
+      "path": "assets/brand/dvielle_128.png",
+      "sha256": "b30dbb2edd4e2ae1e9824096c89d09e6e183f80ec6cb30acc4eb3bcd16b3a1f1",
+      "bytes": 21538
+    },
+    {
+      "path": "assets/brand/dvielle_64.png",
+      "sha256": "c72060b1588e62dfb45edb9b9752d08ea38bc27024e367b7c7278619a53e7d6e",
+      "bytes": 6122
+    },
+    {
+      "path": "assets/brand/dvielle_88.png",
+      "sha256": "f445f2710bd4605e0c0831bc090b71607c5c7a6d6f83807ac6ef5d6a5d46840c",
+      "bytes": 10923
+    },
+    {
+      "path": "assets/brand/dvielle_logo.png",
+      "sha256": "6185f532b7241ccc0951ca70aafee0de4093d1b9f7b065e5d35b96d79ecb2456",
+      "bytes": 302146
+    },
+    {
+      "path": "assets/brand/nexus-orbital-d.ico",
+      "sha256": "40c3b49e793596b634314eace06012bf25916ef350c9e612c459561e56b3e1be",
+      "bytes": 114406
+    },
+    {
+      "path": "assets/brand/nexus-orbital-d.png",
+      "sha256": "6185f532b7241ccc0951ca70aafee0de4093d1b9f7b065e5d35b96d79ecb2456",
+      "bytes": 302146
+    },
+    {
+      "path": "assets/brand/quantum-key-master.png",
+      "sha256": "64b2d41b2d60bbe87e39bb9e5d2db8af35ad32eb41be26375dbb2af569423fa0",
+      "bytes": 1676491
+    },
+    {
+      "path": "assets/brand/quantum-key.ico",
+      "sha256": "40c3b49e793596b634314eace06012bf25916ef350c9e612c459561e56b3e1be",
+      "bytes": 114406
+    },
+    {
+      "path": "assets/brand/quantum-key.png",
+      "sha256": "6185f532b7241ccc0951ca70aafee0de4093d1b9f7b065e5d35b96d79ecb2456",
+      "bytes": 302146
+    },
+    {
+      "path": "assets/theme/nexus-network.png",
+      "sha256": "885732981c51cd6b04d0603a63f8b570beaec1964ea378a24ef442c22e56f6bf",
+      "bytes": 1780511
+    },
+    {
+      "path": "docs/BRANDING_UPDATE_2026-10-10.md",
+      "sha256": "33e838d3d427cf3902840424959bc467407fa0be15e8b7d082a3741256aec5e6",
+      "bytes": 1728
+    },
+    {
+      "path": "docs/CLAIMS.md",
+      "sha256": "106b884cd79ac75bcbfe075933f99ab08c38552897445db514565a61820d113a",
+      "bytes": 13700
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "sha256": "c1242b5ac6c786c9f3b9d02c2407d8ebef606643b608a7ea90f795803fd6272c",
+      "bytes": 11235
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "sha256": "f02e8fb9a8218e82d13d3a7a22e18e89fe0cb7798628334ef068988a700f3856",
+      "bytes": 7902
+    },
+    {
+      "path": "docs/DVielle_Professional_Project_Documents_2026-10-10.zip",
+      "sha256": "e007c2f0577b5d2fed4ece81c9e508174b64214ff09d04d6f09860bf65c43770",
+      "bytes": 93148
+    },
+    {
+      "path": "docs/FUNCTION_SPEC.md",
+      "sha256": "657bcf26863a206da51070bbb1eff04936755cc60986fdc1a1db79cb49936304",
+      "bytes": 92657
+    },
+    {
+      "path": "docs/NEXUS_FOLD_PRIME.md",
+      "sha256": "390c45d88e057f94a29c1d29d4fa0a01f5c30539c7f07102d06fc45ac71b7aa1",
+      "bytes": 4751
+    },
+    {
+      "path": "docs/REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md",
+      "sha256": "51ab247f1daa5afbda5761298621554b8179412883996a896c190911cf487daf",
+      "bytes": 5545
+    },
+    {
+      "path": "docs/REPAIR_INTEL_UPDATES.md",
+      "sha256": "cba0e0e6126d7f836596dcc40bb51af7b1ddb713ca04cbecb3162779a93ded80",
+      "bytes": 5640
+    },
+    {
+      "path": "docs/REPAIR_STATUS_2026-10-09.md",
+      "sha256": "0c5976ab517bc35b68775e80c91abed5993f9bad0b153033989ef9aa89ae8807",
+      "bytes": 7578
+    },
+    {
+      "path": "docs/REPAIR_WINDOWS_CONTROLS.md",
+      "sha256": "b640471361fe4ab90d3164e126ff2f71194f28edca4ff8aac0ff0c5ade6d6ada",
+      "bytes": 4347
+    },
+    {
+      "path": "docs/SECURITY_ADVANCEMENT_RESEARCH_2026-10-10.md",
+      "sha256": "d39554fff9388232af34638367024463299fdb21b674b6e76e71a376ff90e302",
+      "bytes": 14639
+    },
+    {
+      "path": "docs/SECURITY_DESIGN_FRAMEWORK_2026-10-10.md",
+      "sha256": "88f333bdade8e5255fce4f429eec1a0c262cf4fd43a8ce3e73f1112cd8ad16e7",
+      "bytes": 14928
+    },
+    {
+      "path": "docs/TRUST_GATES.md",
+      "sha256": "f02f4a2812b78218b2899c1efd0d56d7ffcb731ea30dfd238ce7ee69fc79d6f7",
+      "bytes": 11512
+    },
+    {
+      "path": "docs/USER_GUIDE.md",
+      "sha256": "bb18aeb5f41e3b458dc1e2d7f443dc61d4aab70d4473b94745e1fc7306ddb5b9",
+      "bytes": 11727
+    },
+    {
+      "path": "docs/WINDOWS_INSTALLER.md",
+      "sha256": "eb7fbc7b57739153f5547cccf8fc769839e801bba5be819c8d584483a2ba6fb7",
+      "bytes": 8372
+    },
+    {
+      "path": "docs/images/dvielle-live-logo.gif",
+      "sha256": "de55a381daefaa926bfb1d7e36c986301a045035863b1323505a930e2b62b2bc",
+      "bytes": 228246
+    },
+    {
+      "path": "docs/images/dvielle-logo.png",
+      "sha256": "6185f532b7241ccc0951ca70aafee0de4093d1b9f7b065e5d35b96d79ecb2456",
+      "bytes": 302146
+    },
+    {
+      "path": "docs/images/nexus-fold-prime-dark.png",
+      "sha256": "6a42b55aefe05a255514777c553fffa74b7f6eee6f9b65370c36c10cda3ad2c1",
+      "bytes": 367823
+    },
+    {
+      "path": "docs/images/nexus-fold-prime-light.png",
+      "sha256": "aaa02ee35f0e0441a4a3c01cf9d3a76916a4481411507b1c2d72583ebf3760fd",
+      "bytes": 300046
+    },
+    {
+      "path": "docs/images/quantum-key-surge.png",
+      "sha256": "3720caf3b06463d50a489a3c34a46cf4a836f59449383316660a14df6d369c71",
+      "bytes": 308142
+    },
+    {
+      "path": "docs/logo-samples/README.md",
+      "sha256": "cff2738c9653cdaa3d8f32c319230a4cd15aebac0d169cf484f28fd41458e332",
+      "bytes": 1194
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-1-still.png",
+      "sha256": "14dd6d8dfd3926ca2c788516de14e795dd41fb1d2a50e20589117449e05155df",
+      "bytes": 28591
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-1.gif",
+      "sha256": "09df8a95d719c4c81c63c4486916daef7c5fec6ea6e50dfa5a0cadc89fef466a",
+      "bytes": 1415275
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-1.png",
+      "sha256": "a9cb8cf638f9dfa161d14caa36aa028bd5bad24944975932cde4ca9197079a8c",
+      "bytes": 17123
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-2-still.png",
+      "sha256": "2dd259c6a4d185d1c967f000c6b3f13b472e6864d6fd3b95dba315aac1b0e913",
+      "bytes": 29690
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-2.gif",
+      "sha256": "8061c2e31d5fda71f8d296f4512cbee39dc2f52422b33b442a5960e53f523c68",
+      "bytes": 1448341
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-2.png",
+      "sha256": "23c5ad9f7f590f17ad2da6fff379a4b37e573d70a534212611270d80b5ff7399",
+      "bytes": 18345
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-3-still.png",
+      "sha256": "445aef89648665624f023174e31d215a779bcbc9c24506ade5a94e8aeb4256a2",
+      "bytes": 27991
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-3.gif",
+      "sha256": "7e5aa237962650e6ffdede05f3bc735537015bbbbc3e52c4a14a8da92c06a52f",
+      "bytes": 1366407
+    },
+    {
+      "path": "docs/logo-samples/dv-distinct-3.png",
+      "sha256": "db4c92ba7ca3aa1ae5657f71ccca52a112dd3e30a5dffd8195435d919d945235",
+      "bytes": 17088
+    },
+    {
+      "path": "docs/logo-samples/dv-glowing-infinity-still.png",
+      "sha256": "cfd2983aa93e4b1d97518c87c158281cbf0a8d706e35fce89044106d34bf4794",
+      "bytes": 119857
+    },
+    {
+      "path": "docs/logo-samples/dv-glowing-infinity.gif",
+      "sha256": "1b72f11218234dc472e4883a80b910cb829a93c063d15c5acf27cd7d1c301a0c",
+      "bytes": 3983471
+    },
+    {
+      "path": "docs/logo-samples/dv-glowing-infinity.md",
+      "sha256": "a18e05920ac4720ae2a17f32d59d0a51e4625ff1faa635997a580f3a15c8be1a",
+      "bytes": 1072
+    },
+    {
+      "path": "docs/logo-samples/dv-infinity-master.png",
+      "sha256": "ffdef818408c4e200dd93d650e19b4e92e8c8cdf479ef2943aa2b7bc7bc0025f",
+      "bytes": 1245572
+    },
+    {
+      "path": "docs/logo-samples/dv-inside-out-v1.md",
+      "sha256": "16a0341cf4e47c384420e89ea516c8b0899f73ae8a4fab8007c5d215bf634a59",
+      "bytes": 923
+    },
+    {
+      "path": "docs/logo-samples/dv-inside-out-v1.png",
+      "sha256": "e37841b7f2167c1ebc9ad24bf27f96fff57e5ff1b6aa29922ec48edbfd3ea751",
+      "bytes": 1144591
+    },
+    {
+      "path": "docs/logo-samples/preview_infinity.py",
+      "sha256": "7c42236f4b4e4f3950ee3d6cf910b9d5b482a53eeca2cf69171a068f6ca0fd39",
+      "bytes": 3124
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/README.md",
+      "sha256": "826a384b9a64b89ddc78a6d918863f13d5d9548e13792b38ef532bbb2dffc2e0",
+      "bytes": 3900
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/animate_communicating_cubes.py",
+      "sha256": "6a2d9020b464d6fa2c0377efdd1f5b456de309cc5d8d374dafbc50dc54d76481",
+      "bytes": 5836
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/animate_cubes.py",
+      "sha256": "0c7391fcfa6a4105200914e451d88fc01668a670ef7f295d006a3700bb89be56",
+      "bytes": 3863
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/animate_glass_cubes.py",
+      "sha256": "39fc2e10f0e31b84d3fb43c7b17ee5e393a416e7eb91293e0d74dc3cb030c57f",
+      "bytes": 7436
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/cool-blue-d-master.png",
+      "sha256": "64b2d41b2d60bbe87e39bb9e5d2db8af35ad32eb41be26375dbb2af569423fa0",
+      "bytes": 1676491
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/glowing-d-master.png",
+      "sha256": "f11c4a7f5a97948ccdfbf0d5931e1e9b8d8ec3e56278056df984d2042a218d3a",
+      "bytes": 1758665
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/live-preview.html",
+      "sha256": "eac0855550b5a5a5a412b0f65373e872da73380cf76fe89ea19ae1e1e7c3ab10",
+      "bytes": 7126
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-communicating-cubes-still.png",
+      "sha256": "da3571c942d64fd43dc063cdd17a09ff684098609684a07f2bacdf764835998e",
+      "bytes": 373254
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-communicating-cubes.gif",
+      "sha256": "3c57d50cbe547b06e34f08c1c30712a6b2f4e14b60f305cd417eadb84c185ce4",
+      "bytes": 36959067
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-dual-cubes-still.png",
+      "sha256": "6f0040b4715a5d271460ce70c2b27c309ead4bc00ae30dde1c9326880fdfcd2e",
+      "bytes": 377808
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-dual-cubes.gif",
+      "sha256": "15584f7a0b7b4c2b9f58a6a164c170dd6f7f3723bb040c621f16419c6c30361d",
+      "bytes": 18967549
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-glass-cubes-v3-still.png",
+      "sha256": "0f270727d49ab0165fe51987d286288adafc0116d69bfb5166e2c63380de75ae",
+      "bytes": 100833
+    },
+    {
+      "path": "docs/logo-samples/quantum-key/quantum-key-glass-cubes-v3.gif",
+      "sha256": "ce5f5a0311101e473ec2519d3a643914d98ea5b4c47411af5651b769fa7c50d4",
+      "bytes": 36855011
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/README.md",
+      "sha256": "9c601ec4ad5da1518020809903488a6e586c1346fa5be851a1f41cbaa1092f0a",
+      "bytes": 2021
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/board-1-still.png",
+      "sha256": "b7410a5ccc08cba9a180678147d5859e89bfe38b222631bc7a3e410e71bbfda8",
+      "bytes": 115879
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/board-1.gif",
+      "sha256": "6b3667ddfaeae9a60e4e2e826503b7c09e54611979f76ab0f803946722e77141",
+      "bytes": 4122820
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/board-2-still.png",
+      "sha256": "8c9f2b8e3e69ba3dd2cfa4d9acff02e059cbe32d142acbc20dd6d35098fd5ebd",
+      "bytes": 120889
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/board-2.gif",
+      "sha256": "d82c54ba2698fea57e45b55a9476f847ff431427cde0bedf1326a576a26754ab",
+      "bytes": 4049740
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-01-still.png",
+      "sha256": "889028acd970b8f01e684ea3f03ab26df66e62883b075263a98355201fb34ac1",
+      "bytes": 39208
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-01.gif",
+      "sha256": "279f96506383e422a1e7df18f4826cbde7738e57169b9024f286f929c4753671",
+      "bytes": 959896
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-02-still.png",
+      "sha256": "a529a0d432cbb491d2a60ea8ab4be25b003ce1e303205ce99bc0252c569b331d",
+      "bytes": 41023
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-02.gif",
+      "sha256": "e163603e905864bb6e7f6b48db7c3c5e9579ac6fc0d0d3b33d230fc124093ba9",
+      "bytes": 1019017
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-03-still.png",
+      "sha256": "36fb3157ce5293fb0bfbfc1279262e5187b58a778f5335f40ed9921142b3af15",
+      "bytes": 39274
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-03.gif",
+      "sha256": "b282781b8614fe5690a908946a6a7d994813e55e56318f157898e7765ac83e9a",
+      "bytes": 966846
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-04-still.png",
+      "sha256": "9b8c1d4ad1b3a8ba834894f2b2d43ba513bd3059b85185d2ea5c756a0d8c7cbc",
+      "bytes": 40426
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-04.gif",
+      "sha256": "5d367ef4f7b18d7a197d5f6b1ba6ca8c64e52a51a52cf062f4916c4ddc7dcde1",
+      "bytes": 998605
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-05-still.png",
+      "sha256": "03df86f815801694be74fccf36842701a6b898983746703ce6d97b89e606aa56",
+      "bytes": 40327
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-05.gif",
+      "sha256": "69cd6baf7abec268e006db3b7eaf2b9f9a97406a506942548669a04abff2ce26",
+      "bytes": 1008496
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-06-still.png",
+      "sha256": "b98d884861d4db14490164d58059be19d4e11b62a2cb5840bec83ab31ff3b251",
+      "bytes": 39641
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-06.gif",
+      "sha256": "1e78093a4c41b392a7cebb9d282a96172a77ba44db4ef3c19bd303fbbf96fb64",
+      "bytes": 964936
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-07-still.png",
+      "sha256": "46f7125958c05d283bcde79719c94134996067c981e0842be82208215382c5c8",
+      "bytes": 40537
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-07.gif",
+      "sha256": "6eb06acebc9bfa317bfdf532fa85b4984246ce17d55bc3a129ac884b0e41f886",
+      "bytes": 995611
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-08-still.png",
+      "sha256": "ff62f87b1fc61d677e927c05032f3819e9b4b6e8d603a65dafcd5b93e3d2ad93",
+      "bytes": 39805
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-08.gif",
+      "sha256": "ee6e4e154f89680cef60ac85480a834ea9cbe54a2c7dd223f7a739a49ea40aa7",
+      "bytes": 978313
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-09-still.png",
+      "sha256": "f4a0a1d891c0c9d93620b09b2b59bd86b05eb2e83750497a32bcd1ce5e1dbceb",
+      "bytes": 39557
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-09.gif",
+      "sha256": "406b830c8a2a5b7ff51cc7d2810f26a8cfd08485b8cf8685aff77c8d1338d41d",
+      "bytes": 973695
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-10-still.png",
+      "sha256": "30e1f34bb92263d7a0651a29d747906f09b9c56bb5288910f601aec7e001354d",
+      "bytes": 39546
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/concept-10.gif",
+      "sha256": "252d90e4ff12f86abcbc941490f796dafd0c6cec2457d1fbd1200bb7a98d10af",
+      "bytes": 967956
+    },
+    {
+      "path": "docs/logo-samples/quantum-ten/gallery.html",
+      "sha256": "5ddf65bb070164baa3efd14b092db5806ad2f894b4e709b70acb61706cc8d04d",
+      "bytes": 2941
+    },
+    {
+      "path": "docs/logo-samples/quantum_ten.py",
+      "sha256": "ba88eb9d6641dd59cb73dfc641792ad601ede1d8d3943287ca36feaed4c7d093",
+      "bytes": 8413
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/README.md",
+      "sha256": "be175b495c85673dff26907ec95941b984ea7812b36edcb9280ede8b98ea688f",
+      "bytes": 3902
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-01.png",
+      "sha256": "c462de5e718397a77f2ef7e4b5448168b50f8cb07923878a2f9afeb8370c5861",
+      "bytes": 1495900
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-02.png",
+      "sha256": "70fc24fca83ff91b9de7cf0d81fbe0d7d49029f497272ea12e0ac558ac34eec8",
+      "bytes": 1678149
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-03.png",
+      "sha256": "238739d302f434e857119c1580a287929b3949d0a83d23831004e94018395060",
+      "bytes": 1693725
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-04.png",
+      "sha256": "dd6c96d5f6bbdbe627b98d90afd24d0aeaca0e8c8eb1a348a4fbfe46483a0e48",
+      "bytes": 1663887
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-05.png",
+      "sha256": "b12742cd2086ed00f6a8d3b875269df0523154249d406f71a3255a93ab61a352",
+      "bytes": 1758778
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-06.png",
+      "sha256": "681e4403a37fcf1cc8093a174949c22f2bd3d09ab5089115ffd32cd02744064d",
+      "bytes": 1508839
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-07.png",
+      "sha256": "a68aa3c59ad663fcfe7b757b2fd5e180b494fde606de8eadbcaa628f1a435e01",
+      "bytes": 1634166
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-08.png",
+      "sha256": "e1ebc8367cc2cc57f83ac6113f5b67a050b2833eef882319d7a37beb2bf2c04f",
+      "bytes": 1356421
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-09.png",
+      "sha256": "06a68ea3604205e3915feeb7c7adcc2199c0ad59c0a480f0ce1cf4374789a231",
+      "bytes": 1672892
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/art-10.png",
+      "sha256": "75e8142593b1287fd4d17391491d8eb08ffeef6611589cb13825a14d681ed4df",
+      "bytes": 1686422
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/board-1-still.png",
+      "sha256": "222dedfc91acbcb5566f715534e29def38cb3546ab8de3abb05228df28275839",
+      "bytes": 356464
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/board-1.gif",
+      "sha256": "b8125f4a9005159d7d963a828c1f1e725c9eca8e01603d2310083be9d6946728",
+      "bytes": 6086415
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/board-2-still.png",
+      "sha256": "36f869757a2a495f2b1b28a8268ed477b93219081d3563d1d2e10b26c2639e7f",
+      "bytes": 344513
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/board-2.gif",
+      "sha256": "8e317481d2c19fee102c6726524e94daaa54fb105679a3b803219a48cc225bf2",
+      "bytes": 6530781
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-01-still.png",
+      "sha256": "8bb88ea576228abd89f453051d0bb961187e84f27ea5560f9721454b88afb143",
+      "bytes": 78422
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-01.gif",
+      "sha256": "17cbfc03d7aa5112b699855351b21b830cb6023985c7cdee944f10e5755881e6",
+      "bytes": 828109
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-02-still.png",
+      "sha256": "06266bdd121f9a32c52be7036f47a11c30ebdca59fc1975026fddd0152c0e38b",
+      "bytes": 60465
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-02.gif",
+      "sha256": "42f864a859a7f6846e1e81e48fee5d91558ed2ef2c41851eaaf5e09ff88d3bc6",
+      "bytes": 1484235
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-03-still.png",
+      "sha256": "38952132cdf387f78be73d3f68ac3ec461d35581c17c1790638f9da220449811",
+      "bytes": 75693
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-03.gif",
+      "sha256": "a4d7bba1a7c3eb068a7b63c40e8b7c7be8d88a9fdb0aad7275c704d6c962398a",
+      "bytes": 1565366
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-04-still.png",
+      "sha256": "8f312fb130672247f9aa8093d957dba5069b1b9257343befa137cc7901140d6a",
+      "bytes": 73518
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-04.gif",
+      "sha256": "1ff36ae40b9500af657a2c226810d489137f1092ce4b753f0fa8a36a368b97b9",
+      "bytes": 984583
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-05-still.png",
+      "sha256": "3dac12abbddd28eb329023d60475c2a5f5594bd551bee0a52dd0aee3b72b1c0f",
+      "bytes": 68686
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-05.gif",
+      "sha256": "1f4da52240e6f6e00335c73dad5f7b4f2a1c8f9f8ba7ec6bb55d24fe66bcf29c",
+      "bytes": 569429
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-06-still.png",
+      "sha256": "cc111e73da0cb4ac3048bf58af2d03eee069c127b48bc2db359510e5e9a314a8",
+      "bytes": 60586
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-06.gif",
+      "sha256": "a2753fe8c21d72949cf44e0d6c9fe62325e9c478669695434e43954def796432",
+      "bytes": 438552
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-07-still.png",
+      "sha256": "660dda85b91054bf32c204bf997be698d63916b3e6ab11daca91a12b48f15c59",
+      "bytes": 73806
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-07.gif",
+      "sha256": "a4cc44c6d9f04807a1ae75d7014469c5b078b8fde06a64fe0cf22db04c2e24b1",
+      "bytes": 855351
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-08-still.png",
+      "sha256": "a0ec808483f0d4ac83564773bb800fad2ff349da46962c8439c8cb822d71509a",
+      "bytes": 59472
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-08.gif",
+      "sha256": "0b253d83d736c9be4815ae593fa9d8c1151d2019c43becac05bfaae9198051a4",
+      "bytes": 486404
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-09-still.png",
+      "sha256": "91b29f240bfa8ee98064bc32413905a82c1201b275168bd21cc169455a5afc09",
+      "bytes": 73664
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-09.gif",
+      "sha256": "2b22618acbc86967524dcd0815ab218f4b4126bba0f67e6dddc3881abdbef89a",
+      "bytes": 1563274
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-10-still.png",
+      "sha256": "ef27ce3a5ddfbcbb83bc3250208ad4802413db7b1de77330c320f96a3bae9159",
+      "bytes": 77067
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/concept-10.gif",
+      "sha256": "bf9cbb922fd26895f3ce97b42fa8caefab79b2730c9c9f6b8db9f0549b778600",
+      "bytes": 839510
+    },
+    {
+      "path": "docs/logo-samples/radical-ten/gallery.html",
+      "sha256": "61b10625cf1db0302bbe4a1d63e81835c1b3ad5c6987f8f0da34b8ae4c008615",
+      "bytes": 3423
+    },
+    {
+      "path": "docs/logo-samples/radical_ten.py",
+      "sha256": "45a02d2605471470a3b498ba1aa7fe4757737048f00a0a219a7598e6c695b7b9",
+      "bytes": 6851
+    },
+    {
+      "path": "docs/logo-samples/render_samples.py",
+      "sha256": "30f85ae1422b3218e52b733be651207513e9b38686efc65a5c6e9f938657ab57",
+      "bytes": 4574
+    },
+    {
+      "path": "docs/project/00_DVielle_Project_Documentation_Master_Index.md",
+      "sha256": "9c1168e0a3adb58c0822b51ae9d31b2d04c45f0cc480e9dc3cb7099dbe07a219",
+      "bytes": 6331
+    },
+    {
+      "path": "docs/project/01_Project_Charter_and_Product_Strategy.md",
+      "sha256": "1f75589a4c0e8347899b110fc68623a628cf27a215d24dfdd7a7d9cd381c602c",
+      "bytes": 5019
+    },
+    {
+      "path": "docs/project/02_Product_Requirements_and_User_Journeys.md",
+      "sha256": "70a10f34cc99eaaeb7b6e8082785e82b8accb964353f9c077bc44784e07fee40",
+      "bytes": 5007
+    },
+    {
+      "path": "docs/project/03_Software_Requirements_Specification.md",
+      "sha256": "086d00708bb67369fab4197d2399e4c0e7bdbb3f044423383e21290c5adadf1e",
+      "bytes": 5407
+    },
+    {
+      "path": "docs/project/04_System_Architecture_and_Trust_Boundaries.md",
+      "sha256": "7850cff9d762f8e83062169344355c91ea7beb709b176b924d4992526855479f",
+      "bytes": 4877
+    },
+    {
+      "path": "docs/project/05_Data_Model_IPC_and_Integration_Contracts.md",
+      "sha256": "906a6550c19641beda36133c30319729e2158eeb49f25797c398b8cf8ba8cb86",
+      "bytes": 4960
+    },
+    {
+      "path": "docs/project/06_Threat_Model_and_Security_Control_Design.md",
+      "sha256": "42d2344e733ed0ba63fe99448f7703e6e7c573fc9ba463e4fc1c35b893be8111",
+      "bytes": 4610
+    },
+    {
+      "path": "docs/project/07_Privacy_Data_Governance_and_Impact_Assessment.md",
+      "sha256": "49921c3c645b97d0c119f0726f648add242a49d904e3748326e2daae3199fb23",
+      "bytes": 4497
+    },
+    {
+      "path": "docs/project/08_AI_Autonomy_and_Decision_Engineering.md",
+      "sha256": "4acf213f99c1d2a8b17d43c9e2e56ade013015d669cf18f8b47582435bafadd5",
+      "bytes": 4115
+    },
+    {
+      "path": "docs/project/09_Cryptography_and_Post_Quantum_Migration_Plan.md",
+      "sha256": "bf3845009b45728794338739ca733e0124c51e660bb53e75d0b9d352628096f5",
+      "bytes": 4140
+    },
+    {
+      "path": "docs/project/10_User_Experience_Accessibility_and_Brand_Standards.md",
+      "sha256": "a86cfafc21c411e0d4fef8c46ee4bcf2e79621a01c0145b309ab62b33c04c99b",
+      "bytes": 3799
+    },
+    {
+      "path": "docs/project/11_Verification_Validation_and_Acceptance_Plan.md",
+      "sha256": "a7e712dc4cceec90f97c2ea76f70b7cab1a61b317e904425e6727312887c6822",
+      "bytes": 4691
+    },
+    {
+      "path": "docs/project/12_Secure_Development_and_Supply_Chain_Plan.md",
+      "sha256": "ad407158806ce3bcf320a10c81101086d04dabe94a7156862f0d401c1ed13aa8",
+      "bytes": 3941
+    },
+    {
+      "path": "docs/project/13_Installation_Release_Update_and_Migration_Plan.md",
+      "sha256": "67dbb54dee3a326c0324e21e82aa22405ce60f4a83a296401b17f1d2d35c7d3d",
+      "bytes": 4009
+    },
+    {
+      "path": "docs/project/14_Operations_Support_and_Recovery_Runbook.md",
+      "sha256": "aa04bfe4da251300dd6b6afddf0ded70bd35e8800ec46e6bf24fa142530d33cd",
+      "bytes": 3624
+    },
+    {
+      "path": "docs/project/15_Incident_Response_and_Vulnerability_Disclosure_Plan.md",
+      "sha256": "8b152c149669e43326884f222df6143ee0b2718f3c4e99786d2ed92a250e9316",
+      "bytes": 4207
+    },
+    {
+      "path": "docs/project/16_Risk_Register_and_Resolution_Management.md",
+      "sha256": "f555fd997fd01bf413a4fcc3c452762c74d490fb8cfbdf5f38b2e465bd2d4f5d",
+      "bytes": 4631
+    },
+    {
+      "path": "docs/project/17_Step_by_Step_Implementation_Plan.md",
+      "sha256": "d6845b8606fb1e38188d3f3959a323c87e1128d33400ed68f1fa24e7785d3d52",
+      "bytes": 12269
+    },
+    {
+      "path": "docs/project/18_Requirements_Traceability_and_Delivery_Matrix.md",
+      "sha256": "14c4849bcd5e42e93e330f112bb923aacb038928312119bd1fd13dd9fab1aceb",
+      "bytes": 4110
+    },
+    {
+      "path": "docs/project/19_Research_Evidence_Register_and_Engineering_Findings.md",
+      "sha256": "65cbfbb6e8621a8a9618f27b0e900a459f873bd6a38947453ab71c381092c575",
+      "bytes": 13255
+    },
+    {
+      "path": "docs/project/20_Free_Tooling_Licensing_and_Distribution_Assessment.md",
+      "sha256": "51a49fa0a16ef7574471bb183e33a5c4462174b0deff86aee504a58c4331264a",
+      "bytes": 5129
+    },
+    {
+      "path": "docs/project/21_Project_Governance_Architecture_Decisions_and_Change_Control.md",
+      "sha256": "68dca20c9d8e456db50a49f0ea5b7ea0de2e891967d8630963a516421a6bdb55",
+      "bytes": 4620
+    },
+    {
+      "path": "docs/project/22_Engineering_Resolution_Dossier.md",
+      "sha256": "8c968c46ed4cb88069bf7c8411e814cffc2592bf91c6d63049ea63efc3719410",
+      "bytes": 5454
+    },
+    {
+      "path": "docs/project/23_User_Operating_Guide_and_Safety_Workflows.md",
+      "sha256": "894877e3d850e73a52531aee4329f5754d0ce96781daa8700aa406b060ea8d81",
+      "bytes": 4425
+    },
+    {
+      "path": "docs/project/24_Developer_Onboarding_and_Engineering_Handbook.md",
+      "sha256": "e21b6c71d9394d2365e16a1386f9711a7f2d9aa79379056f10891f133cd4ba5d",
+      "bytes": 3799
+    },
+    {
+      "path": "docs/project/25_Ethical_Assessment_Rules_of_Engagement.md",
+      "sha256": "c40da8bd15b9fbf2d686da8f4d1b36fd7ec978ef92a8210c676ddca5f20451c0",
+      "bytes": 3953
+    },
+    {
+      "path": "dvielle/__init__.py",
+      "sha256": "2bfaa06f0bbb64bd4229881caf91524932b0aeb581086b7aef76673b3f3fa400",
+      "bytes": 374
+    },
+    {
+      "path": "dvielle/__main__.py",
+      "sha256": "0c3dcf443b23415e4de1c3886ddb791463d8b74ebe4660ec2db5da4b46683078",
+      "bytes": 879
+    },
+    {
+      "path": "dvielle/brand.py",
+      "sha256": "52521d8c8fb3cd13c07a683094ee3f1f450945cbbab37ed6916221d59d0cd295",
+      "bytes": 6032
+    },
+    {
+      "path": "dvielle/gui/__init__.py",
+      "sha256": "d5bf142d083e6045b964077802864d8c9bb9a6c878ee9909c8412bd2b930434a",
+      "bytes": 30
+    },
+    {
+      "path": "dvielle/gui/app.py",
+      "sha256": "61cafafc69268721b53c2d090d1e91accba45da72328dbbda488342007c82c70",
+      "bytes": 55492
+    },
+    {
+      "path": "dvielle/gui/attacks_window.py",
+      "sha256": "c58a8a06548c64ed63acd46db594860b3ebe77163a8a7c9946aab96008a10428",
+      "bytes": 10063
+    },
+    {
+      "path": "dvielle/gui/logo_mark.py",
+      "sha256": "dbbecc2a0ad14d0f04cde1d92c5315dc5e270501c986255dc4c29ac77f11f124",
+      "bytes": 19485
+    },
+    {
+      "path": "dvielle/gui/motion.py",
+      "sha256": "5f82d06833de6dc59ce69933b97170adeb48b8c9dcb90d1e8448393bbb629a8d",
+      "bytes": 2400
+    },
+    {
+      "path": "dvielle/gui/network_panel.py",
+      "sha256": "54bb68d7ba918b1512194ee474cbfe87d7f1d11d2596c141226c9bb2ce8405d8",
+      "bytes": 3379
+    },
+    {
+      "path": "dvielle/gui/observations.py",
+      "sha256": "256c79f8037f21b4094acb629dbdda5d08a1c65df7e0a848e443f870e4085e21",
+      "bytes": 12740
+    },
+    {
+      "path": "dvielle/gui/presence.py",
+      "sha256": "540afd7c8bbf31f34edee91aabd58290c128fdfedc867d3edaa1dc319a4deb1e",
+      "bytes": 8676
+    },
+    {
+      "path": "dvielle/gui/prime.py",
+      "sha256": "b0c643afed4c94408ac9a56c43a8d91b49fecef34df9d1006eb640c3f45912e6",
+      "bytes": 10165
+    },
+    {
+      "path": "dvielle/gui/quantum.py",
+      "sha256": "eeabfcd62ba43b8536e02aa92ad1a64a0cdfd2b15adce3a5e18c92126847028c",
+      "bytes": 5213
+    },
+    {
+      "path": "dvielle/gui/shell.py",
+      "sha256": "30134e8eeec1e3d40cf5072a4023953f0947077b186e7645f61c1c3b227aae6b",
+      "bytes": 6697
+    },
+    {
+      "path": "dvielle/gui/theme.py",
+      "sha256": "c1404d868d11572022ddc53bffcf695accb23c514f38e44b24c3193f1ee2ec06",
+      "bytes": 8167
+    },
+    {
+      "path": "dvielle/gui/theme_store.py",
+      "sha256": "9d24aaa4407d9b6ef5e40aabf57dca22c6a933d2345d330fdc000979ab141445",
+      "bytes": 2421
+    },
+    {
+      "path": "dvielle/gui/tray.py",
+      "sha256": "520f9aa3488f9f14b401f383001c922bf43b50b666183579339cde712fc28db8",
+      "bytes": 2389
+    },
+    {
+      "path": "installer/DVielle.iss",
+      "sha256": "1766cf9bf78b00c18bbb70f8dc8227930c1b404ff1b073cb15dbdfa42769f8e7",
+      "bytes": 2519
+    },
+    {
+      "path": "installer/INSTALL.txt",
+      "sha256": "37648f87e1d234f9d9aa55827a4954b87067612fadcd52b18c0d8c37cd051dff",
+      "bytes": 2349
+    },
+    {
+      "path": "installer/SETUP_NOTICE.txt",
+      "sha256": "2db9cac0b1d3e5fd62cf15167f1da08a35abe4d76112ecec6f6e27636cbb8789",
+      "bytes": 1115
+    },
+    {
+      "path": "installer/bootstrap-dvielle.ps1",
+      "sha256": "9b1eb0094752854bb69eb790c10a5c9d78d5c37bc1d69e8703c1ba9819752edf",
+      "bytes": 4091
+    },
+    {
+      "path": "installer/common.ps1",
+      "sha256": "1a1e34113ea41bdeaf44fab9e3080164aa4edcd75727e39a4dae61faef8bc359",
+      "bytes": 25113
+    },
+    {
+      "path": "installer/elevate.ps1",
+      "sha256": "9cabda24ee93eadddf7fe058d263509cfc89e3ac466a9d8bdc2af5b59f8cf5f1",
+      "bytes": 1191
+    },
+    {
+      "path": "installer/install-dvielle.ps1",
+      "sha256": "f70464e57459e3001dc62a001472175e838f79398763b880e629b6fbdf8787d9",
+      "bytes": 13567
+    },
+    {
+      "path": "installer/uninstall-dvielle.ps1",
+      "sha256": "dedb4b7964b42077b37c0166d0c84fe9dea65d3866a774588d26c80ed51ef446",
+      "bytes": 3211
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "27a707e1337b62a90379473f4234da21bd6b83e9329588d7f133a5372f92c0ae",
+      "bytes": 1441
+    },
+    {
+      "path": "scripts/New-DvielleGuiExe.ps1",
+      "sha256": "65a85e6246dc8c2cebe52bea1c8a442206c793ecd313013887bce55cafca8272",
+      "bytes": 3910
+    },
+    {
+      "path": "scripts/block-telemetry-firewall.ps1",
+      "sha256": "a28f812d7b93594565b4cc6a293f022ec9fa2f4f3bdc36eef29cb7f62e052516",
+      "bytes": 1614
+    },
+    {
+      "path": "scripts/build_windows_installer.ps1",
+      "sha256": "0488d87619159e4b1006a800cbffea66c941f635736d2aa337cade34b683c1f2",
+      "bytes": 5742
+    },
+    {
+      "path": "scripts/harden-once.ps1",
+      "sha256": "5f94a63416b6cd9211a9687657d4cd7c97b87907e0511c9a19c4c6a5edcaf8f8",
+      "bytes": 3497
+    },
+    {
+      "path": "scripts/hardening-common.ps1",
+      "sha256": "630158564e4cb582a951d6d23c718be1d474c452c18ed694bab864c296d9497d",
+      "bytes": 15141
+    },
+    {
+      "path": "tests/test_console_theme.py",
+      "sha256": "ebc331e273eba02b3334ce86e69501893ea5e5b9378ecb0b673682909cf45559",
+      "bytes": 8631
+    },
+    {
+      "path": "tests/test_install_acl_contract.py",
+      "sha256": "ee538181ab7400dd4c29298ebecab3fa571a7f5deb1d43eb0a291645aa088571",
+      "bytes": 3780
+    },
+    {
+      "path": "tests/test_installer_contracts.py",
+      "sha256": "ceaea062008b70a1193391e8f907ee3e61bcba8a59b0e8b6ba1b5b8dd03e6e39",
+      "bytes": 11615
+    },
+    {
+      "path": "tests/test_logo_animation.py",
+      "sha256": "b44399f305f29d0f71b0140251d905807c7ecffbce8e8367b170b14ac7b4194a",
+      "bytes": 7728
+    },
+    {
+      "path": "tests/test_nexus_fold_prime.py",
+      "sha256": "0df409e032a395245aacb3ec9d896d8e8945554a62d1ae112f4aeb67dab0d3d8",
+      "bytes": 6410
+    },
+    {
+      "path": "tests/test_privacy_ai_camera.py",
+      "sha256": "7271475d8645e7a24ea87fa4723c1391e6dadc71137e7548f8a1a73093c8931c",
+      "bytes": 14829
+    },
+    {
+      "path": "tests/test_repair_controls.py",
+      "sha256": "8141954b0e31e5d12e4fe31e184f0c4661e27de178234daac703451c8dd8dc8f",
+      "bytes": 15361
+    },
+    {
+      "path": "tests/test_repair_install_helper.py",
+      "sha256": "03ff26e5ab08d68d92c7c2cd13073267a072dfa71fa42eb07347c19a97abb5ed",
+      "bytes": 12315
+    },
+    {
+      "path": "tests/test_repair_intel_updates.py",
+      "sha256": "3b6f5328da35eee98b2a468fb10c5460c15e714d75a9658bf0bcfd7ca02edf8a",
+      "bytes": 12330
+    },
+    {
+      "path": "tests/test_repair_runtime_engine.py",
+      "sha256": "a22d930031f3de758ba5ccaad5c96e2b26ec83717e223a40cc3c368ad27cb979",
+      "bytes": 21118
+    },
+    {
+      "path": "tests/test_windows_installer_contract.py",
+      "sha256": "cf0ab1c941e0db528a0931613adea04d9804bb4a8eb9f17c96fedd727e429d24",
+      "bytes": 5562
+    },
+    {
+      "path": "tests/test_worldclass_p1.py",
+      "sha256": "1e04dabcd08cb17d98a3f2324577655b8d87ec143b9215c5634f81ae90971414",
+      "bytes": 24079
+    },
+    {
+      "path": "tests/test_worldclass_p2.py",
+      "sha256": "f5916154ea05ac2b9a6aed822ef124192d821e838bfe9ac0e39afb25e70b7d46",
+      "bytes": 19739
+    },
+    {
+      "path": "tests/test_worldclass_p3.py",
+      "sha256": "d0c88ec04cd435668a64286dd640216899bae33f17d5cfd98b779c2c004775d3",
+      "bytes": 26443
+    },
+    {
+      "path": "tests/test_worldclass_p4.py",
+      "sha256": "efb9fd9f15ca85ced507d478be8050c595b25ce66145edd90168e6e708896a6c",
+      "bytes": 15830
+    }
+  ],
+  "deployment": "Not certified; production pipe remains defined_only in inspected source",
+  "authorization": "Implementation authorized by user 2026-10-10; no third-party assessment targets authorized"
+}

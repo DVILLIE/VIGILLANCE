@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from agent.intel.io import MAX_INVENTORY_BYTES, read_bounded
+
 
 def load_inventory(path: Path | None) -> dict[str, Any]:
     if path is None or not path.is_file():
@@ -16,8 +18,8 @@ def load_inventory(path: Path | None) -> dict[str, Any]:
             "detail": "No local software inventory file. Installed products were not guessed.",
         }
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        payload = json.loads(read_bounded(path, MAX_INVENTORY_BYTES).decode("utf-8"))
+    except (OSError, UnicodeError, ValueError, RecursionError):
         return {
             "state": "invalid",
             "count": 0,
@@ -25,7 +27,7 @@ def load_inventory(path: Path | None) -> dict[str, Any]:
             "detail": "The inventory file could not be read as JSON. Nothing was matched.",
         }
     rows = payload.get("items") if isinstance(payload, dict) else None
-    if not isinstance(rows, list):
+    if not isinstance(rows, list) or len(rows) > 1000:
         return {
             "state": "invalid",
             "count": 0,
@@ -38,7 +40,7 @@ def load_inventory(path: Path | None) -> dict[str, Any]:
             continue
         name = _text(row.get("name"))
         version = _text(row.get("version"))
-        if not name or not version:
+        if not name or not version or len(name) > 512 or len(version) > 256:
             continue
         items.append(
             {

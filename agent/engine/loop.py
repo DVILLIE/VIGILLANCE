@@ -18,6 +18,7 @@ from agent.engine.keep_on import match_keep_on
 from agent.engine.models import QUIET, FailClosed, Observation, PolicyDenied
 from agent.engine.policy import PolicyGate
 from agent.learn.memory import KeepOnMemory
+from agent.local_files import file_lock
 from agent.policy.dual import DualGate
 from agent.store.db import AgentStore, utc_now
 
@@ -25,8 +26,17 @@ from agent.store.db import AgentStore, utc_now
 def _append_log(log_dir: Path, name: str, line: str) -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     path = log_dir / f"{name}.txt"
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(line + "\n")
+    payload = (line[:65536] + "\n").encode("utf-8")
+    with file_lock(log_dir / f".{name}.lock"):
+        if path.exists() and path.stat().st_size + len(payload) > 1024 * 1024:
+            oldest = path.with_name(path.name + ".2")
+            previous = path.with_name(path.name + ".1")
+            oldest.unlink(missing_ok=True)
+            if previous.exists():
+                previous.replace(oldest)
+            path.replace(previous)
+        with path.open("ab") as handle:
+            handle.write(payload)
 
 
 class ResolutionEngine:
@@ -88,6 +98,12 @@ class ResolutionEngine:
             self._log("errors", f"ERROR {exc}")
             return {"disposition": "error", "keep_on_match": match.code, "finding": None, "mutated": False}
 
+        finding, created = self.store.stage_finding(finding)
+        if finding.get('action_claimed') or finding.get('recovery_required'):
+            return {"disposition": "ticket", "keep_on_match": match.code, "finding": finding, "mutated": False}
+        if finding.get("snooze_until") and finding["snooze_until"] > self.now():
+            return {"disposition": "snoozed", "keep_on_match": match.code, "finding": finding, "mutated": False}
+
         if (
             self.policy.auto_enabled
             and obs.action_class == "auto_protect_eligible"
@@ -99,25 +115,11 @@ class ResolutionEngine:
             handler = _auto_handler(obs)
             if handler:
                 auto = self._try_auto(finding, handler)
-                if auto and auto.get("mutated"):
+                if auto is not None:
                     return auto
-
-        existing = self.store.find_active_finding(obs.pillar, obs.subject_identity, obs.kind)
-        if existing and existing.get("snooze_until") and existing["snooze_until"] > self.now():
-            return {"disposition": "snoozed", "keep_on_match": match.code, "finding": existing, "mutated": False}
-        if existing:
-            existing["evidence_refs"] = finding["evidence_refs"]
-            existing["signals"] = finding["signals"]
-            existing["title_simple"] = finding["title_simple"]
-            existing["keep_on_match"] = match.code
-            existing["updated_at"] = self.now()
-            if match.code == "suspicious_mismatch":
-                existing["resolution_status"] = "found"
-                existing["snooze_until"] = None
-            self.store.save_finding(existing)
-            return {"disposition": "ticket", "keep_on_match": match.code, "finding": existing, "mutated": False}
-
-        self.store.save_finding(finding)
+                finding = self.store.get_finding(finding['id']) or finding
+        if not created:
+            return {"disposition": "ticket", "keep_on_match": match.code, "finding": finding, "mutated": False}
         self.store.log_event(
             obs.pillar,
             "WARNING" if obs.severity in ("high", "critical") else "INFO",
@@ -136,58 +138,47 @@ class ResolutionEngine:
         option = next((item for item in finding["options"] if item["id"] == option_id), None)
         if option is None:
             raise PolicyDenied("unknown option")
+        if option['effect'] == 'show_why':
+            # Evidence must remain readable while dispatch/recovery is held.
+            # Do not change the authoritative workflow or action state.
+            finding['last_result'] = finding['why_it_matters'] + '\n' + '\n'.join(
+                f'- {ref}' for ref in finding['evidence_refs'])
+            return finding
 
-        finding["resolution_status"] = "in_progress"
-        finding["updated_at"] = self.now()
-        self.store.save_finding(finding)
+        finding = self.store.claim_finding(finding_id, self.now())
+        if finding is None:
+            raise PolicyDenied("that finding is already being handled or needs recovery")
+        option = next((item for item in finding["options"] if item["id"] == option_id), None)
+        if option is None:
+            self._release_without_dispatch(finding)
+            raise PolicyDenied('The options changed; reopen the card')
         effect = option["effect"]
-
-        if effect == "show_why":
-            message = finding["why_it_matters"] + "\n" + "\n".join(f"- {ref}" for ref in finding["evidence_refs"])
-            finding["last_result"] = message
-            finding["resolution_status"] = "found"
-            self._finish(finding, option_id, message, False)
-            return finding
-
-        if effect == "snooze":
-            current = datetime.fromisoformat(self.now())
-            finding["snooze_until"] = (current + timedelta(seconds=self.cooldown_seconds)).isoformat()
-            finding["resolution_status"] = "monitoring"
-            finding["last_result"] = option["what_we_will_do"]
-            self._finish(finding, option_id, finding["last_result"], False)
-            return finding
-
-        if effect == "learn":
-            self.memory.set(
-                finding["pillar"],
-                finding["subject_identity"],
-                option["decision"],
-                self.now(),
-                notes=option["label"],
+        try:
+            local = self._select_local(finding, option, option_id)
+            if local is not None:
+                return local
+            token = self.policy.issue(
+                finding['id'], option['handler'], auto=False,
+                subject=str(finding.get('subject_identity') or ''),
             )
-            finding["resolution_status"] = option.get("resulting_status") or "monitoring"
-            finding["last_result"] = option["what_we_will_do"]
-            self._log(finding["pillar"], f"INFO learned {option['decision']} {finding['subject_identity']}")
-            self._finish(finding, option_id, finding["last_result"], False)
-            return finding
-
-        token = self.policy.issue(
-            finding["id"],
-            option["handler"],
-            auto=False,
-            subject=str(finding.get("subject_identity") or ""),
-        )
+        except Exception:
+            self._release_without_dispatch(finding)
+            raise
         try:
             result = self.handlers.invoke(option["handler"], finding, self.handler_ctx, token)
         except Exception as exc:
             self._log("errors", f"ERROR handler {option.get('handler')} failed: {exc}")
-            finding["resolution_status"] = "found"
-            finding["last_result"] = "DVielle could not finish that action. Nothing was marked fixed."
-            self.store.save_finding(finding)
+            finding["resolution_status"] = "in_progress"
+            finding['recovery_required'] = True
+            finding["last_result"] = "Action outcome is unknown. Review its effects before retrying."
+            self.store.save_finding(finding, action_owner=True)
             raise
         finding["last_result"] = result["message"]
         reported = result.get("status")
-        if reported in ("found", "in_progress", "resolved", "monitoring", "dismissed"):
+        if _needs_recovery(result):
+            finding['resolution_status'] = 'in_progress'
+            finding['recovery_required'] = True
+        elif reported in ("found", "in_progress", "resolved", "monitoring", "dismissed"):
             finding["resolution_status"] = reported
         elif effect == "preview" or not result["performed"]:
             finding["resolution_status"] = "monitoring" if effect == "guidance" else "found"
@@ -197,11 +188,42 @@ class ResolutionEngine:
         self._finish(finding, option_id, result["message"], result["performed"])
         return finding
 
+    def _select_local(self, finding: dict, option: dict, option_id: str) -> dict | None:
+        effect = option['effect']
+        if effect == 'snooze':
+            current = datetime.fromisoformat(self.now())
+            finding['snooze_until'] = (current + timedelta(seconds=self.cooldown_seconds)).isoformat()
+            finding['resolution_status'] = 'monitoring'
+            finding['last_result'] = option['what_we_will_do']
+        elif effect == 'learn':
+            self.memory.set(finding['pillar'], finding['subject_identity'], option['decision'],
+                            self.now(), notes=option['label'])
+            finding['resolution_status'] = option.get('resulting_status') or 'monitoring'
+            finding['last_result'] = option['what_we_will_do']
+            if self.memory.mirror_errors:
+                finding['last_result'] += ' Your decision was saved; some local summary files could not be refreshed.'
+                self._log('errors', 'WARNING keep-on mirrors need refresh: ' + ', '.join(self.memory.mirror_errors))
+            self._log(finding['pillar'], f"INFO learned {option['decision']} {finding['subject_identity']}")
+        else:
+            return None
+        self._finish(finding, option_id, finding['last_result'], False)
+        return finding
+
+    def _release_without_dispatch(self, finding: dict) -> None:
+        if finding['resolution_status'] == 'in_progress':
+            finding['resolution_status'] = finding.get('action_previous_status', 'found')
+        finding['action_claimed'] = False
+        finding.pop('action_previous_status', None)
+        finding['updated_at'] = self.now()
+        self.store.save_finding(finding, action_owner=True)
+
     def mutate(self, finding_id: str, handler: str, token=None) -> None:
         finding = self.store.get_finding(finding_id)
         if finding is None:
             raise FailClosed("no such finding")
-        self.handlers.invoke(handler, finding, self.handler_ctx, token)
+        # This legacy entry point must not bypass
+        # the reservation and result ledger owned by select()/automatic actions.
+        raise PolicyDenied('options required before mutate; use an approved options card')
 
     def _try_auto(self, finding: dict, handler: str) -> dict | None:
         if self.experience is not None:
@@ -213,6 +235,7 @@ class ResolutionEngine:
             if not allowed:
                 self._log("errors", f"ERROR auto-protect refused: {reason}")
                 return None
+        reserved = None
         try:
             token = self.policy.issue(
                 finding["id"],
@@ -221,22 +244,65 @@ class ResolutionEngine:
                 subject=str(finding.get("subject_identity") or ""),
                 severity=str(finding.get("severity") or ""),
             )
+            reserved = self.store.claim_finding(finding['id'], self.now())
+            if reserved is None:
+                return {"disposition": "ticket", "keep_on_match": finding['keep_on_match'],
+                        "finding": self.store.get_finding(finding['id']), "mutated": False}
+            finding = reserved
+            if (finding['action_class'] != 'auto_protect_eligible'
+                    or finding['confidence'] != 'high'
+                    or not finding['signals'].get('identity_ok')
+                    or finding['keep_on_match'] == 'suspicious_mismatch'):
+                # Another observer may have replaced the evidence after staging.
+                self._release_without_dispatch(finding)
+                return None
             result = self.handlers.invoke(handler, finding, self.handler_ctx, token)
         except PolicyDenied as exc:
             self._log("errors", f"ERROR auto-protect refused: {exc}")
+            if reserved is not None:
+                # A mutator exception can be wrapped as PolicyDenied by the
+                # executor. After dispatch, absence of a result is ambiguous.
+                finding['last_result'] = 'Automatic action outcome is unknown. Review its effects before retrying.'
+                finding['recovery_required'] = True
+                self.store.save_finding(finding, action_owner=True)
+                return {'disposition': 'error', 'keep_on_match': finding['keep_on_match'],
+                        'finding': finding, 'mutated': None}
             return None
+        except Exception as exc:
+            finding['last_result'] = 'Automatic action outcome is unknown. Review its effects before retrying.'
+            if reserved is not None:
+                finding['recovery_required'] = True
+                self.store.save_finding(finding, action_owner=True)
+            self._log('errors', f'ERROR automatic handler {handler} failed: {exc}')
+            return {'disposition': 'error', 'keep_on_match': finding['keep_on_match'],
+                    'finding': finding, 'mutated': None if reserved is not None else False}
         self._log("autoprotect", f"INFO finding={finding['id']} handler={handler} performed={result['performed']} {result['message']}")
         finding["last_result"] = result["message"]
+        if _needs_recovery(result):
+            finding['recovery_required'] = True
+            self.store.save_finding(finding, action_owner=True)
+            return {'disposition': 'error', 'keep_on_match': finding['keep_on_match'],
+                    'finding': finding, 'mutated': True if result['performed'] else None}
         if result["performed"]:
+            finding['action_claimed'] = False
+            finding.pop('action_previous_status', None)
             finding["resolution_status"] = "resolved"
             finding["updated_at"] = self.now()
-            self.store.save_finding(finding)
+            self.store.save_finding(finding, action_owner=True)
             return {"disposition": "auto_protect", "keep_on_match": finding["keep_on_match"], "finding": finding, "mutated": True}
+        finding['resolution_status'] = 'found'
+        finding['action_claimed'] = False
+        finding.pop('action_previous_status', None)
+        self.store.save_finding(finding, action_owner=True)
         return None
 
     def _finish(self, finding: dict, option_id: str, message: str, mutated: bool) -> None:
+        finding['action_claimed'] = bool(finding.get('recovery_required'))
+        if not finding['action_claimed']:
+            finding.pop('action_previous_status', None)
         finding["updated_at"] = self.now()
-        self.store.save_finding(finding)
+        if not self.store.save_finding(finding, action_owner=True):
+            raise PolicyDenied('The action reservation changed; inspect the current finding')
         self.store.log_work(f"OPTION:{option_id}", message, {"finding_id": finding["id"], "mutated": mutated})
 
     def _build(self, obs: Observation, match_code: str) -> dict:
@@ -269,6 +335,8 @@ class ResolutionEngine:
             "updated_at": now,
             "snooze_until": None,
             "last_result": None,
+            "action_claimed": False,
+            "recovery_required": False,
         }
 
     def _log(self, name: str, message: str) -> None:
@@ -283,6 +351,11 @@ def _should_surface(obs: Observation, experience: dict | None = None) -> bool:
     if obs.confidence not in ("medium", "high"):
         return False
     return obs.severity in ("medium", "high", "critical")
+
+
+def _needs_recovery(result: dict) -> bool:
+    return bool(result.get('state_unknown') or result.get('live_state_unknown') or result.get('recovery_pending')
+                or result.get('code') == 'outcome_unknown')
 
 
 def _auto_handler(obs: Observation) -> str | None:

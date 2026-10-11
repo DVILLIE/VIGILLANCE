@@ -2,6 +2,13 @@
 
 Canonical product thesis and engine map: **[VIGILLANCE_MASTER_ARCHITECTURE.md](VIGILLANCE_MASTER_ARCHITECTURE.md)**.
 
+Current repair branch (2026-10-09): the Limited installer requires verified,
+protected staging and a protected system interpreter. Code is protected; only
+the installed user, Administrators and SYSTEM can access private data/config.
+Highest, production loopback firewall requests, and the setup wrapper are held.
+Historical version rows below are not deployment evidence for these repairs.
+See [the current installation/helper boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
+
 Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTURE_ARCHITECTURE.md)** (Adaptive Nerve is cadence authority).
 
 | Decision | Choice | Rationale |
@@ -9,9 +16,9 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Product identity | System intelligence + resource governance + privacy + defensive security — **not** AV-first | User workload (esp. AI) must stay responsive |
 | Version source | `pyproject.toml` → runtime `agent.version` → installer DisplayVersion | One authoritative semver (2.4.2) |
 | Dual mutate gate | Options-card token (or published auto-protect for that subject) **and** Cortex ActionKind + registered handler | Firewall, temp delete, startup disable, smart close, and BLOCK_IP fail closed if either half refuses. CLOSE_PROCESS is USER_APPROVED_ONLY. A Level≥3 decision must be durably saved before any handler runs. No second OS path. |
-| Scheduled task RunLevel | **Limited** | `TASK_RUNLEVEL_LUA`. `-RunLevel Highest` (`TASK_RUNLEVEL_HIGHEST`) is explicit only, and only after the install tree is locked to Administrators and SYSTEM write. Elevated unattended use is not recommended until that lockdown is proven on the target PC. `elevate.ps1` elevates the installer process, not the resident task. |
+| Scheduled task RunLevel | **Limited** | `TASK_RUNLEVEL_LUA`. `-RunLevel Highest` is refused before installation changes until the privileged service boundary is implemented. `elevate.ps1` elevates the installer process, not the resident task. Protected code and private writable data/config use separate ACLs. |
 | Install identity | Selected `InstallDir` | Start, verify, stop, config, and data use that tree. No silent fallback to another install such as `C:\DVILLIE`. |
-| Defender exclusion | **No** `Add-MpPreference ExclusionPath` | Installer must not carve DVielle out of Defender. |
+| Defender exclusion | **No** `Add-MpPreference ExclusionPath` | Installer must not carve D'Vielle out of Defender. |
 | Platform honesty | Windows-primary; Linux/macOS limited-mode | Camera in-use on Windows is not available yet. Footprint collector returns no hits; remote rows are drill tickets. |
 | F1 runtime | CapabilityReport + shared Twin + independent Nerve collectors + evidence schema | Single owner, workload-aware deferral and retry recovery; see `AUTONOMY.md` |
 | P0 safety contract | Collectors observe; Cortex decides; Action Executor mutates with Decision ID | Fail-closed; no module Level ≥2 bypass |
@@ -22,7 +29,7 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Stack | **Python 3.12** + PowerShell | 3.14 unsupported until deps proven |
 | Install path | Default **`C:\DVILLIE`** | A selected `-InstallDir` is that installation's only config and data root |
 | Windows setup executable | Buildable wrapper. The Release download stays the zip until the exe is listed | `scripts/build_windows_installer.ps1` produces `DVielle-Setup-2.4.2.exe`. It checks the official Python 3.12.10 amd64 installer (last python.org 3.12 binary; later 3.12 releases are source-only) and calls `install-dvielle.ps1 -RunLevel Limited`. Not a PyInstaller freeze. Unsigned. No Defender exclusion. Chat stays removed. |
-| Console process identity | Branded `.venv\Scripts\DVielle.exe` (pythonw copy + rcedit icon) | Task Manager shows DVielle for the console. Resident stays `pythonw -m agent.main`. Built at install by `scripts/New-DvielleGuiExe.ps1`. Unsigned. |
+| Console process identity | Branded `.venv\Scripts\DVielle.exe` (pythonw copy + rcedit icon) | Task Manager shows D'Vielle for the console. Resident stays `pythonw -m agent.main`. Built at install by `scripts/New-DvielleGuiExe.ps1`. Unsigned. |
 | Runtime | Headless `agent.main` + attached optional GUI | One OS lock per data directory; shared atomic snapshot |
 | Cadence authority | **Future Architecture § Adaptive Nerve only** | No duplicate cadence docs; per-collector, not global “2–5s full scan” |
 | Review discipline | Master § Architecture Review Rules | CURRENT / REGRESSION / HISTORICAL labels; audit named refs |
@@ -40,3 +47,4 @@ Futuristic cadence / Twin: **[VIGILLANCE_FUTURE_ARCHITECTURE.md](VIGILLANCE_FUTU
 | Now page Watch card | Removed | The “Watch / Still picture” DV radar on Now was a static decoration. It was not a camera. Camera privacy stays a collector and a finding. Latest notes use the full page width, and Checks sit under them. |
 | Header logo motion | Advance only while the mark is viewable | On Windows, CustomTkinter withdraws the window and calls `update()` to color the title bar (`CTk._windows_set_titlebar_color`). That was running the emblem intro off-screen, so the header mark looked frozen. The canvas redraws when the window is mapped. If Pillow or the frame cannot be built, the mark stays the letters DV and still pulses. Dark and Light only recolor the canvas behind the same emblem. |
 | Scope v1→v2 | Laptop guardian; expand engines per architecture phases | Avoid feature spray |
+| Nexus Fold Prime source redesign (2026-10-10) | Supersedes the appearance and header-motion rows above in the repair checkout. Stable cobalt/navy and pearl palette, folded Now panel, spatial device illustration, six-page bottom dock, approved chrome orbital D. Optional logo and finite interaction animation stop when hidden or disabled. Appearance and motion preferences are local. | See `NEXUS_FOLD_PRIME.md` for native screenshots and validation. Illustration is decorative; labels retain current/stale/unavailable observation boundaries. Source implementation is not an installed release. |

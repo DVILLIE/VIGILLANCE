@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "id": "d0951fd1-038a-4c90-a8e9-00dc14265a86",
+  "started": "2026-10-10T07:40:36.952466+00:00",
+  "state": "completed",
+  "scope": {
+    "target": "local",
+    "authority": "[redacted]",
+    "authorized": false,
+    "expires_at": 1791618336.9403877
+  },
+  "findings": [
+    {
+      "id": "f7b06f75-b400-429c-87ec-27b1ee3198f0",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "d6ed09bd-ae8f-4273-b792-dfe8f3222383",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "cd61442f-d3fd-449f-953c-a121efb7e228",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "3da18721-193d-485c-9fbc-7023b3ff0c8b",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "fa72e62e-2b7e-4d9d-b258-ed49f8a1bcbe",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "afc85365-f8a3-4cce-844e-bb7e1c1be46b",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "31842cd3-0c58-4d60-b8a9-a0b4932b0bfe",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "fa2e7f5c-e42b-48de-b817-74603bb83684",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "ad970b56-c621-4ba3-9083-ea00d08c04bf",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "2b2827ec-f489-4dc2-85bf-2dd97153aae2",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "536f04c3-5986-44e1-9139-ddfb403e159f",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "1cd53a65-0b26-449a-b949-b1502fcd3edb",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 5040 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "06255e12-6f71-495c-9aa4-03b122aac7ef",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "19343f80-1026-4afb-832c-ae4b95d7fb6a",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "99b41096-f28e-44ca-8dae-78d024f062e3",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "e784919d-8ff0-48d3-88cb-550b061adcb2",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "d82ac6a7-ee7b-4a1c-a4c7-a7b740bae97d",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "1c0d2b7d-05b7-4f23-8706-29f99e5b4176",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "2e45f41c-ae5b-41a2-8d61-d39700dfd5c1",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:37.049826+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false
+    },
+    {
+      "id": "e4c2e942-4fbb-417d-bcf6-795df974e14a",
+      "kind": "quantum_readiness",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-10T07:40:40.264201+00:00",
+      "observation": "Runtime cryptographic provider recorded; post-quantum exchange and authentication were not measured.",
+      "resolution": "Inventory actual protocols and peers, then verify supported negotiated exchange and authentication separately.",
+      "executed": false
+    }
+  ],
+  "observations": {
+    "platform": {
+      "system": "Windows",
+      "release": "11",
+      "version": "10.0.26200",
+      "python": "3.12.10"
+    },
+    "runtime_packages": [
+      {
+        "name": "cryptography",
+        "version": "50.0.1",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "Pillow",
+        "version": "12.3.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "customtkinter",
+        "version": "6.0.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "PyYAML",
+        "version": "6.0.3",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "pywin32",
+        "version": "312",
+        "ecosystem": "PyPI"
+      }
+    ],
+    "cryptography": {
+      "python_ssl_provider": "OpenSSL 3.0.16 11 Feb 2025",
+      "tls13_runtime_support": true,
+      "post_quantum_exchange": "not_measured",
+      "post_quantum_authentication": "not_measured"
+    },
+    "listeners": [
+      {
+        "address": "[redacted]",
+        "port": 28385,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49665,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49666,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 135,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49668,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 59818,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49669,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49668,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 28390,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 42050,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 445,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49667,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49667,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 5357,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 135,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49666,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 5040,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 5357,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 445,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49664,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49350,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49673,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49673,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 139,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 54678,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49665,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49351,
+        "pid": null
+      },
+      {
+        "address": "[redacted]",
+        "port": 49664,
+        "pid": null
+      }
+    ],
+    "windows_posture": {
+      "antivirus_enabled": true,
+      "realtime_enabled": true,
+      "firewall_enabled": true,
+      "profiles": {
+        "domain": true,
+        "private": true,
+        "public": true
+      }
+    }
+  },
+  "coverage": [
+    "Runtime inventory only; no vulnerability feed queried or all-software census.",
+    "TCP listeners observed; UDP exposure and external reachability not established.",
+    "Privileged remediation unavailable in this workspace; no Windows policy was changed."
+  ],
+  "mutations": [],
+  "claims": "Observed assessment only; no enforcement or exploitability certification.",
+  "finished": "2026-10-10T07:40:40.264201+00:00",
+  "export": {
+    "created": "2026-10-10T07:40:40.264201+00:00",
+    "identifiers_included": false
+  }
+}

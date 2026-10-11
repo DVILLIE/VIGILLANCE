@@ -1,6 +1,13 @@
 # Claims, assumptions, and evidence
 
-Version 2.4.2. The console can show Dark (the default) or Light. That choice is appearance only, stored in the local data directory, and it does not add a protection promise. This page is the public list of what DVielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief). 2.3.2 does not add a protection promise. A finished collector, including a partial collection, is due again at last-run plus its interval. That is scheduling, not a new control.
+**Current repair branch, 2026-10-09:** Highest installation and production
+loopback firewall mutation are refused. The setup wrapper is held before its
+former elevated temporary-script execution. Limited installation requires a
+protected source stage and protected system Python; data/config are private to
+the installed user with Administrators/SYSTEM access. No installer or service
+was deployed during the repair. See [the current boundary](REPAIR_INSTALL_PRIVILEGE_BOUNDARY.md).
+
+Version 2.4.2. The console can show Dark (the default) or Light. That choice is appearance only, stored in the local data directory, and it does not add a protection promise. This page is the public list of what D'Vielle promises, what it assumes, and how a check shows the promise is wired. It follows the seL4 practice of writing the assumptions down: https://www.sel4.systems/Verification/assumptions.html (reviewed via the 2026-09-29 primary-source brief). 2.3.2 does not add a protection promise. A finished collector, including a partial collection, is due again at last-run plus its interval. That is scheduling, not a new control.
 
 An empty box in [TRUST_GATES.md](TRUST_GATES.md) is UNCHECKED. A green box is a check that was actually run. An AMTSO Security Features Check, if one is ever run, proves wiring. It is not a malware-efficacy percentage. https://www.amtso.org/security-features-check/
 
@@ -10,7 +17,7 @@ Claim language follows `docs/FUNCTION_SPEC.md` and the primary-source brief date
 
 | Column | Meaning |
 |--------|---------|
-| Promise | The sentence DVielle is willing to say. |
+| Promise | The sentence D'Vielle is willing to say. |
 | Assumptions | What must be true or the promise does not apply. Silence here would be an over-claim. |
 | Evidence | The check that shows the wiring. Fixture tests are not a live Windows resident. |
 | UNCHECKED | What this version does not prove. |
@@ -33,14 +40,14 @@ Claim language follows `docs/FUNCTION_SPEC.md` and the primary-source brief date
 
 ### 3. ASR and CFA
 
-- **Promise.** ASR and CFA are Defender features on Home and Pro. CFA helps block untrusted apps from changing protected folders. DVielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only.
+- **Promise.** ASR and CFA are Defender features on Home and Pro. CFA helps block untrusted apps from changing protected folders. D'Vielle does not claim CFA prevents reading or exfiltration. Standard rules other than WMI may move to Block only after live Audit. Other rules stay Audit-only.
 - **Assumptions.** Defender Active, real-time on, and MAPS pass. The user approves the one change. Group Policy or tamper protection may win; the re-read is the result. Offline encrypted backups and a restore drill are still required (CISA #StopRansomware). Microsoft Learn does not publish the sentence “CFA never blocks reads”; read protection is simply not claimed.
 - **Evidence.** 1.9.0 reads `Get-MpPreference`, plans one next mode, and applies it only inside the dual gate. `tests/test_worldclass_p1.py`.
 - **UNCHECKED.** A live Windows preference write is not what the Linux unit run proves. The unit test checks the gate and the re-read contract.
 
 ### 4. Firewall assist
 
-- **Promise.** Propose Windows Firewall app rules per profile. DVielle is not a second firewall engine. A blocked app is not a claim that nothing leaks on every interface. Do not stop MpsSvc.
+- **Promise.** Propose Windows Firewall app rules per profile. D'Vielle is not a second firewall engine. A blocked app is not a claim that nothing leaks on every interface. Do not stop MpsSvc.
 - **Assumptions.** Domain, Private, and Public profiles exist. VPN and IPv6 are first-class. A full VPN leakproof guarantee is UNKNOWN. The helper is local. The resident task stays Limited.
 - **Evidence.** 2.0.0 reads rules and applies a block only inside the dual gate. Success is the second `Get-NetFirewallRule` read. `tests/test_worldclass_p2.py`.
 - **UNCHECKED.** Behavior under every third-party VPN client is UNKNOWN.
@@ -57,7 +64,7 @@ Claim language follows `docs/FUNCTION_SPEC.md` and the primary-source brief date
 - **Promise.** Prefer Required diagnostic data. Do not block MAPS, Windows Update, or CRL endpoints by default. Passkeys are a phishing-resistant sign-in ceremony where the relying party supports them. WebAuthn is scoped to that relying party, so a lookalike origin cannot reuse the credential. Session theft and weak recovery are separate. Backup configured, backup fresh, and restore verified are different states.
 - **Assumptions.** Home has no consumer “diagnostic data off” switch. WebAuthn Level 3 binds the credential to the RP ID (https://www.w3.org/TR/webauthn-3/). Device Bound Session Credentials exist because cookies after login are a different layer (https://www.w3.org/TR/dbsc/). FIDO recovery guidance prefers more than one authenticator. The recovery marker is a declaration, not proof a backup file exists.
 - **Evidence.** 2.2.0 reads AllowTelemetry, refuses Security=Off on Home and Pro, and counts a change only when the second read matches. 2.3.0 ships local passkey guidance with `phishing_impossible: false`, no badge, and no browser automation. `tests/test_worldclass_p4.py` and `tests/test_worldclass_p5.py`.
-- **UNCHECKED.** DVielle does not prove a site offers a passkey, does not register one, and does not sign the user out of other sessions.
+- **UNCHECKED.** D'Vielle does not prove a site offers a passkey, does not register one, and does not sign the user out of other sessions.
 
 ### 7. Supply chain and intel
 
@@ -90,8 +97,8 @@ Local guidance tells the user to adopt a passkey where the relying party support
 These are named so a later change cannot treat them as already done:
 
 1. **Live Windows resident `verify_runtime`.** `python scripts/verify_runtime.py` after a real resident start on Windows. A Linux or CI unit run does not check this box. See TRUST_GATES. **Assumption (2.3.1).** The living owner may be the base interpreter image. On Windows a venv `Scripts\python.exe` / `pythonw.exe` is a redirector (CPython bpo-34977). `owner_pid` is the process whose image `psutil` reports, which can be `pythonw.exe` in the `sys.base_prefix` directory (the base install, including a pythoncore layout) while `sys.executable` stays in `Scripts`. The verifier accepts that image only when it is itself running in a venv (`sys.prefix != sys.base_prefix`), and still requires a fresh heartbeat, a matching create time, a Python interpreter name, and `-m agent.main`. `tests/test_verify_runtime.py` covers that shape with a fake process. It is not a live resident proof.
-2. **Elevated ACL field prove.** The installer contract tests the intended ACL and refuses a writable install tree for a Highest task. A field proof of the live elevated ACL on the target PC is UNCHECKED. Elevated unattended use stays not recommended.
-3. **Named-pipe SYSTEM helper.** The helper remains the loopback stub. It is not a SYSTEM service and not a replacement of that stub. The pipe contract still refuses undefined operations.
+2. **Installation ACL field proof.** The source has protected-code and private data/config ACL planning; unit checks use in-memory descriptors. Installation under those ACLs on a target Windows PC is UNCHECKED. Highest is refused.
+3. **Named-pipe SYSTEM helper.** `agent.privilege.pipe` defines narrow client rights only. No OS server or remote rejection is implemented. Production token-only requests are refused; the explicit non-elevated unit harness is not a SYSTEM service.
 4. **Privileged auto-update.** TUF verification does not turn this on.
 5. **Live binary attestation.** The TUF package hash is metadata. It is not a measurement of the running process.
 6. **Engine freshness.** UNKNOWN until compared with a catalog.
@@ -99,7 +106,7 @@ These are named so a later change cannot treat them as already done:
 8. **CFA read or exfiltration blocking.** Not claimed.
 9. **Full VPN and IPv6 leakproof behavior** for every client. UNKNOWN.
 10. **abuse.ch dumps inside the product.** Not shipped.
-10b. **Console process identity in Task Manager.** Opening the desktop shortcut runs `.venv\Scripts\DVielle.exe -m dvielle` (branded pythonw copy). Task Manager Details should list **DVielle.exe** with the DVielle icon for that console. The resident monitor remains `pythonw.exe -m agent.main` and still shows as Python. Authenticode signing of the shim is UNCHECKED (unsigned OK; SmartScreen may warn for other binaries).
+10b. **Console process identity in Task Manager.** Opening the desktop shortcut runs `.venv\Scripts\DVielle.exe -m dvielle` (branded pythonw copy). Task Manager Details should list **DVielle.exe** with the D'Vielle icon for that console. The resident monitor remains `pythonw.exe -m agent.main` and still shows as Python. Authenticode signing of the shim is UNCHECKED (unsigned OK; SmartScreen may warn for other binaries).
 11. **Setup executable field install.** `DVielle-Setup-2.4.2.exe` can be compiled by `scripts/build_windows_installer.ps1` and the `windows-installer` job. It checks the official Python 3.12.10 installer, then calls the existing installer at RunLevel Limited. A run of that file on a Windows PC, including SmartScreen and a resident heartbeat, is UNCHECKED. The v2.4.2 Release does not list that file. The zip plus Python 3.12 remains the download. The file is unsigned. It is not an antivirus claim.
 
 Core prevention stays free. No offensive tools.

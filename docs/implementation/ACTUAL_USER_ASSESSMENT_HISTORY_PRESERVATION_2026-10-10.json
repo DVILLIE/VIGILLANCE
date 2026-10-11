@@ -1,0 +1,13 @@
+{
+  "state": "actual_assessment_history_preserved",
+  "source": "C:\\Users\\ravik\\AppData\\Local\\Temp\\DVielleActualGUI-mh912w9o\\assessments.db",
+  "destination": "C:\\Program Files\\DVielle\\data\\assessment\\assessments.db",
+  "run_count": 3,
+  "run_ids": [
+    "9abe0e65-d005-4681-8d21-03071529c62a",
+    "9fce7e0e-f0e6-4a6f-af43-687bca8b351c",
+    "f3a258a7-4b03-40f3-9edf-7ec0dc9eee61"
+  ],
+  "original_times_and_states_preserved": true,
+  "security_policy_mutations": []
+}

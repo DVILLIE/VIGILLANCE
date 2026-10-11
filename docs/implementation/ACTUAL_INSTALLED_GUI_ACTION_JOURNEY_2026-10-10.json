@@ -1,0 +1,18 @@
+{
+  "state": "approval_or_apply_not_verified",
+  "scope": "Actual installed widgets, human Windows and exact-scope consent, one IPv4 TCP endpoint",
+  "installed_component": "C:\\Program Files\\DVielle\\dvielle\\gui\\assessment.py",
+  "automated_consent": false,
+  "mutations": [],
+  "accessibility_acceptance": "not_tested",
+  "before": {
+    "state": "connected"
+  },
+  "apply": {
+    "state": "consent_timeout_outcome_not_observed",
+    "performed": false,
+    "state_unknown": false,
+    "message": "A late approval cannot apply a rule without client redemption; recovery may be in flight."
+  },
+  "callback_errors": []
+}

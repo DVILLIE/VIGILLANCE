@@ -1,4 +1,4 @@
-"""DVielle console — Clear Deck. Sidebar pages, cards, logo motion only."""
+"""D\'Vielle console — Nexus Fold Prime, with observation-backed state."""
 
 from __future__ import annotations
 
@@ -21,7 +21,10 @@ from dvielle import APP_NAME, TAGLINE, VERSION
 from dvielle.brand import apply_tk_window_icon, configure_windows_app_identity
 from dvielle.gui import theme as T
 from dvielle.gui.attacks_window import AttacksWindow
+from dvielle.gui.assessment import AssessmentWorkspace
 from dvielle.gui.logo_mark import LogoMark
+from dvielle.gui.motion import Motion
+from dvielle.gui.prime import FoldPanel, MetricTile, SpatialStage, PEARL_INK, PEARL_MUTE
 from dvielle.gui.network_panel import NetworkPanel
 from dvielle.gui.notify_policy import set_minimized_to_tray
 from dvielle.gui.observations import (
@@ -40,8 +43,8 @@ from dvielle.gui.presence import (
     ScanFeed,
 )
 from dvielle.gui.graphics import rule_pair
-from dvielle.gui.shell import PAGES, FindingCards, NetworkMap, RingCard, StatusOrb, nav_icon
-from dvielle.gui.theme_store import load_appearance, save_appearance
+from dvielle.gui.shell import PAGES, FindingCards, StatusOrb, nav_icon
+from dvielle.gui.theme_store import load_appearance, save_appearance, load_motion, save_motion
 from dvielle.gui.tray import setup_tray
 from dvielle.gui.voice import greet_on_startup, speak_async
 from dvielle.gui.why_window import WhyWindow
@@ -89,11 +92,16 @@ class DVielleApp:
         T.apply(load_appearance(self.data_dir))
         self.root = ctk.CTk()
         self.root.title(f"{APP_NAME} — {TAGLINE}")
-        self.root.geometry("1360x900")
+        scale = self.root._get_window_scaling()
+        width = max(1180, min(1440, int(self.root.winfo_screenwidth()/scale)-60))
+        height = max(780, min(940, int(self.root.winfo_screenheight()/scale)-100))
+        self.root.geometry(f"{width}x{height}")
         self.root.minsize(1180, 780)
         self.root.configure(fg_color=T.BG_DARK)
         self.root.protocol("WM_DELETE_WINDOW", self._minimize_to_tray)
         self._apply_window_icon(self.root)
+        self.motion = Motion(self.root, load_motion(self.data_dir))
+        self._active_page = None
 
         self._build_ui()
         setup_tray(
@@ -132,15 +140,16 @@ class DVielleApp:
         shell = ctk.CTkFrame(self.root, fg_color="transparent")
         shell.pack(fill="both", expand=True)
 
-        self.nav = ctk.CTkFrame(shell, fg_color=T.BG_PANEL, width=220, corner_radius=0)
-        self.nav.pack(side="left", fill="y")
+        self.nav = ctk.CTkFrame(shell, fg_color=T.BG_PANEL, height=68, corner_radius=16,
+                               border_width=1, border_color=T.BORDER)
+        self.nav.pack(side="bottom", fill="x", padx=18, pady=(0, 10))
         self.nav.pack_propagate(False)
-        ctk.CTkLabel(
-            self.nav, text="PAGES", font=T.FONT_TAGLINE, text_color=T.TEXT_DIM,
-        ).pack(anchor="w", padx=18, pady=(16, 8))
+        for index in range(len(PAGES)):
+            self.nav.grid_columnconfigure(index, weight=1, uniform="navigation")
+        self.nav.grid_rowconfigure(0, weight=1)
 
         self.stage = ctk.CTkFrame(shell, fg_color="transparent")
-        self.stage.pack(side="left", fill="both", expand=True, padx=20, pady=16)
+        self.stage.pack(fill="both", expand=True, padx=14, pady=(10, 6))
         self.stage.grid_columnconfigure(0, weight=1)
         self.stage.grid_rowconfigure(0, weight=1)
 
@@ -158,17 +167,21 @@ class DVielleApp:
         self._build_findings_page(self._pages["findings"])
         self._build_protection_page(self._pages["protection"])
         self._build_apps_page(self._pages["apps"])
+        self.assessment_workspace = AssessmentWorkspace(
+            self._pages["assessment"], self.data_dir / "assessment", self._ui_events.put,
+        )
+        self.assessment_workspace.pack(fill="both", expand=True)
         self._show_page("now")
         self._build_footer()
 
     def _build_header(self) -> None:
-        header = ctk.CTkFrame(self.root, fg_color=T.BG_PANEL, height=92, corner_radius=0)
+        header = ctk.CTkFrame(self.root, fg_color=T.BG_PANEL, height=172, corner_radius=0)
         header.pack(fill="x")
         header.pack_propagate(False)
 
         brand = ctk.CTkFrame(header, fg_color="transparent")
         brand.pack(side="left", fill="y", padx=(16, 8), pady=12)
-        self.logo = LogoMark(brand, size=56)
+        self.logo = LogoMark(brand, size=148, motion=self.motion.enabled)
         self.logo.pack(side="left")
 
         titles = ctk.CTkFrame(header, fg_color="transparent")
@@ -176,6 +189,11 @@ class DVielleApp:
         ctk.CTkLabel(
             titles, text=APP_NAME, font=T.FONT_DISPLAY, text_color=T.TEXT,
         ).pack(anchor="w")
+        self.brand_tagline = ctk.CTkLabel(
+            titles, text="D'Vielle — Intelligent Vigilance\nor Vigilia — Always Watching.",
+            font=T.FONT_TAGLINE, text_color=T.TEXT_DIM, anchor="w", justify="left",
+        )
+        self.brand_tagline.pack(anchor="w", pady=(0, 4))
         self.mission_lbl = ctk.CTkLabel(
             titles,
             text="",
@@ -188,16 +206,9 @@ class DVielleApp:
         self.mission_lbl.pack(anchor="w")
 
         controls = ctk.CTkFrame(header, fg_color="transparent")
-        controls.pack(side="right", padx=16, pady=14)
+        controls.pack(side="right", padx=16, pady=8)
         theme_row = ctk.CTkFrame(controls, fg_color="transparent")
         theme_row.pack(anchor="e")
-        self.day_chip = ctk.CTkLabel(
-            theme_row,
-            text=f"Today · {T.current_motif()['name']}",
-            font=T.FONT_TAGLINE,
-            text_color=T.ACCENT,
-        )
-        self.day_chip.pack(side="left", padx=(0, 8))
         self.theme_dark = ctk.CTkButton(
             theme_row, text="Dark", width=76, height=32, corner_radius=8,
             font=T.FONT_TAGLINE, command=lambda: self._set_theme("dark"),
@@ -252,11 +263,11 @@ class DVielleApp:
             font=T.FONT_TAGLINE,
             text_color=T.TEXT_DIM,
         ).pack(side="left", padx=(4, 8))
-        ClockMono(left_footer).pack(side="left", padx=(0, 8))
+        ClockMono(left_footer, compact=True).pack(side="left", padx=(0, 8))
         for text, cmd, role in (
             ("Work log", self._view_work_log, "panel_alt"),
             ("Why", self._open_why, "accent_dim"),
-            ("Attacks", self._open_attacks, "crit"),
+            ("Attacks", self._open_attacks, "panel_alt"),
             ("Clear log", self._clear_work_log, "panel_alt"),
         ):
             if role == "accent_dim":
@@ -283,7 +294,7 @@ class DVielleApp:
         self.vigilance_btn = ctk.CTkButton(
             btn_frame,
             text="Pause",
-            width=100,
+            width=140,
             height=34,
             corner_radius=8,
             command=self._toggle_vigilance,
@@ -292,6 +303,13 @@ class DVielleApp:
             font=T.FONT_TAGLINE,
         )
         self.vigilance_btn.pack(side="left", padx=3)
+        self.motion_btn = ctk.CTkButton(
+            btn_frame, text="Motion: ON" if self.motion.enabled else "Motion: OFF",
+            width=100, height=34, font=T.FONT_TAGLINE,
+            fg_color=T.BG_PANEL_ALT, text_color=T.TEXT, hover_color=T.BORDER,
+            command=self._toggle_motion,
+        )
+        self.motion_btn.pack(side="left", padx=3)
         ctk.CTkButton(
             btn_frame,
             text="Hide to tray",
@@ -306,11 +324,11 @@ class DVielleApp:
         ).pack(side="left", padx=3)
 
     def _add_nav(self, key: str, label: str) -> None:
-        row = ctk.CTkFrame(self.nav, fg_color="transparent", height=42)
-        row.pack(fill="x", padx=10, pady=2)
-        row.pack_propagate(False)
-        mark = ctk.CTkFrame(row, width=4, fg_color=T.BG_PANEL, corner_radius=2)
-        mark.pack(side="left", fill="y", pady=6)
+        index = [name for name, _ in PAGES].index(key)
+        row = ctk.CTkFrame(self.nav, fg_color="transparent")
+        row.grid(row=0, column=index, sticky="nsew", padx=6, pady=6)
+        mark = ctk.CTkFrame(row, height=3, fg_color=T.BG_PANEL, corner_radius=2)
+        mark.pack(side="bottom", fill="x", padx=20, pady=(2, 0))
         mark.pack_propagate(False)
         icon = nav_icon(key)
         button = ctk.CTkButton(
@@ -318,8 +336,8 @@ class DVielleApp:
             text=label,
             image=icon,
             compound="left",
-            anchor="w",
-            height=42,
+            anchor="center",
+            height=43,
             corner_radius=8,
             font=T.FONT_BODY,
             fg_color="transparent",
@@ -328,7 +346,7 @@ class DVielleApp:
             command=lambda name=key: self._show_page(name),
         )
         button._nav_icon = icon
-        button.pack(side="left", fill="both", expand=True, padx=(6, 0))
+        button.pack(fill="both", expand=True)
         self._nav_marks[key] = mark
         self._nav_buttons[key] = button
 
@@ -345,6 +363,23 @@ class DVielleApp:
                 text_color=T.TEXT if selected else T.TEXT_DIM,
             )
             self._nav_marks[name].configure(fg_color=T.ACCENT if selected else T.BG_PANEL)
+        if key != self._active_page:
+            self._active_page = key
+            page = self._pages[key]
+            # CTkScrollableFrame.grid delegates to its outer frame. Inherited
+            # grid_configure would detach the inner frame from its Canvas.
+            self.motion.tween("page", lambda amount: page.grid(
+                row=0, column=0, sticky="nsew", pady=(round(24*(1-amount)), 0)), 280)
+
+    def _toggle_motion(self) -> None:
+        enabled = not self.motion.enabled
+        self.motion.set_enabled(enabled)
+        self.logo.set_motion_enabled(enabled)
+        self.motion_btn.configure(text="Motion: ON" if enabled else "Motion: OFF")
+        try:
+            save_motion(self.data_dir, enabled)
+        except (OSError, TimeoutError) as exc:
+            self._append_log(f"[CONSOLE] Motion choice applies this session; could not save it: {exc}")
 
     def _paint_theme_buttons(self) -> None:
         mode = T.current_mode()
@@ -372,31 +407,54 @@ class DVielleApp:
         ).pack(anchor="w", pady=(2, 8))
 
     def _build_now_page(self, page) -> None:
-        self._page_head(
-            page,
-            "Now",
-            "Rings show how busy this PC is. Notes are what was noticed.",
-        )
         self.ticker = ActivityTicker(page)
-        self.ticker.pack(fill="x", pady=(0, 6))
-
-        stats = ctk.CTkFrame(page, fg_color="transparent")
-        stats.pack(fill="x", pady=(0, 6))
-        self.now_cpu = RingCard(stats, "Processor")
-        self.now_cpu.pack(side="left", padx=(0, 8))
-        self.now_mem = RingCard(stats, "Memory")
-        self.now_mem.pack(side="left", padx=8)
-        self.now_disk = RingCard(stats, "Disk")
-        self.now_disk.pack(side="left", padx=(8, 0))
-        self.link_map = NetworkMap(page)
-        self.link_map.pack(fill="x", pady=(0, 6))
-
-        notes = ctk.CTkFrame(page, fg_color="transparent")
-        notes.pack(fill="x")
-        ctk.CTkLabel(notes, text="Latest notes", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(0, 8))
-        self.finding_cards = FindingCards(notes, limit=3)
+        self.ticker.pack(fill="x", pady=(0, 10))
+        overview = ctk.CTkFrame(page, fg_color="transparent")
+        overview.pack(fill="x")
+        overview.grid_columnconfigure(0, weight=1, uniform="prime")
+        overview.grid_columnconfigure(1, weight=1, uniform="prime")
+        pearl = FoldPanel(overview, height=570)
+        pearl.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        left = pearl.body
+        ctk.CTkLabel(left, text="This PC", font=("Segoe UI", 26, "bold"), text_color=PEARL_INK).pack(anchor="w")
+        ctk.CTkLabel(left, text="Current observations · a clearer view", font=T.FONT_TAGLINE,
+                     text_color=PEARL_MUTE).pack(anchor="w", pady=(0, 12))
+        stats = ctk.CTkFrame(left, fg_color="transparent")
+        stats.pack(fill="x", pady=(0, 16))
+        for index in range(3):
+            stats.grid_columnconfigure(index, weight=1, uniform="readings")
+        self.now_cpu = MetricTile(stats, "Processor")
+        self.now_mem = MetricTile(stats, "Memory")
+        self.now_disk = MetricTile(stats, "Disk")
+        for index, widget in enumerate((self.now_cpu, self.now_mem, self.now_disk)):
+            widget.grid(row=0, column=index, sticky="nsew", padx=(0 if index == 0 else 4, 0))
+        protection = ctk.CTkFrame(left, fg_color="#F4F7FB", corner_radius=12, border_width=1, border_color="#B8CBE0")
+        protection.pack(fill="x", pady=(0, 14))
+        ctk.CTkLabel(protection, text="Protection", font=("Segoe UI", 17, "bold"), text_color=PEARL_INK).pack(anchor="w", padx=14, pady=(9, 0))
+        self.prime_protection = ctk.CTkLabel(protection, text="Unknown · waiting for readings", font=T.FONT_BODY,
+                                              text_color=PEARL_MUTE, anchor="w", wraplength=460)
+        self.prime_protection.pack(fill="x", padx=14, pady=(0, 12))
+        ctk.CTkLabel(left, text="Latest notes", font=T.FONT_TITLE, text_color=PEARL_INK).pack(anchor="w", pady=(0, 8))
+        self.finding_cards = FindingCards(left, limit=2)
         self.finding_cards.pack(fill="x")
-
+        ctk.CTkButton(left, text="Open findings  →", command=lambda: self._show_page("findings"),
+                     fg_color="#174D84", hover_color="#103C6D", text_color="#FFFFFF",
+                     height=32).pack(anchor="w", pady=(10, 0))
+        spatial = ctk.CTkFrame(overview, fg_color=T.BG_PANEL, corner_radius=16, border_width=1,
+                               border_color=T.BORDER, height=570)
+        spatial.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
+        spatial.grid_propagate(False)
+        spatial.pack_propagate(False)
+        ctk.CTkLabel(spatial, text="Network", font=("Segoe UI", 24, "bold"), text_color=T.TEXT).pack(anchor="w", padx=16, pady=(12, 0))
+        ctk.CTkLabel(spatial, text="Observed addresses · spatial relationship view", font=T.FONT_TAGLINE,
+                     text_color=T.TEXT_DIM).pack(anchor="w", padx=16, pady=(0, 4))
+        self.link_map = SpatialStage(spatial, self.motion, height=390)
+        self.link_map.pack(fill="x", padx=8)
+        ctk.CTkLabel(spatial, text="Device roles · labels reflect current observations",
+                     font=("Segoe UI", 11), text_color=T.TEXT_DIM, wraplength=500, justify="left").pack(anchor="w", padx=16, pady=(7, 8))
+        ctk.CTkButton(spatial, text="Inspect network  →", command=lambda: self._show_page("network"),
+                     fg_color=T.BG_PANEL_ALT, hover_color=T.BORDER, text_color=T.TEXT,
+                     height=32).pack(anchor="w", padx=16)
         ctk.CTkLabel(page, text="Checks", font=T.FONT_TITLE, text_color=T.TEXT).pack(anchor="w", pady=(8, 4))
         self.nerve_rail = NerveRail(page)
         self.nerve_rail.pack(fill="x", pady=(0, 8))
@@ -432,9 +490,9 @@ class DVielleApp:
         self._page_head(
             page,
             "Network",
-            "Addresses and adapters DVielle can see. A VPN-like name is not proof of a private route.",
+            "Addresses and adapters D\'Vielle can see. A VPN-like name is not proof of a private route.",
         )
-        self.route_map = NetworkMap(page)
+        self.route_map = SpatialStage(page, self.motion, height=380)
         self.route_map.pack(fill="x", pady=(0, 10))
         card = ctk.CTkFrame(page, fg_color=T.BG_PANEL, corner_radius=14, border_width=1, border_color=T.BORDER)
         card.pack(fill="both", expand=True)
@@ -502,7 +560,7 @@ class DVielleApp:
         steps.pack(fill="x", pady=(0, 12))
         for index, (title, detail) in enumerate(
             (
-                ("1  Noticed", "DVielle lists apps it can see."),
+                ("1  Noticed", "D\'Vielle lists apps it can see."),
                 ("2  You choose", "Keep it, not now, or close it."),
                 ("3  Then it acts", "Close runs only after that choice."),
             ),
@@ -606,17 +664,17 @@ class DVielleApp:
             local_ips = net.get("local_ips") or []
             dns = net.get("dns_servers") or []
             nodes = (
-                ("This PC", str(net.get("hostname") or "here")[:22], "accent"),
+                ("This PC", str(net.get("hostname") or "Unknown")[:22], "accent"),
                 ("Local", str(local_ips[0]) if local_ips else "—", "ok" if local_ips else "mute"),
                 ("Gateway", str(net.get("gateway") or "—")[:22], "accent" if net.get("gateway") else "mute"),
                 ("DNS", str(dns[0]) if dns else "—", "ok" if dns else "mute"),
             )
         else:
             nodes = (
-                ("This PC", "here", "accent"),
-                ("Local", "—", "mute"),
-                ("Gateway", "—", "mute"),
-                ("DNS", "—", "mute"),
+                ("This PC", "Unknown", "mute"),
+                ("Local", "Unknown", "mute"),
+                ("Gateway", "Unknown", "mute"),
+                ("DNS", "Unknown", "mute"),
             )
         for name in ("link_map", "route_map"):
             widget = getattr(self, name, None)
@@ -745,6 +803,12 @@ class DVielleApp:
         sec = (data or {}).get("security") or {}
         security_current = section_current(data, "security")
         evidence = prevention_evidence_line(data)
+        if hasattr(self, "prime_protection"):
+            self.prime_protection.configure(
+                text=("Observations available · inspect Protection" if security_current else
+                      "Unknown · protection observations unavailable or stale"),
+                text_color=PEARL_MUTE,
+            )
         evidence_lbl = getattr(self, "evidence_lbl", None)
         if evidence_lbl is not None:
             incomplete = (
@@ -1163,8 +1227,10 @@ class DVielleApp:
         self.root.lift()
 
     def _quit_app(self) -> None:
-        self._store.log_work("CLOSE", "DVielle signing off")
+        self.assessment_workspace.close()
+        self._store.log_work("CLOSE", "D\'Vielle signing off")
         self.controller.stop()
+        self.motion.close()
         self.root.quit()
         self.root.destroy()
 

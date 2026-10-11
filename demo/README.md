@@ -1,4 +1,4 @@
-# DVielle local snapshot viewer
+# D'Vielle local snapshot viewer
 
 The browser entry point reads a real `data/twin.json` selected by the user. Until a file is loaded, all metrics remain unavailable. Each value carries its source time; the heartbeat becomes stale as the imported file ages. Reload the file for newer evidence.
 

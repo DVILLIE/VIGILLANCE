@@ -1,0 +1,22 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-c29a47dab27f49ccae528c560517fb00",
+  "old_runtime_sha256": "ca393448f5436bc26376f2146d73ca9e3400929543d8baca00fbf538a66a5fe8",
+  "new_runtime_sha256": "3cbec108d10c627f7bf02db6d6e9239730e6685a583570e884d10a599efd70bd",
+  "changes": [
+    {
+      "path": "agent/assessment/engine.py",
+      "old_sha256": "21b6e53bfdabafffc0dfb8f7691e54bc46c85362285a59328cd2cb3caefbfe6f",
+      "new_sha256": "cd3327472fbc0aa269d12e3299a06b69c1a9ddeff8556347283ce5b41d7ab21b"
+    },
+    {
+      "path": "agent/privilege/mediation.py",
+      "old_sha256": "f1a53c8b29d38335a99c0629efaf145bc12c2f0820d825e6d6406e17452bdc82",
+      "new_sha256": "17601cedb6833bc7a579590ff10c601c25c12e6bf119ead69fba14fd7e7c36f9"
+    },
+    {
+      "path": "agent/privilege/mediation_client.py",
+      "old_sha256": "1ab8697005818b81e435ede6a4dbe1006e264eeae44f4a7802edc94d392e7f51",
+      "new_sha256": "a10b0b6eda768ebe0a1591407690fa09e12703208f61ace701be06b8d28811b8"
+    }
+  ]
+}

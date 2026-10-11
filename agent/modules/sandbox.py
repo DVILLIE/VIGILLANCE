@@ -16,6 +16,8 @@ this version does not read that policy.
 from __future__ import annotations
 
 import os
+import ntpath
+import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Callable
@@ -33,7 +35,7 @@ Probe = Callable[[str], str | None]
 _CONTROLS = (
     "Smart App Control (SAC): probe only. Clean-install eligibility is not inferred. This checklist does not turn it on.",
     "Attack surface reduction (ASR): available on Windows Home when Defender Antivirus is active. This checklist does not change ASR rules.",
-    "Controlled folder access (CFA): a modification shield when enabled. DVielle does not claim it prevents reading or exfiltration.",
+    "Controlled folder access (CFA): a modification shield when enabled. D\'Vielle does not claim it prevents reading or exfiltration.",
     "Windows Firewall: included on Windows Home. This checklist does not add a rule and does not stop the firewall service.",
 )
 _NOT_SANDBOX = (
@@ -57,14 +59,43 @@ def _exe_name(path: str) -> str:
     return normalized.rsplit("/", 1)[-1].lower()
 
 
+def system_sandbox_exe() -> str:
+    """Get the protected system path from Windows, never an environment variable."""
+    if not IS_WINDOWS:
+        # Path contract for injected unit-test launchers; the real launcher
+        # still refuses every non-Windows host.
+        return r"C:\Windows\System32\WindowsSandbox.exe"
+    import ctypes
+
+    buffer = ctypes.create_unicode_buffer(32768)
+    size = ctypes.windll.kernel32.GetSystemDirectoryW(buffer, len(buffer))
+    if not size or size >= len(buffer):
+        raise OSError("Windows system directory was not identified")
+    return ntpath.join(buffer.value, "WindowsSandbox.exe")
+
+
+def _is_system_exe(candidate: str) -> bool:
+    try:
+        expected = system_sandbox_exe()
+        return ntpath.isabs(candidate) and ntpath.normcase(ntpath.normpath(candidate)) == ntpath.normcase(expected)
+    except OSError:
+        return False
+
+
 def default_sandbox_launch(argv: list[str]) -> int:
-    """Start WindowsSandbox.exe. Any other host executable is refused."""
-    if len(argv) != 2 or _exe_name(argv[0]) != SANDBOX_EXE_NAME:
+    """Start only the genuine system location, refusing redirected file paths."""
+    if len(argv) != 2 or not _is_system_exe(argv[0]):
         return 127
     if not IS_WINDOWS:
         return 127
     import subprocess
 
+    executable = Path(argv[0])
+    try:
+        if not executable.is_file() or not _is_system_exe(str(executable.resolve(strict=True))):
+            return 127
+    except OSError:
+        return 127
     process = subprocess.Popen(argv, close_fds=True)
     return 0 if process.pid else 1
 
@@ -73,8 +104,10 @@ def probe_sandbox_feature() -> bool | None:
     """True when WindowsSandbox.exe is on disk. Absence is False. Non-Windows is None."""
     if not IS_WINDOWS:
         return None
-    root = os.environ.get("SystemRoot", r"C:\Windows")
-    return Path(root, "System32", "WindowsSandbox.exe").is_file()
+    try:
+        return Path(system_sandbox_exe()).is_file()
+    except OSError:
+        return None
 
 
 def _base(offer: str, message: str, checklist: tuple[str, ...] | list[str]) -> dict[str, Any]:
@@ -119,10 +152,10 @@ def observe_sandbox(sku: str, *, feature_installed: bool | None) -> dict[str, An
     if feature_installed is False:
         return _base(
             "LIMITED",
-            "This edition supports Windows Sandbox. The optional feature is not installed. DVielle did not enable it and did not open a window.",
+            "This edition supports Windows Sandbox. The optional feature is not installed. D\'Vielle did not enable it and did not open a window.",
             _CONTROLS
             + (
-                "Install the Windows Sandbox optional feature yourself if you want it. DVielle will not turn it on from this checklist.",
+                "Install the Windows Sandbox optional feature yourself if you want it. D\'Vielle will not turn it on from this checklist.",
             )
             + _NOT_SANDBOX,
         )
@@ -175,8 +208,9 @@ def _verify_wsb(text: str, host_folder: str) -> str | None:
         return "The sandbox profile mapped the folder outside the unfamiliar desktop path."
     if (mapped.findtext("ReadOnly") or "").lower() != "true":
         return "The sandbox profile did not map the folder read-only."
-    if root.findtext("ClipboardRedirection") != "Disable":
-        return "The sandbox profile did not disable clipboard redirection."
+    for setting in ("ClipboardRedirection", "AudioInput", "VideoInput", "PrinterRedirection"):
+        if tags.count(setting) != 1 or root.findtext(setting) != "Disable":
+            return f"The sandbox profile did not disable {setting}."
     command = root.findtext("LogonCommand/Command")
     if command != f"explorer.exe {SANDBOX_FOLDER}":
         return "The sandbox profile logon command was not the unfamiliar folder."
@@ -188,6 +222,9 @@ def _profile(host_folder: str) -> str:
     ET.SubElement(root, "VGpu").text = "Disable"
     ET.SubElement(root, "Networking").text = "Disable"
     ET.SubElement(root, "ClipboardRedirection").text = "Disable"
+    ET.SubElement(root, "AudioInput").text = "Disable"
+    ET.SubElement(root, "VideoInput").text = "Disable"
+    ET.SubElement(root, "PrinterRedirection").text = "Disable"
     folders = ET.SubElement(root, "MappedFolders")
     mapped = ET.SubElement(folders, "MappedFolder")
     ET.SubElement(mapped, "HostFolder").text = host_folder
@@ -240,11 +277,10 @@ def open_unfamiliar(
         body = _base("REFUSED", "That folder is not on this PC. Nothing was started.", ())
         body["offer"] = "REFUSED"
         return body
-    exe_name = _exe_name(str(sandbox_exe or ""))
-    if exe_name != SANDBOX_EXE_NAME:
+    if not _is_system_exe(str(sandbox_exe or "")):
         body = _base(
             "REFUSED",
-            "DVielle only starts WindowsSandbox.exe with a .wsb profile. A normal desktop window is not Windows Sandbox. Nothing was started.",
+            "D'Vielle only starts WindowsSandbox.exe from the Windows system directory. A normal desktop window is not Windows Sandbox. Nothing was started.",
             _NOT_SANDBOX,
         )
         body["offer"] = "REFUSED"
@@ -252,8 +288,12 @@ def open_unfamiliar(
     require_cortex_mutate()
     directory = Path(wsb_dir) if wsb_dir is not None else Path(os.environ.get("TEMP", "."))
     directory.mkdir(parents=True, exist_ok=True)
-    path = directory / "dvielle-unfamiliar.wsb"
-    path.write_text(_profile(host_folder), encoding="utf-8")
+    # Exclusive unique creation avoids overwriting another session or following
+    # a pre-planted file at a predictable name.
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".wsb", prefix="dvielle-unfamiliar-",
+                                     dir=directory, encoding="utf-8", delete=False) as stream:
+        path = Path(stream.name)
+        stream.write(_profile(host_folder))
     reread = path.read_text(encoding="utf-8")
     error = _verify_wsb(reread, host_folder)
     if error:
@@ -291,13 +331,15 @@ def open_unfamiliar(
             "The network probe reported networking disabled. Group Policy override of .wsb settings was not read. "
             "This is not a claim that malware cannot leave the sandbox."
         )
-        isolation = "VERIFIED"
+        # An injected network probe can verify only its network observation,
+        # not the complete guest boundary, signature, or policy environment.
+        isolation = "LIMITED"
         network = "verified"
         performed = True
     elif reported == "enabled":
         message = (
             "Windows Sandbox started, and the network probe reported that networking was not disabled. "
-            "DVielle does not treat this session as a disabled-network sandbox. Close that window."
+            "D\'Vielle does not treat this session as a disabled-network sandbox. Close that window."
         )
         isolation = "REFUSED"
         network = "failed"

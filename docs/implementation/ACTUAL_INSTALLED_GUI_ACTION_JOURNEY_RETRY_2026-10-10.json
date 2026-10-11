@@ -1,0 +1,18 @@
+{
+  "state": "approval_or_apply_not_verified",
+  "scope": "Actual installed widgets, human Windows and exact-scope consent, one IPv4 TCP endpoint",
+  "installed_component": "C:\\Program Files\\DVielle\\dvielle\\gui\\assessment.py",
+  "automated_consent": false,
+  "mutations": [],
+  "accessibility_acceptance": "not_tested",
+  "before": {
+    "state": "connected"
+  },
+  "apply": {
+    "state": "action_outcome_not_observed",
+    "state_unknown": true,
+    "error_type": "error",
+    "message": "No successful action is inferred. Keep any recorded operation ID for recovery."
+  },
+  "callback_errors": []
+}

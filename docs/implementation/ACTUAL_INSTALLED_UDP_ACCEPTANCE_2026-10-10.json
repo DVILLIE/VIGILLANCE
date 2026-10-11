@@ -1,0 +1,94 @@
+{
+  "state": "udp_acceptance_not_proven",
+  "started": "2026-10-10T15:26:28.483539+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5792,
+    "manifest_sha256": "ca393448f5436bc26376f2146d73ca9e3400929543d8baca00fbf538a66a5fe8",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "profile": "Any",
+    "address_families": [
+      "IPv4"
+    ],
+    "remote_addresses": [
+      "1.1.1.1/32"
+    ]
+  },
+  "observed_protocol": "UDP DNS port 53",
+  "question": "www.python.org A",
+  "mutations": [
+    {
+      "operation": "restrict_network",
+      "operation_id": "d2bfd0fe611049f3906aff712f28ae66"
+    }
+  ],
+  "packet_drop_attribution": "not_measured",
+  "scope_kind": "all_instances_of_exact_executable",
+  "excluded": [
+    "IPv6",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "child images",
+    "competing policy"
+  ],
+  "before": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.007277199998497963
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-702287fc45f3-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+        "remote": "1.1.1.1",
+        "group": "DVielle",
+        "description": "DVielle invocation e9af80556ad84bc9859deaca7cc18874",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "d2bfd0fe611049f3906aff712f28ae66"
+  },
+  "during": [
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.0045943000586703
+    },
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.0015836000675336
+    }
+  ],
+  "recovery": {
+    "ok": true,
+    "code": "restored",
+    "performed": true,
+    "journal_state": "restored",
+    "message": "Owned-rule cleanup verified; other rules preserved.",
+    "operation_id": "d2bfd0fe611049f3906aff712f28ae66"
+  },
+  "after": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.017349799978546798
+  },
+  "finished": "2026-10-10T15:26:43.543646+00:00"
+}

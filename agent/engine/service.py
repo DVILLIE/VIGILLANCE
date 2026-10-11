@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import ctypes
+import os
+
 from agent.engine.handlers import HandlerContext, default_close, default_lookup
 from agent.engine.loop import ResolutionEngine
 from agent.engine.models import Observation
@@ -16,7 +19,7 @@ from agent.engine.footprint import FootprintProgress, collect_footprint_facts, o
 from agent.engine.watch import observation_from_camera, observation_from_egress
 from agent.learn.memory import SafetyBaseline
 from agent.modules.resource_advisor import SYSTEM_PROTECTED
-from agent.store.db import AgentStore
+from agent.store.db import AgentStore, utc_now
 
 
 def engine_for(store: AgentStore, **kwargs) -> ResolutionEngine:
@@ -35,50 +38,81 @@ def ingest_monitors(
     footprint_facts=None,
     collect_live: bool = False,
     experience=None,
+    sample_times: dict[str, str] | None = None,
 ) -> list[dict]:
-    """Feed one cycle into the engine. Does not close apps, block networks, or delete files by itself."""
+    """Ingest independent sources; eligible actions still pass the engine's DualGate."""
     engine = engine_for(store, experience=experience)
     results: list[dict] = []
+    sample_times = dict(sample_times or {})
+
+    def attempt(source, callback, *, collecting=False):
+        try:
+            value = callback()
+            if collecting and value is not None:
+                sample_times[source] = utc_now()
+            if collecting and value is None:
+                results.append({"disposition": "unavailable", "source": source,
+                                "finding": None, "mutated": False})
+            elif collecting and getattr(value, 'coverage_complete', True) is False:
+                results.append({'disposition': 'unavailable', 'source': source,
+                                'error': value.coverage_detail, 'finding': None, 'mutated': False})
+            return value
+        except Exception as exc:
+            results.append({"disposition": "error", "source": source,
+                            "error": f"{type(exc).__name__}: {exc}"[:500],
+                            "finding": None, "mutated": False if collecting else None})
+            return None
+
+    def evaluate(source, convert):
+        observations = attempt(source, convert)
+        for obs in observations or []:
+            if obs is not None:
+                if source in sample_times:
+                    stamp = sample_times[source]
+                    obs.signals['sample_received_at'] = stamp
+                    obs.evidence_refs.append(f'Sample received: {stamp}')
+                result = attempt(source, lambda obs=obs: engine.evaluate(obs))
+                if result is not None:
+                    results.append(result)
+
     if collect_live:
         if egress_facts is None:
             from agent.modules.egress_watch import collect_egress_facts
 
-            egress_facts = collect_egress_facts()
+            egress_facts = attempt("egress", collect_egress_facts, collecting=True)
         if camera_facts is None:
             from agent.modules.camera_guard import collect_camera_holders
 
-            camera_facts = collect_camera_holders()
+            camera_facts = attempt("camera", collect_camera_holders, collecting=True)
         if footprint_facts is None:
-            footprint_facts = collect_footprint_facts()
+            footprint_facts = attempt("footprint", collect_footprint_facts, collecting=True)
+        if startup_items is None:
+            startup_items = attempt("startup", collect_startup_items, collecting=True)
     if security is not None:
-        for obs in from_security(security):
-            results.append(engine.evaluate(obs))
-    for obs in from_advice_offenders(advice or []):
-        results.append(engine.evaluate(obs))
+        evaluate("security", lambda: from_security(security))
+    for advice_item in advice or []:
+        evaluate("advice", lambda item=advice_item: from_advice_offenders([item]))
     for status in disks or []:
-        obs = from_disk_status(status)
-        if obs is not None:
-            results.append(engine.evaluate(obs))
+        evaluate("disk", lambda status=status: [from_disk_status(status)])
     if startup_items is not None:
-        baseline = SafetyBaseline(engine.memory.learn_dir / "baseline_safety.txt")
-        for obs in startup_observations(startup_items, baseline, engine.memory, engine.now()):
-            results.append(engine.evaluate(obs))
+        baseline = attempt("startup", lambda: SafetyBaseline(engine.memory.learn_dir / "baseline_safety.txt"))
+        if baseline is not None:
+            evaluate("startup", lambda: startup_observations(startup_items, baseline, engine.memory, engine.now()))
     for fact in egress_facts or []:
-        obs = observation_from_egress(fact)
-        if obs is not None:
-            results.append(engine.evaluate(obs))
+        evaluate("egress", lambda fact=fact: [observation_from_egress(fact)])
     for fact in camera_facts or []:
-        obs = observation_from_camera(fact)
-        if obs is not None:
-            results.append(engine.evaluate(obs))
-    progress = FootprintProgress(engine.memory.learn_dir / "baseline_footprint.txt")
+        evaluate("camera", lambda fact=fact: [observation_from_camera(fact)])
+    progress = attempt("footprint", lambda: FootprintProgress(engine.memory.learn_dir / "baseline_footprint.txt"))
     for fact in footprint_facts or []:
-        obs = observation_from_footprint(fact)
+        obs = attempt("footprint", lambda fact=fact: observation_from_footprint(fact))
         if obs is None:
             continue
-        if not fact.get("fresh") and progress.get(obs.subject_identity) in ("in_progress", "resolved", "monitoring"):
+        if progress is None:
             continue
-        results.append(engine.evaluate(obs))
+        status = attempt("footprint", lambda: progress.get(obs.subject_identity))
+        if not fact.get("fresh") and status in ("in_progress", "resolved", "monitoring"):
+            continue
+        evaluate("footprint", lambda obs=obs: [obs])
     return results
 
 
@@ -113,6 +147,32 @@ def choose_for_app_group(store: AgentStore, group, option_id: str, **engine_kwar
     return engine.select(finding["id"], option_id)
 
 
+def startup_executable(command: str) -> str:
+    """Parse argv[0] using the Windows parser, without executing the command."""
+    command = command.strip()
+    if not command:
+        return ""
+    if os.name == "nt":
+        shell = ctypes.WinDLL("shell32", use_last_error=True)
+        shell.CommandLineToArgvW.argtypes = [ctypes.c_wchar_p, ctypes.POINTER(ctypes.c_int)]
+        shell.CommandLineToArgvW.restype = ctypes.POINTER(ctypes.c_wchar_p)
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.LocalFree.argtypes = [ctypes.c_void_p]
+        kernel.LocalFree.restype = ctypes.c_void_p
+        count = ctypes.c_int()
+        argv = shell.CommandLineToArgvW(command, ctypes.byref(count))
+        if not argv:
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            return argv[0] if count.value else ""
+        finally:
+            kernel.LocalFree(ctypes.cast(argv, ctypes.c_void_p))
+    if command.startswith('"'):
+        end = command.find('"', 1)
+        return command[1:end] if end >= 0 else ""
+    return command.split()[0]
+
+
 def collect_startup_items():
     """Windows Run-key names and command paths. Other systems return None (not an empty threat list)."""
     from agent.utils import IS_WINDOWS
@@ -130,12 +190,18 @@ def collect_startup_items():
             index = 0
             while True:
                 try:
-                    name, value, _typ = winreg.EnumValue(key, index)
-                except OSError:
-                    break
+                    name, value, value_type = winreg.EnumValue(key, index)
+                except OSError as exc:
+                    if getattr(exc, "winerror", None) == 259:  # ERROR_NO_MORE_ITEMS
+                        break
+                    raise
                 index += 1
+                if value_type not in (winreg.REG_SZ, winreg.REG_EXPAND_SZ):
+                    continue
                 text = str(value or "").strip()
-                exe = text.strip('"').split('"')[0].split()[0] if text else ""
+                if value_type == winreg.REG_EXPAND_SZ:
+                    text = winreg.ExpandEnvironmentStrings(text)
+                exe = startup_executable(text)
                 items.append(
                     {
                         "subject": f"startup:{name}",
@@ -144,6 +210,8 @@ def collect_startup_items():
                         "source": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\" + name,
                     }
                 )
+    except FileNotFoundError:
+        return []  # No Run key is an observed empty source.
     except OSError:
         return None
     return items
