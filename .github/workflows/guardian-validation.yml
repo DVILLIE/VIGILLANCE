@@ -33,6 +33,8 @@ jobs:
         run: python scripts/smoke_test.py
       - name: Regression with machine-readable results
         run: python -m pytest -q --tb=short --junitxml=validation-results/pytest.xml
+      - name: Real assessment keyboard and scaling acceptance
+        run: python scripts/accept_assessment_gui.py --output validation-results/gui.json
       - name: Parse PowerShell without executing installers
         shell: pwsh
         run: |
@@ -46,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: guardian-validation-${{ matrix.os }}
-          path: validation-results/pytest.xml
+          path: validation-results/*
           if-no-files-found: warn
           retention-days: 14
 
@@ -67,7 +69,7 @@ jobs:
       - name: Attest actual successful validation results
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
         with:
-          subject-path: verified-results/**/*.xml
+          subject-path: verified-results/**/*
 
   model-artifact-verification:
     runs-on: windows-2025

@@ -16,6 +16,15 @@ from agent.assessment.evidence import freshness, resolution_plan
 from dvielle.gui import theme as T
 
 
+class AssessmentTabs(ctk.CTkTabview):
+    def _grid_forget_all_tabs(self, exclude_name=None):
+        # CTk schedules cleanup with the previously selected name. Rapid tab
+        # changes must not let that delayed callback hide the current page.
+        if exclude_name is not None:
+            exclude_name = self.get()
+        super()._grid_forget_all_tabs(exclude_name=exclude_name)
+
+
 class AssessmentWorkspace(ctk.CTkFrame):
     def __init__(self, master, directory: Path, dispatch):
         super().__init__(master, fg_color="transparent")
@@ -56,7 +65,7 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.share_versions.pack(anchor="w", pady=6)
         self.sign_exports = ctk.CTkCheckBox(self, text='Sign exports locally with ML-DSA-65 (Windows-protected key; retain the signer fingerprint separately)')
         self.sign_exports.pack(anchor='w', pady=6)
-        self.tabs = ctk.CTkTabview(self, fg_color=T.BG_PANEL)
+        self.tabs = AssessmentTabs(self, fg_color=T.BG_PANEL)
         tab_names = ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs")
         self.tab_choice = ctk.CTkOptionMenu(self, values=list(tab_names), command=self.tabs.set)
         self.tab_choice.set('Assessment')
@@ -64,7 +73,9 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.tabs.pack(fill="both", expand=True, pady=10)
         for title in tab_names:
             self.tabs.add(title)
-        signer = ctk.CTkFrame(self.tabs.tab('Quantum readiness'), fg_color=T.BG_PANEL_ALT)
+        self.quantum_content = ctk.CTkScrollableFrame(self.tabs.tab('Quantum readiness'), fg_color='transparent')
+        self.quantum_content.pack(fill='both', expand=True)
+        signer = ctk.CTkFrame(self.quantum_content, fg_color=T.BG_PANEL_ALT)
         signer.pack(fill='x', pady=6)
         ctk.CTkLabel(signer, text='Local report signer', font=T.FONT_BODY).pack(anchor='w', padx=10, pady=6)
         self.signer_status = ctk.CTkLabel(signer, text='Check the local signer before managing its keys.',
@@ -155,7 +166,8 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.action_result.insert('1.0', 'No protection action requested. Existing rules are unchanged.')
         self.action_result.configure(state='disabled')
         for title in ("Assessment", "Evidence", "Resolution plan", "Quantum readiness", "History", "Privacy & costs"):
-            view = ctk.CTkTextbox(self.tabs.tab(title), height=310, wrap="word", font=T.FONT_MONO)
+            parent = self.quantum_content if title == 'Quantum readiness' else self.tabs.tab(title)
+            view = ctk.CTkTextbox(parent, height=310, wrap="word", font=T.FONT_MONO)
             view.pack(fill="both", expand=True)
             view.configure(state="disabled")
             self.views[title] = view
@@ -488,6 +500,23 @@ class AssessmentWorkspace(ctk.CTkFrame):
                     return 'break'
                 widget.bind('<Return>', invoke, add=True)
                 widget.bind('<space>', invoke, add=True)
+                widget.bind('<FocusIn>', lambda _event, button=widget: self._reveal_control(button), add=True)
+
+    def _reveal_control(self, button):
+        parent = button.master
+        while parent is not None:
+            if isinstance(parent, ctk.CTkScrollableFrame):
+                canvas = parent._parent_canvas
+                region = canvas.bbox('all')
+                height = canvas.winfo_height()
+                if region and height > 1:
+                    top = button.winfo_rooty() - canvas.winfo_rooty()
+                    if top < 0 or top + button.winfo_height() > height:
+                        position = canvas.canvasy(0) + top
+                        target = position - max(0, height - button.winfo_height()) / 2
+                        canvas.yview_moveto(max(0, min(1, target / max(1, region[3] - region[1]))))
+                return
+            parent = getattr(parent, 'master', None)
 
     def stop(self):
         self.stop_event.set()

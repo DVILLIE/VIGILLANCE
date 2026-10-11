@@ -87,10 +87,14 @@ def _save_state(path: Path, state: dict, *, replace: bool) -> None:
     handle = win32file.CreateFile(str(temporary), win32con.GENERIC_WRITE, 0, sa,
                                  win32con.CREATE_NEW, win32con.FILE_ATTRIBUTE_NORMAL, None)
     try:
-        win32file.WriteFile(handle, protected)
-        win32file.FlushFileBuffers(handle)
-    finally:
-        handle.Close()
+        try:
+            win32file.WriteFile(handle, protected)
+            win32file.FlushFileBuffers(handle)
+        finally:
+            handle.Close()
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
     if replace:
         try:
             # Reject a redirected destination before the write-through replacement.
