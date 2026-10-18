@@ -34,3 +34,6 @@ MigrationOriginals/
 *.pfx
 *.pem
 *.key
+# Windows user-DPAPI local signing keys and locks are never source/release inputs.
+/security/
+*.dpapi

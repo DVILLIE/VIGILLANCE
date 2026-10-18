@@ -1,5 +1,7 @@
 # D’Vielle Remaining Acceptance Gates
 
+**Historical checkpoint:** the current authoritative ledger is [Current acceptance and implementation plan, 2026-10-11](CURRENT_ACCEPTANCE_AND_IMPLEMENTATION_PLAN_2026-10-11.md). Identities and pending statuses below describe earlier checkpoints.
+
 This ledger describes the current evidence after the administrative-actions deployment. Completion of one bounded acceptance experiment does not certify every variant.
 
 | Area | Verified evidence | Remaining acceptance |

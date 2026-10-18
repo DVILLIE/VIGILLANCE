@@ -25,4 +25,4 @@ tests/test_logo_animation.py::test_intro_turns_and_idle_pulse_changes_pixels
     for pixel in idle[0].getdata():
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-710 passed, 9 warnings in 76.79s (0:01:16)
+710 passed, 9 warnings in 105.21s (0:01:45)

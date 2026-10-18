@@ -1,0 +1,1863 @@
+{
+  "changes": [
+    {
+      "new_sha256": null,
+      "old_sha256": "a986fc27fb4838dae5f9c337209f1198dd64dbf8cef6c2b5843f2424c732f745",
+      "path": ".venv/Lib/site-packages/comtypes/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a25e5d36fe05bd298c9dd0bdc3154f67115e8df28196fc0eab760ce6d404491f",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "aae9cbed6ddbb790e8639f9989277541e1cec93c7f7c065f5cd6e2f2fd531899",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_comobject.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f5f67a45cf30cc941c8977b8c66337a907c494bd09ad0d21354f3318d081d8c3",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_memberspec.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "271c338216967b0d90f4908366619b04ed84a61476eee88a51935e392faa7d37",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_meta.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8378677a1765adf1f988af2f5b490196a3237fb0c4c0ba7bc2cfaee786220bac",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_npsupport.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1352b1076513317c7f794f7f5933900bf898e5c0ab03a0b03105a00c4419c743",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_safearray.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "be9870f5b390f1b182b93389a72ae59bf9cb7b8bb7b2a5b14ccab97b2ad637f5",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_tlib_version_checker.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "40f35012ebd8549ae4f37d1d7810e10252604774ce250950162f0f220fbea435",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/_vtbl.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "311d40233760aefd3446d925c7998c89eef874e8dd73f16c6b8f90a446e895a2",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/automation.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c1417dcf7f9b96b13ca6e89d9c60f09bddae795e6fc0b394fa1cc4fe40b1b8a6",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/clear_cache.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "81743dac1e34cd70907070bce80c35e2a783825ce41b136a5ed8e514f34110d4",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/connectionpoints.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "cafd3cf539cda21f480143cb8f250b751c9e5b66089d20be1ffb121289f42ac9",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/errorinfo.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2d7cda5a1174a162c614799ec74bcc3390603e721f1d1b3cbbc1f6ceb2e71165",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/git.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "96ed837ee98bf5755574f7fcd54bd51592478610df07f588728a180d43292be2",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/GUID.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5fbe14db6b46874daaf4feb310dd632e5c7ac3fb479c37bea81c9723ce2288a7",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/hresult.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "155fe85b31dd765235163dfa5a820f144556a05bf70d182a8306647510115b8b",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/logutil.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4b903540ab3638f5fc872d275783edbecbcbda6ae9ee33adce7816d2fcaf4d08",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/malloc.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7d686c17ef8eb1463aa35038c97a148ff3f64ec09da0c6a780edbabf27a401ed",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/messageloop.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "39ff904ac2b5005479735cf80bec0aa6c84f1fe4b71e2958b5a7110b88d7ee2d",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/patcher.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "19780e5b7882d5b193e2bbdb6d7e7e31dd5c4b8b993d6930a96187a4df59f255",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/persist.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1f696f7b210ac7e65760b4b02f657f0b54d2732d3204c509bbad36475d12508c",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/safearray.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "105e9df6c84b68bb19c9a6b6dd74955d066b5f7c5da5856291d1cb8659bd5278",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/shelllink.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b302a65ea159dfd2b6db27bab9cb43023ed77e1cd340c0ef8f4da2ba5a90c446",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/stream.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1402eb1821e4764eba56b225a2f268c325de82618b2ccb633a20a0bf22b59ead",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/typeinfo.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "dea7af713e315dd60df4ee0089b9251db35364c6d97c64f343c7726dfa2a1790",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/util.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f2942579a21a78239cb7e2c550906120ec72a3c87eae8bd19d8a1f0968cc9a87",
+      "path": ".venv/Lib/site-packages/comtypes/__pycache__/viewobject.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e9a7b473ed3be8053b4fbe3665fa5f0543d64aeed93e637273a6ba2f37af9f77",
+      "path": ".venv/Lib/site-packages/comtypes/_comobject.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "bc85a42d1daf6d84b2697c7ab0f56f70689db4e97122e06bee40af15e583ada2",
+      "path": ".venv/Lib/site-packages/comtypes/_memberspec.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c7c8d38ec04ff34b6e7995cac17da8e1a3725db935089bb396171f2588ca190b",
+      "path": ".venv/Lib/site-packages/comtypes/_meta.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d35a9bdd33789fd3bc47a342924b82628fdab6d6dfe6d5ca3e78743791fc660c",
+      "path": ".venv/Lib/site-packages/comtypes/_npsupport.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d8dba006e9befb624ee9fbd29bcc2e3bbed5e392e20a98c377c7a6515c80efd2",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3a00f3b739b62b0fb5e67844021fd1c60b3c86ab0d1ab759a89fc18093aa760e",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "02861a4b5b32aaee7aff9b0772ca9af1c2cccc1889e74b96fc3e9a27645d2b54",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/_cominterface_meta_patcher.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "329ee053b97878a9a436708ac288b440840f0c87ef57522cbcbb68aea1a98be6",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/activeobj.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "dd53bcda2c0865fb34c69599e7d54440962fd65bdf0a0682bea0a7261f429b55",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/bstr.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1e8c1d610f0cc2c15b7992a2cb60a9fdc888a63dd8d71aded76d78e34bc22db1",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/instancemethod.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9679f3371318c582a89f27794430287d81062df24929144b264b564e3754f09e",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/misc.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b89fc0423d816ddf0bf8f3bd90fb52cf4ece7b9e43fa1cb9c21ec9e5f61d3d89",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/__pycache__/unknwn.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "042f585737468b57b6191de8649df20ae3ebb7f1206b9123a044d3de03fa8df7",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/_cominterface_meta_patcher.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ad13d6f69a0fdfed6c5fb5a5d36d82ad9d3cfca195bbf2fc9d81f1e27061743e",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/activeobj.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fee26e26150e34b2ee8fd5b41bbee283cf87331554998dd8a918400aa0c05103",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/bstr.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a7e0c5f8d3380e92975ab45ac10f665bbf33993dfaa8a5ae9a9fb444d3a25ce1",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/instancemethod.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ecf02e0bee4366abefc861f266b21a991de2722a39430f20d22fdebcf8385324",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/misc.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ae4be60c5539b48acd084eedc659162d470e6d674650994b456f9e80668640ac",
+      "path": ".venv/Lib/site-packages/comtypes/_post_coinit/unknwn.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b68369b8a60fd340d8afe77fcb4bfc40dcac027c7b0a65a39a7758d8b2badf3f",
+      "path": ".venv/Lib/site-packages/comtypes/_safearray.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "83140d5b906129c87719db3d9814809ec16471e538bd6cccb580e17c3b76f0e0",
+      "path": ".venv/Lib/site-packages/comtypes/_tlib_version_checker.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6eec715d7d474886a1b2c2b4cb1f38a39b80fad2614f0d5c065d5ea62568fcd2",
+      "path": ".venv/Lib/site-packages/comtypes/_vtbl.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "aa5806a3c27325490efc6118b10e4ddbe92d4c8b631f739bf54c429b78874d19",
+      "path": ".venv/Lib/site-packages/comtypes/automation.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "27630722031ff5bdc32f147ab88360eb5d5c2ccf35232544cec93547ee6264fb",
+      "path": ".venv/Lib/site-packages/comtypes/clear_cache.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2a49a261afd7c0a2c9723c45a8503ac62b7be15766d36df58542400ef2fb80b2",
+      "path": ".venv/Lib/site-packages/comtypes/client/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2e301447b82937fc2d8bf682b2e064d716078b9f282b8c22324827794d217861",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6a729aa7d77bae7c46c02929057f5436479bb20b98880c84637c0e258960fb43",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_activeobj.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ed60145cfaf46313e44c66b65869b6c6dab83f6ba3b3c0b0985593c4d57ed7d5",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_code_cache.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5dacaf8bd6e90ff02e2b0c24ffdb2ecc6b17116887e1503fc721ecc7d8565b89",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_constants.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5ec386d2130ca653337c7a04acee987e9e6f4ba7e60245295fc1dd17057bafd5",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_create.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2d533396e8f307e355fbc16a243bf5f4c2eb23c4f5437a2e294409b4c3819d1e",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_events.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fa36dab441b6996832e6a94b5b05308cd0e66ca2f786c849882407e2abb2ef97",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_generate.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "aef56cf0ad0765e503a55f40c293248eaf5c4302aaf11ed293c34cfa622898f5",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/_managing.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e901420015c76fcf44418faa5c49ce40775580b629f301c3f07de6677be43fba",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/dynamic.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a60fed384885add6da0fac9531a9c588df924bb1cd07915726ccfed0599d5525",
+      "path": ".venv/Lib/site-packages/comtypes/client/__pycache__/lazybind.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a9f081dcf7f4a657da4b9bc7eb78adfbed21a2880fc2ef227059aea32bb4925b",
+      "path": ".venv/Lib/site-packages/comtypes/client/_activeobj.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "56fe6679aec4c6b2a93988b654eae048ee6f6e36b626d4654f03e28fc6ad1019",
+      "path": ".venv/Lib/site-packages/comtypes/client/_code_cache.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a93c1e9942a9a0e820eb8f92675cf4466c3c2ce4f273ff2d257aa87487e61a53",
+      "path": ".venv/Lib/site-packages/comtypes/client/_constants.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0c4fc5ad049bd035df3f5dd18c681e1eacc0b609904947d13c66af7a2548a5d2",
+      "path": ".venv/Lib/site-packages/comtypes/client/_create.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7011bf72df7f323f05c4eaf6ea6227c05883b28bcf17b4144cf7ffa5888ddb38",
+      "path": ".venv/Lib/site-packages/comtypes/client/_events.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6bb0c06768dc0411f8f7b5fe2412fda20cbff23a0610f2445ba6f10046c81f91",
+      "path": ".venv/Lib/site-packages/comtypes/client/_generate.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1c0ce55e433207f8864b0c9993e3af93e0a85b3eac5d5bbdef866084226eee91",
+      "path": ".venv/Lib/site-packages/comtypes/client/_managing.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "388cc3ab5cf7d5073230f31ec9f0574a2d1c76a3634a2a5c063a8130676cc8e7",
+      "path": ".venv/Lib/site-packages/comtypes/client/dynamic.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ca27e35532df4bb1115277d91f0969330ed95d219b3ef7d51b2fade098221806",
+      "path": ".venv/Lib/site-packages/comtypes/client/lazybind.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "64cc28d78fb418e07626e08882624120c441c3dd793f77a5b9623d603c563b13",
+      "path": ".venv/Lib/site-packages/comtypes/connectionpoints.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "36fe3d34fe09c5981acbf45e91e6c2faa1c55191820fa48a537ae6e872d6bca4",
+      "path": ".venv/Lib/site-packages/comtypes/errorinfo.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "97b08ece1dad5fcc5e29f3fb75f8202e92d96ab3582ac269064c5de5b139cd49",
+      "path": ".venv/Lib/site-packages/comtypes/git.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "77bf14903dd0d5ab43dee46c8aad257d5e93c3afbd4a3253d74f779d7bfc6700",
+      "path": ".venv/Lib/site-packages/comtypes/GUID.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9526ceebec52775b1963b1a00f823d3b7ab447fd1cb2e666fae5647367f28baa",
+      "path": ".venv/Lib/site-packages/comtypes/hints.pyi"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b4e93e1ba49de5e653e2aad859cd167fc0737b2f955249096a68dfeffe9cf340",
+      "path": ".venv/Lib/site-packages/comtypes/hresult.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "91682eb5545c5fe902098305475f3717600dcd92d0b274d944f7a2ad08818acb",
+      "path": ".venv/Lib/site-packages/comtypes/logutil.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "257bc91c3f6577e5af75e3ef4918d8c863718db54dd242514ff18a76e1eb4fd5",
+      "path": ".venv/Lib/site-packages/comtypes/malloc.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c5612cde405da7c03853541ffdf2f2e3d1ab14b8867ca8f067e99a23e81fdfd2",
+      "path": ".venv/Lib/site-packages/comtypes/messageloop.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5d15af9b34cbec74106a4f508afa6548888d69f3d12e861007fdaa2f73b37503",
+      "path": ".venv/Lib/site-packages/comtypes/patcher.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d00e718734fee2cb981a31a0196435dd6259df3bf18c5a0877f7ca08099b9b15",
+      "path": ".venv/Lib/site-packages/comtypes/persist.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "021ece5b94a2a25944f00d2861b8ad26d2065a6bed82d0aa76d1d4877eb9c551",
+      "path": ".venv/Lib/site-packages/comtypes/safearray.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e365d9b296655e9994028919824a8161d7d01657ecb72c994c00ecefd25ccc66",
+      "path": ".venv/Lib/site-packages/comtypes/server/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b291a5c4fc549b00a283298909dd691a222bb8e734957a11cd481fcc715d287d",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4438fb1daedc6caf9d433868f4c3f21e938459131597249cbd445339b23a782f",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/automation.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a0673182e72dcd1057ac74ed0d0969af7dc0553d3e55dd64c3f7a6b5ecab7bc0",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/connectionpoints.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8fea8ceeb6ffbf1e9a0cbc94b4d46d2fa3a260736c685e257a235ee1244cb111",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/inprocserver.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "57790c144ff7de6d15ba830dd7450110104d685a5288a471e3a989329a9da483",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/localserver.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "91663676d5d52f6c45ba04f74a849278183acc210ac4a46ba6f5150791505ff6",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/register.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "85d23f5c2e6aa2a42b94614c12c1dc4653cd1e6f65943806a7756924de174401",
+      "path": ".venv/Lib/site-packages/comtypes/server/__pycache__/w_getopt.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a0d168a20820748a07a5dadb42f8a0d995dce80baa3c2c7c264acd4a43515374",
+      "path": ".venv/Lib/site-packages/comtypes/server/automation.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d3fa2620532a5d3eb74c85229dd38d1da0ad030326f5f396400535efc6316ae1",
+      "path": ".venv/Lib/site-packages/comtypes/server/connectionpoints.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9402ba8cea666c0a27081c007285a52ffadfccf9d5b25de86f3f6f63ec8a4c5f",
+      "path": ".venv/Lib/site-packages/comtypes/server/inprocserver.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d048f6fd8436f76892e2f36ce23929566ec1f9393344c84c14974efef7cf5ad9",
+      "path": ".venv/Lib/site-packages/comtypes/server/localserver.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "de1fc5ddffd82bee86f22fde1bafe8fce9a12fcc2565b173b1ac684c459a14b8",
+      "path": ".venv/Lib/site-packages/comtypes/server/register.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4c67911781d231c671b1eb02a477a8e2ea7b84b96aa0844d22f655dfa1449d56",
+      "path": ".venv/Lib/site-packages/comtypes/server/w_getopt.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a1f86e114fd46fae884fd29a1f46953a78bb57bb9d74a6529140ee3f8eba7d62",
+      "path": ".venv/Lib/site-packages/comtypes/shelllink.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "076ae1835f0fa960659146651f08c56569413dc70e6b153454ff516a55531d79",
+      "path": ".venv/Lib/site-packages/comtypes/stream.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "65e6af7ebadb67d04c686d4fe83f4405eaef4274a44c1bcb60624e491afc21c9",
+      "path": ".venv/Lib/site-packages/comtypes/test/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1e20e588828d5eea34f0a7fe60d632427f4d08c2a110f976b65d3e1841afa527",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "236e4d7d2fc59e43d76d7d7f6e56625c617cd6e878657c4d2797e83096f88fda",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/find_memleak.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e2696453d34065d128c4fa5c1a0c352d7ed57f07708d4d572c4b0e5b1a933c97",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/gdi_helper.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b8354f7c3d5133aac0a76f82606c1bb3a7a04e4ee760255f5495542ece39cd50",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/monikers_helper.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "74aef5fbdef1e6d822d9667e474035e3516cc6596982fd7f256cb74d025c0c8c",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/runtests.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d41585b4e453317ebaae609e7df97c1986917b4d32ba997846b0eb7d3a24a2f6",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/setup.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1383b4d5f76fddc6a5ca8112334ca7a87af8ffe340c6442be88345b9bab80705",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_agilent.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a1ed329f7f4840f81e1761ab51935a3900c94bc7f84d74481b7d4a4e606262ae",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_avmc.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7a0c69b736e535fd8d3f243bb9ac3c67cb9e37752004819495c22e593d58bd1f",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_basic.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "694dd0f7ef26961e2e8907dea6fc06b739dca5df651dbecd4fd80757e555bebd",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_bctx.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "997f9cd00899c4e1d46726bd1f1b4b6d2d0a714f449f452b5f827774f06eb453",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_BSTR.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d2d75d907a26bed6a4725a8c1132e983570eaee5c489a753545ddbe7f88eb385",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_casesensitivity.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1a5955b5dd29be01c22fcd4a9b72e7c54751299775c892a9eef5d3a7253d98a8",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_classfactory.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "dd056a4c1a3e562b213aa1ded536f5e9dd394465e7f3e3d77d2364a4bc154145",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_clear_cache.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4625290285a159f9cf05c5dfecc660b6e2c8514cda57fee36b01b17f9382f665",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_client.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "604a38c9fc40de6e4305570b41767007537af05dab91a9ed40ca80551b4035fb",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_client_dynamic.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3600c9d8cef754be978b25568ef168be10d53fc2c594e7dd1139bc7ddb9153df",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_client_regenerate_modules.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4695202ddf48dad648f09ce4896d28979f73be72b2785a371da281f11c8a598f",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_collections.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "054fb8d94aeaf345c8b75d21a270ef8acdade7def925dd31e345bcafc50e2929",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_comobject.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e918a50b8311ce8fd9d2df2efeebcf4aca56c9a40be56b16ecdc62d4e883be71",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_comserver.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "00066f3aa758117c07e82f323d85cf31a35032f881e19ddf95eb81c3d8a7f028",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_connectionpoints.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ae7e772a1b3c23f87b58a423cfac6e43b3d7e1a2000c0ad03f3fa13ae337b06a",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_createwrappers.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d319ec1038a601ca980356421ad8add71cc5318783bca76484512356a09f1c99",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_dict.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ebd304784dc7a9c6640310e6b70f58ba1935729a5068fe64ff1df42e467b2437",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_dispifc_records.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "16d45089eee6e0e3e799df62f1095e8f2bcbfd10516ff49bfaed4cbc2eaaa341",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_dispifc_safearrays.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9f446bcceed2395c343c379be1a394936cb3c14d8c0ee1c1d1755c7b61ad597e",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_dispinterface.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5d20d39d5637147e4201ac16299c2a46ffef41c63bb6391a6162f0ff94fceea0",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_DISPPARAMS.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9486864054b0109204d5490d439038eaf69c8c56b51d952bb270aa2be82a868b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_dyndispatch.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fe44774ae5a3387b653c58595b76e63d87b5b397940e9450c057b53b485e2f9b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_errorinfo.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3658555b71fe4c0964a7dec35b8eaa6e1bab02c1b9417622c63bbe218abba904",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_eventinterface.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "431abbf4d5f5b10a746c3b9af5062010a0812be788e4bec62f21d7471d2b206c",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_excel.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5d72e885fc1db67a70f21ebeaef5e340bd1bc28f36997099b725578eefdfce9a",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_findgendir.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d0982f4041c231cf026675c047c1b9cebd731e37b5eae64e987d21ce39a19b0c",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_getactiveobj.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "86497ecbddc8c1ba8682d7ccd7de1e1481128c4af308ea53dc9f5d129438c57d",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_git.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "72ee71c36e272e5f709e7b93556c791abc061fe044b0933b421accde9d00b4da",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_GUID.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "baad916a0d1d6f2c02699d61825625e76b0546e6345873d96be68a9ef04e1aff",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_hresult.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0edce195d4ab381e37386d828a0c365988423bd9e292bb9d8a7d19516a96b3d4",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_ienum.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "dd4a0dd22cc58fbf32314ac92e31119d18da138e690ae8ece55d50341083950c",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_imfattributes.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d491899a25a53afdfe055ff70a25ae046182e175214fa40595dd6fa94a9991f9",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_inout_args.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "27d9b9c9c63df03573db13ff7221f1a53035567d3613d912eb7c4252de3fe5e1",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_logutil.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ea18052188ce0dd0c435ead043e5b20c1957d964f9b4e9103af50cd8f973043b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_malloc.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "44889af67175d685619fe11fa412ab4e0875d8c61e1db63f963deb109ad39c0f",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_messageloop.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d64118c67a826d1c25ea9858cd55bef92a62ba3a45bbd603f9ca376ea40668d8",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_midl_safearray_create.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9028a394e8a479df4154f6a01aaf08970b4d3cc16f592c94418155b848687dfe",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_moniker.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "48f8dfeffaac4aacf40e2e002e2ed499a9b23435d0e29081553901d8de16d167",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_msscript.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6cd2206bad5e045d7ad71eb5dcc8dad8de2b3fb891abeeef67b09cb493ba7aaa",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_npsupport.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "219f9275cbb0c9533bcd21da95ada7516f9d5c77c831f3cb44aeed5363248b8d",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_outparam.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c75ddcbd96b039b2bed91eb2b5c83b7a7412b853bb0ee3d545a1f1e10760b51d",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_packing.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "de54d8e9a0d4ae1372baf1b3a65c027f0789841b068775ef4bf76a24e5e07a2b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_persist.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "bef7d2ae84bd00c3d8d4c10459647f30b8f8705bf9922aa427b15d8368e0c1e0",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_pump_events.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a0f9b112d399c277d9321de5f75658f8e3bdb4ea74506c4fe5ad51b79a40616e",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_puredispatch.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "facc1474f73301a5edc8faf8ba7a23f99aca9b8f392643b099146a6db8316cdf",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_QueryService.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "28ef601a97b60f23068f1bb8548f6a9f815c7897c1657807537b6cc8b645be62",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_recordinfo.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "80f0bfc5e1e1165b26c03c26c5968204879599d6937b7287abc8cd632d223e1a",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_rot.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1d2a3276109b463f1205b4daeee0f12bab283b410f122c292ef0a6c908aff80d",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_safearray.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f5245935a5524f4e408d021d3c986c3efccc6af04aaa7119a79ae765ae62818b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_sapi.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8dcc0844ec40c6a403fe72223c77cc344c4cd57e18f13b1cb16b44f416969364",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_server.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8b7b5e63a4899fcd205e3bc294cdf95b60749891dfbbcd7d6682d2a476986709",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_server_automation.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9b51f6c51107dbc821b334b9cef996199d4bc6d440da7c4282dac6e625695232",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_server_register.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4e1a9fd878f1e128de606eb47e6338839b42746b2c47c304d58468425ca7742e",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_shelllink.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "67faba9d9885d2b55f96ade67be4a393574268e444b41eb4db7a8037a5701009",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_showevents.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9f84513538d380cfa387f0bdd8cd68f2be09fe06c9f8eec711d0c541c26dd6a0",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_storage.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "383469c87be3978038b1fff96ff60b6c613f6f3179fa1eaf930fb68e26a570ac",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_stream.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "363012cc8fb0e971fe3aa4a28fb29ad540b308b8db14ae860b761b9890f84597",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_subinterface.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b85ef1f7ad6c60b47f7c270754b4cb3d8983dedafd94e148c6e1616680752806",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_typeannotator.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ab307f27a7b86ccaa0b75ca7887c7f55fe4d7800589a696abf7f27293c6ffcf2",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_typeinfo.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "67f686be741897a4da452284c0602fd4829ff828c21b798bf19e52a87752d0cc",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_typeinfo_create.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1de1077755bf9b03153abf18d645c4dd074061023869052fc0f108003ee11f8b",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_urlhistory.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "496fc49f98e9ffcf2478f055e441ee23fbb2bca18c2851425745c3cdb456ffd5",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_util.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "285b14c22ed6d9e8588f1faa0e2ce2c8365279c3f76a39a31b6ae6d4203b23d2",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_variant.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "27cec463077d52015be22c0ec9d8faa45c1a43bdd31cdb46f4421b36deacf8b7",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_variant_outparam.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9554980d1ecf756ecf1b4a742cc25a40e871c21ed88c0933c6c3e4fb0a448e2a",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_viewobject.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3cd745ddc323ba6d1fff1a979b56e239eb6005f294c79920d8ad2c545a6d9823",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_w_getopt.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "594919f543734ad803a181b3f6340a72d7a28b1bd48232aad2ea695453916713",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_win32com_interop.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "22b563b7b944eec8b67036ea45da1c4c45bc94924b044ed6274ed60e00904729",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/test_word.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "08044d9318413de700ef224390c06798389a4e2905fa912e67f78eae61aad8e9",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/TestComServer.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "cd4208d3aca56509e1400b0adfef695052cb1797e1b800d7542c8d93d932cec9",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/TestDispServer.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4db9051c1b872ed5cdce8f3206fc5474a30b4a506d49f1b804d1097fa7d05560",
+      "path": ".venv/Lib/site-packages/comtypes/test/__pycache__/time_structs_helper.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ab280544648b9e1473d1b97342b14e906d9325abc7fd55fb9ba70af6db1a7acd",
+      "path": ".venv/Lib/site-packages/comtypes/test/find_memleak.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "23c3058efa048f6eaa2b98ca84b94fd0dc92de9cfdb8ba4c71d45a975c8fe867",
+      "path": ".venv/Lib/site-packages/comtypes/test/gdi_helper.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fcbf5e5e484d8249d65b3a1e2d29712088441929ba2d049a5686666b758b173f",
+      "path": ".venv/Lib/site-packages/comtypes/test/monikers_helper.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1557ccab145268b6420372b710578d3e26cfbfd280a5220f6673a8c08d9f5443",
+      "path": ".venv/Lib/site-packages/comtypes/test/mylib.idl"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2afbfc256df60d6ee209e056890a3dd43fb6d4e61bece30dbb2e61618da13ef8",
+      "path": ".venv/Lib/site-packages/comtypes/test/mylib.tlb"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8218ea82dce52d8beca6d097ab8e004bb3fce433c9c1b2e6a9305824a054eb6b",
+      "path": ".venv/Lib/site-packages/comtypes/test/mytypelib.idl"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6c8d3c1eae5709a1cce4d0151b51371526cc6c4ead774fb7cf691d86e668b165",
+      "path": ".venv/Lib/site-packages/comtypes/test/runtests.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "af6f2c4a7c2214ee1ce954eec4f1e91034a6f5a1d3f4c29afca92d2b350684e5",
+      "path": ".venv/Lib/site-packages/comtypes/test/setup.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f7eacbbba21741ed0291bfd908bc629ccbcbce57d923d0377245602f967897d9",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_agilent.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "132b8b7411a9206be3a9d806a0702c6883c8569365ec3948c6f51f5f9e7fe6db",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_avmc.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1d8c5a130458f3d1c43bb4d7761ac9518bbbc750f035b57214ae2cae9fe725c0",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_basic.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0e99fbeb7f3101fc653d0ce1ac4073e5f5f1ae5ea8d216e68f0b9eb9a59abc67",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_bctx.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d6143ce6eb22eaa9bc7b1c0f4562bab492c14954d0f63958a718c38f1b55d0d9",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_BSTR.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a6454fe603bbc54f2835de316617e4377ee6a9e207840771786f3cbeacd8b76f",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_casesensitivity.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9a506f438b951601ea055a0018bdd66ef66c048d6ff84d7a4a5605740f4884b0",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_classfactory.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4675dc025ca15f742b6cf755d03f8b5f858bea3b2bf8fa5562de375667714783",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_clear_cache.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "43ace458cbd9f7b7a459043777b0dc116a0039df763df667271792a713d0cef1",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_client.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6d807c31a0e1d2710867e81205fea226774fb0b2ade12d7f5d7b4e894e9ebb07",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_client_dynamic.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "75e7ee889d89e426a7b70c51084851f5511a08737e5840a7b821edc3e3814ee0",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_client_regenerate_modules.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4268718203d70f983818eabc31f29af1344f468d70f8e3dadd59649b5b3dd78d",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_collections.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6b47cf8edd028116e08f609f017009084c3f9d4d51f5f648dd8053ae3074bbb5",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_comobject.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3f9d1b127335b3ebcacc672251650c5b76199846266fd4b8445b994e1a7a9f0a",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_comserver.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "94f73c29e90ff0b55b24a3c2841037acb45d28bf631687e1c9cf37d2d29e0606",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_connectionpoints.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4300fa4fea4df411b4547dbfdd4f8869409ec6da90c86433f75f6f508b9d1209",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_createwrappers.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "003a6e9e8b0168ae715fcf9a74756aac59a4b528aa93ab85f0f6bafc3ed8fd42",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_dict.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5eaacf02cc432b11ad7de8341ed52de5244d9d67394a121c958b25834afc4be1",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_dispifc_records.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "af4352539d7331351e5f0f60f66f3cfc3e7e51281fbb7bb07d0ada422964698a",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_dispifc_safearrays.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c4af3eb5514efb528a292a50d1ffebeedc42a16a12fade549067022e59860882",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_dispinterface.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3f555cc19f64fe9dc96caea8167d8b774008e35df18870e5dd10fd423c7d7dee",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_DISPPARAMS.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4e7213b31ffe034c6d6da26d92a6bcaf7c424d3395bdc0adcbecd9b645454b75",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_dyndispatch.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3158bb67b997660266097ae592fb15ff9ec74041fb0b1f4076c7483b53463a04",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_errorinfo.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "721370b92b60b34a1bf9dacb163b4e4ce5509e378926300eb6258986b66db627",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_eventinterface.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6408a396ff1f42de772454b68732284765b1bc66f2790a997a0b7aaf2202fc2e",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_excel.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "947ae7ff5e37f526872949ccc58f4b131aa60301b28f358772691c68fa90ca84",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_findgendir.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6674265c4a2a9fac83da87ea68d8f1f756ccf0c70db94a6762b7d3c924714037",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_getactiveobj.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "33676a4a159640ed9a0273a0143a3e71e2fe7490d79b247df4a38756f976cbcb",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_git.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c676f8872c293f0d55fee736bd9a03ee62ad9706fa88da912084b63166b55807",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_GUID.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "051c09c3772c16738e2214176710d4bdae28928daa9102b55f765dc2f54d5dce",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_hresult.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b25df56039affada534763330a6d7dd0228b8edd1b93d173f94ee68df0b45efa",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_ienum.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c7d7c91b413997baa7a701219a46d207782fce46a4984bcc78ff28681f72c423",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_imfattributes.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b84571d419419975154810c3375d0f24eb8cdefefcfc9121574346a83bbed7e7",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_inout_args.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e77bc924ee1f0d4071220dfe0fc5ae95dcde7a3a77fccbc89a937ac9e74f3132",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_jscript.js"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "48283a9e6d03d643bbc78adaece38e7efc374a3be391d2b1df005226eba94a82",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_logutil.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "cebcf7601f171ccca06a079fd485361f13da18b9c6f037fb33685a51ce4d9e22",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_malloc.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "791e5c1a2e93610091b1b427fb1461f57194ae050a0ef4107f155f7d4de2876b",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_messageloop.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8ec0a64282d19aaed876d35d860e971715d909ec7baf92293aecaf5c4e089c49",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_midl_safearray_create.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f31caaa035b7725bc807ae4edec42f06434e8b22a284a961d68f9eda21ed1b47",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_moniker.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c8f8bb12e16a8c207004c3351810d6bc9f79149fab695c338d3db4eafa517257",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_msscript.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "edd4eb18ea1a05936c313ca5e49633d6bc0509253bf42dc7f522728b86f6986e",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_npsupport.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2a93c410a3677a790319ed2197f5f4bb25bcd7f455b285944ebe00184192dfbf",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_outparam.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d27dab660eea1429f260af2cc140e041630e169cde28eec9b3a114d6a152fc17",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_packing.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "4d95e4da77862478d3c305003c064dfee51dfe760c58505739e025bbba370bf4",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_persist.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c1c3a1cd280d913051655fe8cb07cefec41e23d37ebb729ff68407841991d438",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_pump_events.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0720137a05159bbe0048e52aae38e81cf45e694857d1256de3d39f3c0ca0fe93",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_puredispatch.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b3eb5719715fbdec2bda79786612eb9203f734affe8266971700f9736a71a87f",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_QueryService.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b3870ffe751610f631f257656303315c78ce88269240d53491818c23c9c6a9cf",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_recordinfo.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e81cd7b603ca11e5aa3557154a0eb8d11e443811693c0ec0d8f35056160eb3a0",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_rot.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9ac315bde2d3eeb4b30ce014ee5d63e4ec1cede3d1ef1ac91bbe05a4790c1c0d",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_safearray.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a98f2da483a40f558082390893508a1ecfcd4f5f864e4c6b14209567a77bf6f2",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_sapi.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "09041164184de804fec8e12ea6e5a1504baad38d0ac575ebd165eee5a850b6e9",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_server.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "85ac67a8faea2fae82c232e39d8e98d6f7e7f3266b72c589e6de52af1ec1635b",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_server_automation.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e039b546945ccc5916e0aa20e767ffc54dd83abe52ad21db9d0365c0927a04c9",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_server_register.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c5ed7c67dff9272bc1d0384f41caa3e149f63adec2735c48e50d59218a23085f",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_shelllink.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "957322bfd8ab9c02a01a35d5605583d53b238c4c81863f1f07ce9ff53f650b46",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_showevents.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d2785d5c65acf331fba1d51b42bf52ac8a391c5e625589d2aa569c4700b2f703",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_storage.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "28631c69f39c709efab3b90a8e68811cd6a209c00ff16b9b6c3e0c70011d19ed",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_stream.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "cd3e95fedd23bf13f67ed94100eee61f2eee3c542b078a8c4163da2d69d84340",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_subinterface.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "aaedddee204a2c6d98f799457019d26ef4a2f3e7f80396216babc609f3043968",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_typeannotator.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "365e1db05ba937fac2914203c2fad287fad5dc028fbbd4ff96476ddbacece545",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_typeinfo.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "29287933f896984616158fe1bab24b286d96860446eaafe9868f2e73003eecbb",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_typeinfo_create.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "776a362dbfe7928c4a7f6fca7ef86cf678358767ea0bad61e6e5d616c9436ace",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_urlhistory.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "105ca86b1847ce2224f69afcb54f7b1c8cd3acd2f281cb0120cca43c431167ff",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_util.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "9ff28a2699a0601401be66dafcdf2fc5c0c2b032451b64a5cd32bf89302fa3a5",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_variant.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "066a4c294285f0c295a75959070fbbb758f73eea3ffdff83e32a84fc58e3a0e5",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_variant_outparam.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "49cad7680e2a1ce3187f5a3b869b50a7d7889ee572de464484d3a4ad47be8063",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_viewobject.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b9b240f88a30fc3333f0aa5edc220e9dbc60ab96ee7d2578e6e9782974e32607",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_w_getopt.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b01c2715a4e3df2e6f2a1ce9b10fed08e6c81cff9dc47fced142deb315c2be9b",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_win32com_interop.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fb0fb03442009f5443ffcbaa83b9d30a8cd34cdb152ab38b83badd08e67eee43",
+      "path": ".venv/Lib/site-packages/comtypes/test/test_word.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ef67f7f37f3754353ba2906f87a31cfe213de500b9ad0faf47d90f5fcd67fbd3",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestComServer.idl"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7ea3eb35fe34928eb55f7a718e9f6a2471e8362848fd63bc12d8abc0ea4637ee",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestComServer.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7ddc00b468bedac91bad31c1128388984838f2bc60966798d07e48b83e7fdd29",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestComServer.tlb"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "48a7656fbeca8fba719135f5051615d3886d72ad0f0c1ab9f5e8b694c16e488e",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestDispServer.idl"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "fb5076d1be11076401b63e6fe954b9f66ce3db45e3f04b33829470fca1a042c5",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestDispServer.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "78a8b93690aeac7c20aa5ff31b373549ac168d231b0e88cc472ad58ff0ab45aa",
+      "path": ".venv/Lib/site-packages/comtypes/test/TestDispServer.tlb"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1baa2d55facb0bb363761791a39ab4c9c5523b94d253f912c87f3f4a4a3cd674",
+      "path": ".venv/Lib/site-packages/comtypes/test/time_structs_helper.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "bb646b52b8140f747eb0f44ff2205ae88dc570ce00cab6e00aba3ae2f4866685",
+      "path": ".venv/Lib/site-packages/comtypes/test/urlhist.tlb"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5a09220feee4059709512322a9d4a381e4625203cad3bbf2bb9d4827499b7dc0",
+      "path": ".venv/Lib/site-packages/comtypes/tools/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "a059c016c7c6311fc6dec7dc5831375600ac5e7ce0b023f87fb2fb308863362e",
+      "path": ".venv/Lib/site-packages/comtypes/tools/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f9c778bf9a40e970c58253c91793861829cf728f83934610a5f2c56f8e454d7c",
+      "path": ".venv/Lib/site-packages/comtypes/tools/__pycache__/tlbparser.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d0a59e3d6cb3deedb41acafdafd530034bbdd2c8333b62cb94fde4ce52a7d599",
+      "path": ".venv/Lib/site-packages/comtypes/tools/__pycache__/typedesc.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "58e7d6bf34d6bdcd03dac1ab9b3d79e61245a205b84319da13ba9d94145a3335",
+      "path": ".venv/Lib/site-packages/comtypes/tools/__pycache__/typedesc_base.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "81f2dcc25a48c5085102fccc7462ee3b73a58ee97ae66e3f615100dc74581218",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1c92f53f14cfab630f6fba9d7045f36a584603f5e0da2dfe70227b2ffb8e70c9",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "186731da3ec869d956d608cf2b5016d96dad6bfb1d79f96cd3d7a3a5071877aa",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/codegenerator.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c1ff814bc06c20043f4e4d661ac150a1eaef2a1fc723f276a3ede8298550c7ca",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/comments.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "879b18a9ec1d8d59f8c21e05d9ca7e6fd6db63eeea7f6a1ef4076e1a7da82826",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/heads.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "40119080de92a9cff3d24b361d982650a0b0e50fcd36fb0ee4a7a8ccc871cbb8",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/helpers.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d7682c44d90abd110a3977445643eda23d852e871d697ccb2addec03fae16426",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/modulenamer.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "583160164d0fc8919f3bfbdc5c98351a781f9c4e5154fb2bed2d953d628eaf71",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/namespaces.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c9d7fa4ed6def8f5ee7a31447fc7dc694df97a3391136ebd9ab444dc77673ed7",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/packing.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8658789e3ac6a464626ccdb81e24e65a99121052c40364531db115fe3638e7c9",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/__pycache__/typeannotator.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e311bafe3ad6adcec494d9f15ecfea30d94b477ceafb24aed5ca9266314a6ec5",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/codegenerator.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7d7b02309f0fbedaae617a4a5fadf3f90814633fea890bfdd06a7d240aefb217",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/comments.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2cb74875c00ac1fb1a680e0616276e87866fe97790a00f880c5d4fd84df91674",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/heads.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "69198754160b7c339d22144f9d78731efd9a38366f4e05fe8ed616831ebaffa5",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/helpers.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3ccbeb1802fa53e05b91fbe76c8d57fd5bf8fd38fb4b94c944b29f0dc293098b",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/modulenamer.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f3f39cdb4f5dc5ad65f25e395dd318c3443d22ae17252a83ca385c92a79b8596",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/namespaces.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "c548ff0e68e0d66ab8bbc722cacf15020c4ad578ef2a6604f6101ae7b832b11f",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/packing.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7ed91575737a785442f9da31f3a89ee6ef3332fb615314c0116db52be296e546",
+      "path": ".venv/Lib/site-packages/comtypes/tools/codegenerator/typeannotator.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7b73b8b1d34573fc6642db5d258f1a5bd907c380c074b471306048c8d0e06bda",
+      "path": ".venv/Lib/site-packages/comtypes/tools/tlbparser.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "08ca6635b407da3dad56279d493a40455eb4bda3ed9c3ee3b5d07719424e90e7",
+      "path": ".venv/Lib/site-packages/comtypes/tools/typedesc.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e4b76c08673ac80d53959efdc6f341e24ede593cce4829752ac01b726f93c6bd",
+      "path": ".venv/Lib/site-packages/comtypes/tools/typedesc_base.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "acf380c06649c6d59fcb4717b163270843090f68044f41e49402089f8efbe2ad",
+      "path": ".venv/Lib/site-packages/comtypes/typeinfo.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "844a094d5a19c70cfd982994ec129e9ccf2f26dc7707b1edc9236393cc7fb4fa",
+      "path": ".venv/Lib/site-packages/comtypes/util.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2e15788495303d6c415f737aa8cd58cc029802ba4517bbf1195eb7d7378645c6",
+      "path": ".venv/Lib/site-packages/comtypes/viewobject.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "42fd86c5a458aca9f6c7112a8dc83605ba8dcc03fc3d9a78ad87c1515a6f6a0d",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/entry_points.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3b1767f010980b46926b23bf0afce5d72f3359ee5e2b27baca71b9b4209ab383",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/licenses/LICENSE.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "cbd553cc82eb81940fd10ba69db4147eab51f4c0efbd0884dce88e281fdd8057",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/METADATA"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f18500783ba7d9b1d3676411e9f5bf5067b44e0bd347476a1cdf64f7569c5456",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/RECORD"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6f1ac0259a411b95cc4fae1e2b1f74f131c26eea72234cb077b718225c7851ca",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+      "path": ".venv/Lib/site-packages/comtypes-1.4.17.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "78ca2eaf38d76b30396590eadcfc28bacecb25325772101376c262f8ff6b45b7",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/direct_url.json"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "df279f50d5c2f1df31960e324a19fe82f32f7bb79e06a50971714cc3b7bdfb0a",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/entry_points.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7dde2977ff0bb41cd227a3cbca8b2d1457a82ecca77eb8255ae16689b899c542",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/licenses/LICENSE"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d3777082fa0f58c6114947ca784390d01546ec5049c93fa401a8c81812744756",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/METADATA"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "2e3c54f311b8ced1fb3f649c42cd2d53d775f1e472f948bbd596a5b5b8a8e167",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/RECORD"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1c3d51e92c552a581db60038ce710f8a0ba0d3859a9e9024525e8cbd340b0dea",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+      "path": ".venv/Lib/site-packages/dvielle-2.4.2.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3824eeb8de8b716ba58474b7779adf8ddb10b56db69fb1c4345461ea30ba7a0a",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/DESCRIPTION.rst"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5a942207f73145599029859a2d880fdd1237fffd13351acacc337b4b2ef38632",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/METADATA"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ce603bd6affa79d67a5185c5af9ed143a3aa29ad6d25a81dabe0ed0687dd81ab",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/metadata.json"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "87e036d8a5a9259f8308f9635ec9c5d6743a2ecaaf1bff1402af1354ef699b54",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/RECORD"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "5656a3d9734c4d327cf77cd65fe26f29e65422ceeae44eddec68ac7b6568bb37",
+      "path": ".venv/Lib/site-packages/pypiwin32-223.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "862d91ac37e092f7a4ea200383e40cbd4d329946574cf91adb16516b339552c6",
+      "path": ".venv/Lib/site-packages/pyttsx3/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ff8254891630ffd051f1bbd9139cefe954880b5f153813c539ece7f258d73b95",
+      "path": ".venv/Lib/site-packages/pyttsx3/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6b78aaf74ae17a175cfce7ed74d1bad92fac7146f088569f1821ad0b8a2687d3",
+      "path": ".venv/Lib/site-packages/pyttsx3/__pycache__/driver.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d0a56560f64be0e2b904b146fa8ff0adb5066ac5bfd41b7d49463d75bc0bc89d",
+      "path": ".venv/Lib/site-packages/pyttsx3/__pycache__/engine.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "38125f181d893246c71f38eec26fbbd187146377ce6f4947ba4cdd80d8e92331",
+      "path": ".venv/Lib/site-packages/pyttsx3/__pycache__/voice.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "6d5439f44249860ec8ef53257a757122c078157bde5d4c4bd1d18381da2566de",
+      "path": ".venv/Lib/site-packages/pyttsx3/driver.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "71d918019f8c269a5690a24ec654acad7bd5f469d66c9e58383bbd3a4ea999a6",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d7361e5aa006694bb2172c3a28eeb53c18fd0e55fea713e430934e6127835f64",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/_espeak.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e062d3e2e7409017d098fad8c94a38f08e905f95442d55d8d0fd161cd8f4f17a",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/avspeech.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ef80621b067699fae381221e3328090a8ee69fd9108f98792803fd3c3f57c374",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/dummy.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "bc68aeaeab3a53f4059be9646996ea36edc2a96bdf6f75544f4d1b3a259a022e",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/espeak.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "3268350884504f7a9f4551a5035c6a8576fbd6811207871cdde883307a4ddc76",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/nsss.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e111f4ff8f388fa64d93fb04afd171a58d2464a65ca6cab71fd40096ad88a4fd",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/__pycache__/sapi5.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d0ec529d49af636abf9b432a5c3d071868b4c87874bc2f7273d554896d82f4df",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/_espeak.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8eeca271425db932d454c1ced52e91c3cb006234a60f38b4b56b9beb33333f0e",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/avspeech.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0aa536d09a60260ef6c3466362559eca08d020be9a7ea3528d82247e8495e917",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/dummy.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0c93d07e787060c6a1820c3e75a752f7d6bdd6aa1001c769a4ca282d9002e0e5",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/espeak.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0c2485ce2fbd3bb5c1692c17366de1dc8e1a1cd5381a2c9172c06657dfaf63be",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/nsss.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1fc1266c5b2821fc9bb7db9a66f340fc60079afcc37653cbc2b15e6b43b13c34",
+      "path": ".venv/Lib/site-packages/pyttsx3/drivers/sapi5.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "07b1db933d5cac14b88d4640221e8985dae1c9ba203c88a0738f3de3ed2e7b0d",
+      "path": ".venv/Lib/site-packages/pyttsx3/engine.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "0eedf32a1569391f2c5c332acdc756492b48b1177c4bb8908c5475497f281a87",
+      "path": ".venv/Lib/site-packages/pyttsx3/voice.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/licenses/LICENSE"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "80715defc3571504b9b1ce54395e951e323ada97737d7022440ec29d0fce12a3",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/METADATA"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8a267c9cdda88fc644ba4398078473fa12048e64cd7db14b8836bcb8fd1d2abb",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/RECORD"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d8278c230fe6fc95e85af7cb9139f0305f97951b67ee01db4fb224ef996c4c59",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b",
+      "path": ".venv/Lib/site-packages/pyttsx3-2.99.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "331ba01d621a3a7ea04b67f082f5f85e092f309f5f3afc122e551aa65fa566c2",
+      "path": ".venv/Lib/site-packages/win10toast/__init__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "d7b38852cb49581efaa7a1f813d571682e4cc0cf546d4bcd82a9b016f28fe96b",
+      "path": ".venv/Lib/site-packages/win10toast/__main__.py"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e6596f70a253d0efedd67e4d0422c897d5365f6397d40ac0e11537b60e899903",
+      "path": ".venv/Lib/site-packages/win10toast/__pycache__/__init__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "dbb810e14b5af261dcd50ef850d35fddaf826e7f1c5d90002b73ad44b575c7f7",
+      "path": ".venv/Lib/site-packages/win10toast/__pycache__/__main__.cpython-314.pyc"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ba4b855c193b6ba8bf555d82d5db1bf5b9fa437f2405a770ee9864f66ea8f6bd",
+      "path": ".venv/Lib/site-packages/win10toast/data/python.ico"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e0d03d27fc4c49978e2a69800249e2f216308b6a21426305a6a2a574ca6930d4",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/DESCRIPTION.rst"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "7d3a98334303cd7826586209fb73703779676ec1932a6daf64b5c93264ec887b",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/METADATA"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "b07ea603b89e75b12699f599c63fe1e2adedea8a281bfa8ee7cc1071490ef396",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/metadata.json"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "bad112c912711b230ccffe9409edf611b19b91906b441481c6a6724c579c6137",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/RECORD"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "8ab87d9c48a33622a3c9788c60cec2a38a43c5261c52ad209bffd5376c15952b",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "f59e579be79e9756d34bb7baa206222b3d3398f12a0f0232a6eadd1cdd61478d",
+      "path": ".venv/Lib/site-packages/win10toast-0.9.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": null,
+      "old_sha256": "43268e075dfe14c3818bd64a33a2666cb948dc39c4fc4a8124b2e34487cf9b55",
+      "path": ".venv/Scripts/clear_comtypes_cache.exe"
+    },
+    {
+      "new_sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/INSTALLER"
+    },
+    {
+      "new_sha256": "64e5d120a4627e76c863b6cb85e71d4a6734435f17274afb70e19a67d65ab5b4",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/METADATA"
+    },
+    {
+      "new_sha256": "d749babd5aa2f48290ff7cf76df152c29bfcb33ac697fe562dd64909d40ae46a",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/RECORD"
+    },
+    {
+      "new_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/REQUESTED"
+    },
+    {
+      "new_sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/WHEEL"
+    },
+    {
+      "new_sha256": "78ca2eaf38d76b30396590eadcfc28bacecb25325772101376c262f8ff6b45b7",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/direct_url.json"
+    },
+    {
+      "new_sha256": "df279f50d5c2f1df31960e324a19fe82f32f7bb79e06a50971714cc3b7bdfb0a",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/entry_points.txt"
+    },
+    {
+      "new_sha256": "7dde2977ff0bb41cd227a3cbca8b2d1457a82ecca77eb8255ae16689b899c542",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/licenses/LICENSE"
+    },
+    {
+      "new_sha256": "1c3d51e92c552a581db60038ce710f8a0ba0d3859a9e9024525e8cbd340b0dea",
+      "old_sha256": null,
+      "path": ".venv/Lib/site-packages/dvielle-2.5.0.dist-info/top_level.txt"
+    },
+    {
+      "new_sha256": "57e91212c226376ff841a2ee8346fb763503e865f4dad4f988f032b511d28d2e",
+      "old_sha256": "022c4e9bccf54479fc9d87203fdd53693e888f6af0406a61595907af0b7b2480",
+      "path": "pyproject.toml"
+    }
+  ],
+  "new_runtime_sha256": "5f2868ed1b79e08877f2b14be07140c96b5c752284cbc9af6a8daf9f92e1e78b",
+  "old_runtime_sha256": "88ff60de375cb33a20ec59cdd85c0808122464532f03cd7942a28047e2830846",
+  "retired_packages": [
+    "win10toast",
+    "pyttsx3",
+    "pypiwin32",
+    "comtypes"
+  ],
+  "stage": "ASSIGNED_AFTER_PROTECTED_STAGING"
+}

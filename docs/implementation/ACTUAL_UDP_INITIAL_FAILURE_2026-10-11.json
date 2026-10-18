@@ -1,0 +1,40 @@
+{
+  "state": "failed_or_incomplete",
+  "started": "2026-10-11T13:30:43.569541+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5792,
+    "manifest_sha256": "143411b911539f26650d2882c0f8423e8780aacbf3476f8ea121660f7e1b925a",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "profile": "Any",
+    "address_families": [
+      "IPv4"
+    ],
+    "remote_addresses": [
+      "1.1.1.1/32"
+    ]
+  },
+  "observed_protocol": "UDP DNS port 53",
+  "question": "www.python.org A",
+  "mutations": [],
+  "packet_drop_attribution": "not_measured",
+  "scope_kind": "all_instances_of_exact_executable",
+  "excluded": [
+    "IPv6",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "child images",
+    "competing policy"
+  ],
+  "before": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.007004600018262863
+  },
+  "error_type": "error",
+  "finished": "2026-10-11T13:30:43.716050+00:00"
+}

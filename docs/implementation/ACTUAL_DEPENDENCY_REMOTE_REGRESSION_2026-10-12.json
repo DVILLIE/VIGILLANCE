@@ -1,0 +1,28 @@
+{
+  "run_id": 38168890152,
+  "results": [
+    {
+      "platform": "windows-2022",
+      "regression": {
+        "tests": 727,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 26,
+        "passed": 701
+      },
+      "gui_state": "keyboard_routing_passed"
+    },
+    {
+      "platform": "windows-2025",
+      "regression": {
+        "tests": 727,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 26,
+        "passed": 701
+      },
+      "gui_state": "keyboard_routing_passed"
+    }
+  ],
+  "result_attestations_verified": false
+}

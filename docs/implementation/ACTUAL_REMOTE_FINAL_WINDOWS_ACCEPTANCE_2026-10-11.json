@@ -1,0 +1,60 @@
+{
+  "state": "actual_remote_regression_gui_and_provenance_verified",
+  "run_id": 38150316094,
+  "observations": [
+    {
+      "runner": "guardian-validation-windows-2022",
+      "counts": {
+        "tests": 712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25
+      },
+      "passed": 687,
+      "gui_state": "keyboard_routing_passed",
+      "signer_controls_reachable_at_200_percent": true,
+      "artifacts": [
+        {
+          "filename": "pytest.xml",
+          "sha256": "24a8b20c32fa5be5a561d5eae73e414567dc0a6d2cab40f70866b29c7e48856c",
+          "attestation": "repository_workflow_pull_request_ref_and_exact_run_verified",
+          "proof": "FINAL_REMOTE_ATTESTATION_guardian-validation-windows-2022_pytest_xml_2026-10-11.json"
+        },
+        {
+          "filename": "gui.json",
+          "sha256": "c4f20dd451af50648f3338fd5b127e834eb10c15d647f70e557eed6820572ea9",
+          "attestation": "repository_workflow_pull_request_ref_and_exact_run_verified",
+          "proof": "FINAL_REMOTE_ATTESTATION_guardian-validation-windows-2022_gui_json_2026-10-11.json"
+        }
+      ]
+    },
+    {
+      "runner": "guardian-validation-windows-2025",
+      "counts": {
+        "tests": 712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25
+      },
+      "passed": 687,
+      "gui_state": "keyboard_routing_passed",
+      "signer_controls_reachable_at_200_percent": true,
+      "artifacts": [
+        {
+          "filename": "pytest.xml",
+          "sha256": "7e4bf9a4869633f2d2722fd4de38149e9813a917cd897ec3e9511312da9253ff",
+          "attestation": "repository_workflow_pull_request_ref_and_exact_run_verified",
+          "proof": "FINAL_REMOTE_ATTESTATION_guardian-validation-windows-2025_pytest_xml_2026-10-11.json"
+        },
+        {
+          "filename": "gui.json",
+          "sha256": "c4f20dd451af50648f3338fd5b127e834eb10c15d647f70e557eed6820572ea9",
+          "attestation": "repository_workflow_pull_request_ref_and_exact_run_verified",
+          "proof": "FINAL_REMOTE_ATTESTATION_guardian-validation-windows-2025_gui_json_2026-10-11.json"
+        }
+      ]
+    }
+  ],
+  "real_model_artifact_hash_verified": true,
+  "scope": "Two actual hosted Windows Server builds. The 25 elevated-token exclusions remain explicit and are covered by the separate local standard-token suite. No human UAC, model execution or setup wrapper build acceptance is inferred."
+}

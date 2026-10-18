@@ -1,0 +1,28 @@
+{
+  "runtime_sha256": "5f2868ed1b79e08877f2b14be07140c96b5c752284cbc9af6a8daf9f92e1e78b",
+  "runtime_files": 5445,
+  "distributions": {
+    "cffi": "2.1.1",
+    "cryptography": "50.0.1",
+    "customtkinter": "6.0.0",
+    "darkdetect": "0.8.0",
+    "dvielle": "2.5.0",
+    "packaging": "26.3",
+    "pillow": "12.3.0",
+    "pip": "26.2.1",
+    "psutil": "7.2.2",
+    "pycparser": "3.0",
+    "pystray": "0.19.5",
+    "pywin32": "312",
+    "pyyaml": "6.0.3",
+    "setuptools": "84.0.0",
+    "six": "1.17.0"
+  },
+  "legacy_dependencies_absent": true,
+  "installed_version": "2.5.0",
+  "receipt": "C:\\Program Files\\DVielle\\dependency-result-dependency-upgrade-4d477a2cf4fa4625840dcf9fc304d090.json",
+  "state": "dependency_migration_identity_verified",
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "pyproject_matches_reviewed_source": true
+}

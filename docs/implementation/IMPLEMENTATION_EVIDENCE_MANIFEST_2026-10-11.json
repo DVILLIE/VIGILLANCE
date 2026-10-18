@@ -1,10 +1,35 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-10-11T13:18:58.725244+00:00",
+  "recorded_at": "2026-10-11T19:11:08.893409+00:00",
   "source_root": "E:\\DVielleProjects\\DVILLIE-main-repairs",
-  "commit": "ea3dedbc32849bea4961e3c27d65866877ca2eae",
+  "commit": "e5b8d0a1701069fa61b54b6cdc150d071ff336e1",
   "branch": "codex/researched-repairs-20261009",
   "source_files": [
+    {
+      "path": ".github/locks/windows-python314-runtime.txt",
+      "bytes": 1246,
+      "sha256": "0ccbbe051e246c343caa2ed6fa650d99313d0edc313db1f03a8b8c88b65ce95c"
+    },
+    {
+      "path": ".github/locks/windows-validation.txt",
+      "bytes": 478,
+      "sha256": "4bb1e76fc2562bfc727d314d8445f7e759f9f6574b2b21dba59a5d13f95e0d01"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 1524,
+      "sha256": "bb227079c563e9f5488e92448321522b4fcd04ca3818efbb8e2ad73df9784ab6"
+    },
+    {
+      "path": ".github/workflows/guardian-validation.yml",
+      "bytes": 3815,
+      "sha256": "3ca000589a98ee36cc49be6660ba83fb7e748ba8b6d6a2193ed6c4a7814fa734"
+    },
+    {
+      "path": ".github/workflows/windows-installer.yml",
+      "bytes": 706,
+      "sha256": "c34d9f61e6ec693e93c20a816d82e298f9b8e0df2a7fcbdf87f65e01643ba55e"
+    },
     {
       "path": "LICENSE",
       "bytes": 1116,
@@ -12,8 +37,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 11869,
-      "sha256": "ea707fcd0a28bad5c1a912970ce7f13c69531ea6e667a63707661e8a05e80d31"
+      "bytes": 9473,
+      "sha256": "66e0aed36557eea3ffa160b31bea177145c9c96048574d0f5a2205cb6e8d7c84"
     },
     {
       "path": "agent/__init__.py",
@@ -27,8 +52,13 @@
     },
     {
       "path": "agent/assessment/__main__.py",
-      "bytes": 1892,
-      "sha256": "ca7edb9470062e6429705b09ed4a4409abf7f0872d102cb64a716c1aa2cb2f76"
+      "bytes": 2482,
+      "sha256": "91180746219f6660dee3978497077aec4588d63ceba9c9bad64e9d3801523e33"
+    },
+    {
+      "path": "agent/assessment/attack_paths.py",
+      "bytes": 5634,
+      "sha256": "4dbec9707b943f2d22a15b737ab3767ffdf5a70c7323a54d4a3b1bd5e0e8032e"
     },
     {
       "path": "agent/assessment/cryptography.py",
@@ -42,8 +72,8 @@
     },
     {
       "path": "agent/assessment/engine.py",
-      "bytes": 26655,
-      "sha256": "cd3327472fbc0aa269d12e3299a06b69c1a9ddeff8556347283ce5b41d7ab21b"
+      "bytes": 26937,
+      "sha256": "b4f496835ab9319daf7e8b88a7b5ea314c20a6dc21b1f67cd8a7289442ec8751"
     },
     {
       "path": "agent/assessment/evidence.py",
@@ -56,6 +86,11 @@
       "sha256": "9c2b620963bde9058734459b369a3d4b8eecbcb96adb17aff907e2ec90e0c33a"
     },
     {
+      "path": "agent/assessment/model_admission.py",
+      "bytes": 3774,
+      "sha256": "f069ac5da365b6f7b941121da97a57fe2367486e532b0d42ffea788fd450a56b"
+    },
+    {
       "path": "agent/assessment/process_identity.py",
       "bytes": 1387,
       "sha256": "3ad32769194cbfb60dfb3ca336a06f0c66edacd61247f6489b06dcdacd2bf735"
@@ -64,6 +99,11 @@
       "path": "agent/assessment/resources.py",
       "bytes": 4371,
       "sha256": "89a454288b638e9f7f747d5882e7f0089d4fded202cc038190ee742bfc8b3db8"
+    },
+    {
+      "path": "agent/assessment/signatures.py",
+      "bytes": 12284,
+      "sha256": "10a622e859cc04cc9f4da0f0ebaedde31d1b1f3c1080f9a791fed313b3400217"
     },
     {
       "path": "agent/assessment/tls_observer.py",
@@ -107,8 +147,8 @@
     },
     {
       "path": "agent/engine/handlers.py",
-      "bytes": 23326,
-      "sha256": "a81dc8ea4dbed7a817dcdcbd67b69f8f82877212cc16d3ce6ec7fe46eb9fbbca"
+      "bytes": 23328,
+      "sha256": "30c995a8c991f98b9ceda84b7da33343c10054dd1222175ceb9cf4f5e9fbadf5"
     },
     {
       "path": "agent/engine/keep_on.py",
@@ -127,8 +167,8 @@
     },
     {
       "path": "agent/engine/net_block.py",
-      "bytes": 2322,
-      "sha256": "463dbdfa22d22dd4dff5fd8aaae1887503619de2bfeddcb8066c1bed7c598d40"
+      "bytes": 2323,
+      "sha256": "169d9b7a2f06b69a991d073bc2fbaf972f760aa8120de004f4cb673b11549ff4"
     },
     {
       "path": "agent/engine/observations.py",
@@ -177,8 +217,8 @@
     },
     {
       "path": "agent/intel/NOTICES.txt",
-      "bytes": 1532,
-      "sha256": "481e758e207a97c10fec1fb6f35f3c5ab48838d95c40f6dfecd7682221c28a91"
+      "bytes": 1536,
+      "sha256": "50e1ec0c96183f67128ff5a2318c5bba37c992967bd91af13a96cb856ba6a4fb"
     },
     {
       "path": "agent/intel/__init__.py",
@@ -242,8 +282,8 @@
     },
     {
       "path": "agent/main.py",
-      "bytes": 2226,
-      "sha256": "9d42cd7e3bd48eb4553e5f1b7ffbe257e98a116f338cbc301719d26c231d9dd3"
+      "bytes": 2227,
+      "sha256": "635883d04c5b40d54c8fb02fec7b3972a0294a1edacdab5480c48ccf51d4dd6a"
     },
     {
       "path": "agent/modules/__init__.py",
@@ -317,8 +357,8 @@
     },
     {
       "path": "agent/modules/prevention.py",
-      "bytes": 32196,
-      "sha256": "4d966e42a664705fa986ecede4633d6690588e7367a905cdd9f0ab14da305330"
+      "bytes": 32197,
+      "sha256": "88227cb151cfa6abd4ab26e41040a2c65fbd5a78ef2da00803a54a3b167ef2ce"
     },
     {
       "path": "agent/modules/prevention_apply.py",
@@ -342,13 +382,13 @@
     },
     {
       "path": "agent/modules/resource_advisor.py",
-      "bytes": 40936,
-      "sha256": "3c1e6f8965b9ba262dff1888d97168de10a636559ba8b5fde11b510674e6f2bc"
+      "bytes": 40937,
+      "sha256": "3674729c7003be9994b405bcb4cde503ed52957a853fd9eb858d9eb90d0cea60"
     },
     {
       "path": "agent/modules/sandbox.py",
-      "bytes": 15821,
-      "sha256": "f880844690f64d8330bed65294bdcab05c6a543b45c1088d8485f25d6f97feeb"
+      "bytes": 15822,
+      "sha256": "46e9935a5ff23b11f1677f71b64e3bec7d5ab0d05b3d69a254beed0fa79dd7c6"
     },
     {
       "path": "agent/modules/security.py",
@@ -369,6 +409,11 @@
       "path": "agent/net_resolve.py",
       "bytes": 3561,
       "sha256": "0c61ed1ac722fa1a7756faa6dc3e2c570de946a8af5a53c12326d4fea1ccc1f8"
+    },
+    {
+      "path": "agent/notifications.py",
+      "bytes": 2313,
+      "sha256": "a3dfcb6d9d83df6ac7eb5097bd6403c85ac47ad73903eb00557a5122a9b371ee"
     },
     {
       "path": "agent/ownership.py",
@@ -557,13 +602,13 @@
     },
     {
       "path": "agent/utils.py",
-      "bytes": 10820,
-      "sha256": "67238641b3fb5c5ec7364fa217ffed160469aeb994d4f0941e0af78a727dadb5"
+      "bytes": 10804,
+      "sha256": "4c9168ebccea875582221bcd33bc4967297f9c3139439960e6d7eaa25703fa0e"
     },
     {
       "path": "agent/version.py",
       "bytes": 1340,
-      "sha256": "92f91d74d4aedf3376835945b44517d296b1fd550d95dcaaf96c35d5eb646cdf"
+      "sha256": "ac049fb00837d47672e9e254da8c9928027a5f8a7c91267d317a8f3f37bcedff"
     },
     {
       "path": "agent/win_memory.py",
@@ -647,8 +692,8 @@
     },
     {
       "path": "dvielle/__init__.py",
-      "bytes": 374,
-      "sha256": "2bfaa06f0bbb64bd4229881caf91524932b0aeb581086b7aef76673b3f3fa400"
+      "bytes": 380,
+      "sha256": "fd17c6c01c20d6eb2c3dc3a76baf056badc770afe7da74025ef6a9b5cb7f3c28"
     },
     {
       "path": "dvielle/__main__.py",
@@ -672,8 +717,8 @@
     },
     {
       "path": "dvielle/gui/assessment.py",
-      "bytes": 28321,
-      "sha256": "a8fb16226e81524c2a947572d5a588d2ad440eb82f5a384b79c2c813dc738d74"
+      "bytes": 36954,
+      "sha256": "38c1b6c4d2f28c7dad30521e5aa3029d0dff4941d53aa81e87af5a8a35774b31"
     },
     {
       "path": "dvielle/gui/attacks_window.py",
@@ -742,13 +787,13 @@
     },
     {
       "path": "dvielle/gui/tray.py",
-      "bytes": 2389,
-      "sha256": "520f9aa3488f9f14b401f383001c922bf43b50b666183579339cde712fc28db8"
+      "bytes": 2466,
+      "sha256": "5818241424975753fbb4d7c7355be1ee890caf3898cea9b2da6f56124465cb84"
     },
     {
       "path": "dvielle/gui/voice.py",
-      "bytes": 5785,
-      "sha256": "0b1fd421f76b7382ac135896fc3c93fcecead2302a67b36bc494612c8f19c415"
+      "bytes": 4661,
+      "sha256": "53dceaf9b24f492005e658597146b730f45d9161866433b834d715558af661d0"
     },
     {
       "path": "dvielle/gui/why_window.py",
@@ -767,33 +812,33 @@
     },
     {
       "path": "installer/INSTALL.txt",
-      "bytes": 3612,
-      "sha256": "c9a720a0bd499e3f9653990a01069f74301f5d2b2aa11bb46a4032881faf2a92"
+      "bytes": 3629,
+      "sha256": "44efbbf611ca4f833d93757045c19d04486368331408c7097c94d06e794b095e"
     },
     {
       "path": "installer/Install-DVielle.bat",
-      "bytes": 370,
-      "sha256": "dd7749f0c439cd57ac4a35e5e657a7f21788f8fb897dcbd531e13c829cf7c420"
+      "bytes": 379,
+      "sha256": "51a96021a20e0c620ef20ecc08c873c73d7f38952376655798dff6fa859685a4"
     },
     {
       "path": "installer/Launch-DVielle-Debug.bat",
-      "bytes": 376,
-      "sha256": "c2ff9824b2cdbc516a85edeec3108d853a0b99ac851a26b69300e28de5e02495"
+      "bytes": 386,
+      "sha256": "7a0546eeaee1ef52be8eb9ac47a8bf28deff1158e4a590c3e3744f4fa6a6408d"
     },
     {
       "path": "installer/Launch-DVielle.bat",
-      "bytes": 611,
-      "sha256": "df5cf7aea4ad07fb4a8f658576c202212ff6a5b7a9dcec75016b4da59401a1a6"
+      "bytes": 637,
+      "sha256": "c45ad02d16ac414a093f5fc5716226664b4795fcac78a2c6f493c488243ff747"
     },
     {
       "path": "installer/SETUP_NOTICE.txt",
-      "bytes": 1115,
-      "sha256": "2db9cac0b1d3e5fd62cf15167f1da08a35abe4d76112ecec6f6e27636cbb8789"
+      "bytes": 1117,
+      "sha256": "41b67ed5818914879109f8f66dee20bc75f505c5230548040337b0ba5cda5b11"
     },
     {
       "path": "installer/Uninstall-DVielle.bat",
-      "bytes": 339,
-      "sha256": "5ea680f3a893f42029999a408749d6cc9060127061cf8f70595a31ff344c65e3"
+      "bytes": 341,
+      "sha256": "baa5c8a99fe7f4b9cb2405ca5d0df3c58f0d9e0cf84d1c33145180ae0a7e6361"
     },
     {
       "path": "installer/bootstrap-dvielle.ps1",
@@ -857,13 +902,18 @@
     },
     {
       "path": "pyproject.toml",
-      "bytes": 1450,
-      "sha256": "022c4e9bccf54479fc9d87203fdd53693e888f6af0406a61595907af0b7b2480"
+      "bytes": 1361,
+      "sha256": "57e91212c226376ff841a2ee8346fb763503e865f4dad4f988f032b511d28d2e"
     },
     {
       "path": "scripts/New-DvielleGuiExe.ps1",
-      "bytes": 3910,
-      "sha256": "65a85e6246dc8c2cebe52bea1c8a442206c793ecd313013887bce55cafca8272"
+      "bytes": 3923,
+      "sha256": "c81026c86fd5a10686ed21b7e94a2e69300fb1521cd4893fe60840414d2f150a"
+    },
+    {
+      "path": "scripts/accept_assessment_gui.py",
+      "bytes": 5025,
+      "sha256": "3e8a688384530f28c4dc8143fed6044c3365db1943548b1fd06d60de62bfaaaa"
     },
     {
       "path": "scripts/accept_installed_gui_actions.py",
@@ -877,13 +927,18 @@
     },
     {
       "path": "scripts/accept_installed_udp_scope.py",
-      "bytes": 7484,
-      "sha256": "6688d92cc64b151e7d59a8e9c5b49dc61548f7b794e456ed489da73d2866c0be"
+      "bytes": 14012,
+      "sha256": "8aa5b35cfe5c68e19fc0ea48966e6b73e87f6c16c6f8943af756f32e06b73ac9"
     },
     {
       "path": "scripts/accept_interrupted_increment.py",
       "bytes": 5184,
       "sha256": "e9189b0fe0b1934b12787e06fe16e82c52575562eb16c7d45c39596b6bf1574d"
+    },
+    {
+      "path": "scripts/accept_notification_backend.py",
+      "bytes": 1479,
+      "sha256": "23338ccbe72fccb34d487fb04d826d83e1e1c496405bce048aec2ed5dbd3586c"
     },
     {
       "path": "scripts/activate_reviewed_increment.py",
@@ -941,6 +996,11 @@
       "sha256": "023cc11415939be6e8edbd39485f9d9e4dd5f473b0e9c7acc1c0c677f5e8baf2"
     },
     {
+      "path": "scripts/measure_foreground_assessment.py",
+      "bytes": 4320,
+      "sha256": "f422dbf4817ae1a9a88d708d9c43c9dfd2475c233ace53cb72743f6a2cfdcaa4"
+    },
+    {
       "path": "scripts/measure_process_costs.py",
       "bytes": 2545,
       "sha256": "d122c0133a6d682c9e90bd88663efbc70eb2d938ee299f453bb50ab6a8563ca6"
@@ -962,13 +1022,13 @@
     },
     {
       "path": "scripts/prepare_offline_dependencies.py",
-      "bytes": 6740,
-      "sha256": "0f38580593e13aadeeef837802465da03b156ec2eb447afae5b0c6a9d4a5f343"
+      "bytes": 6764,
+      "sha256": "5f8e4de606c7da4431b0c06b5862dbd450c710bce73d897e4f141e91aa2e444b"
     },
     {
       "path": "scripts/record_implementation_evidence.py",
-      "bytes": 8677,
-      "sha256": "c2bd92f94cd3a9ded3e16326dd738806f47686f8070bf4f9fcafac00d8503f7d"
+      "bytes": 9415,
+      "sha256": "44ab3c0700d6cd08233961ea89f21d5e79e1ca21edaed88462cfc2e15f7c6fd1"
     },
     {
       "path": "scripts/record_runtime_manifest.py",
@@ -1001,9 +1061,19 @@
       "sha256": "39691769ddbcf72202418d56681a22c99c1182f3316f54d724297a5f2fee8820"
     },
     {
+      "path": "scripts/verify_optional_model_artifacts.py",
+      "bytes": 4708,
+      "sha256": "c7521d98f0aabc4084cb67e87f6e8e234d95fceffc6ac027c737ae63e4c7eefd"
+    },
+    {
       "path": "scripts/verify_runtime.py",
-      "bytes": 4440,
-      "sha256": "ec7464a87590fba6c13e65d30eb759f691a2e39b513ebd2d63683d73dd5f7db2"
+      "bytes": 4442,
+      "sha256": "96db0e10f8f72ba9064ad28139227bd8e77de2143efe6ac1ad1217c12b616704"
+    },
+    {
+      "path": "tests/conftest.py",
+      "bytes": 2753,
+      "sha256": "cc7808f7bc67865f510a81a3ff1d3996c16144ad732f2fa2ec2e62dad7d79c19"
     },
     {
       "path": "tests/test_administrative_mediation_contract.py",
@@ -1036,6 +1106,11 @@
       "sha256": "e52b894c043ab6578313f28e405937ab509416c6b5becb7a82df22cd923479c8"
     },
     {
+      "path": "tests/test_attack_path_and_signature_contracts.py",
+      "bytes": 6604,
+      "sha256": "bd64425d17e77faa39bf8af2c71020c158dca855390207714ea4be86388ad9e4"
+    },
+    {
       "path": "tests/test_attacks_query.py",
       "bytes": 1950,
       "sha256": "beee2799115c5a13477d8a5d854d8f71dc7048e4a95f7bafa6e07f3aa8ef109a"
@@ -1047,8 +1122,8 @@
     },
     {
       "path": "tests/test_brand_defaults.py",
-      "bytes": 2550,
-      "sha256": "9f1c72b409e51cb5276987e874da9968ac9c94a597709fc2dc88114311bda1d5"
+      "bytes": 2551,
+      "sha256": "4fcf06efaac18b077676de77954c9c74d7ff879e94f932222ff58c2a3fca42ff"
     },
     {
       "path": "tests/test_capability.py",
@@ -1062,8 +1137,8 @@
     },
     {
       "path": "tests/test_chat_removed.py",
-      "bytes": 1537,
-      "sha256": "480941db8a259aa0aa9226d4014268a1ded1245d46a81089ab2713f1038ff6ca"
+      "bytes": 1542,
+      "sha256": "8736019d674bb55133163c1ae877b725d804be8ec31f9ca2477c413849731c16"
     },
     {
       "path": "tests/test_close_action.py",
@@ -1181,6 +1256,11 @@
       "sha256": "86ec513c7f43f2677efd2c44c960d4008c040f58f417b31bf1f66328f605ae24"
     },
     {
+      "path": "tests/test_native_voice.py",
+      "bytes": 1795,
+      "sha256": "68cc29e6cfeb56ed429a5d263254a0bc44dc6fe95f7760f15883f28e8000b210"
+    },
+    {
       "path": "tests/test_network_info.py",
       "bytes": 638,
       "sha256": "ea200a4f8a54f80ce2077fc6797391ca57e84f3304b28faeb71c431e69016b3d"
@@ -1189,6 +1269,11 @@
       "path": "tests/test_nexus_fold_prime.py",
       "bytes": 9100,
       "sha256": "db5af10e13865a4601b6115c5be77415724d0fb1001b772061a16c91a00d2909"
+    },
+    {
+      "path": "tests/test_notification_migration.py",
+      "bytes": 1883,
+      "sha256": "1fc5c1529d3d8525138790ca5f9439b7b25c988300b6e0814fb5c8e72c26e3db"
     },
     {
       "path": "tests/test_p0_invariants.py",
@@ -1247,8 +1332,8 @@
     },
     {
       "path": "tests/test_resident_lifecycle.py",
-      "bytes": 3615,
-      "sha256": "2a6fda41a2d053ce6553521058844c783ffc87a747f3fce1eb451fb41e396d6f"
+      "bytes": 4128,
+      "sha256": "757f104672a9f221629ed800a7d0bda60793d86e1fd6fe7c0b48aa285add7cd1"
     },
     {
       "path": "tests/test_resource_advisor.py",
@@ -1282,13 +1367,13 @@
     },
     {
       "path": "tests/test_voice.py",
-      "bytes": 1056,
-      "sha256": "860bee0114213186f5ef4b053cd9f9f56507f47b2b1813180ee93ecce1bf8f47"
+      "bytes": 1089,
+      "sha256": "34d6bb5040d71afdaf725d7c9991d93d64022b529bbdb6bfa2846921f0ff7f1e"
     },
     {
       "path": "tests/test_windows_installer_contract.py",
       "bytes": 5575,
-      "sha256": "2eed52366055e66afd495a810d1390382bbc2e0aaeac90a87a494a6c2fab5c82"
+      "sha256": "27057f9f76aecff74ec734e66eb5650185baa636431deea9fc42671e34900190"
     },
     {
       "path": "tests/test_windows_pipe_identity.py",
@@ -1303,55 +1388,55 @@
     {
       "path": "tests/test_worldclass_p0.py",
       "bytes": 16087,
-      "sha256": "00d73c9b0729d9ca2a3265a3f5dedf44c9afd689dd739c3c8797fbb31d856050"
+      "sha256": "73523a88c7ddec45c1890f6c871c4dc0060c426f41b65cb4903a0cbe31df31a7"
     },
     {
       "path": "tests/test_worldclass_p1.py",
       "bytes": 24079,
-      "sha256": "1e04dabcd08cb17d98a3f2324577655b8d87ec143b9215c5634f81ae90971414"
+      "sha256": "bc6343d66cee91d3f9b24c913a094762fe7915fac646f8b103f93cac727f08d6"
     },
     {
       "path": "tests/test_worldclass_p2.py",
       "bytes": 19817,
-      "sha256": "dafdd0f5fbf1e6ea53fc7a0e69b12dc8140d5c9e3596209184485182a474c054"
+      "sha256": "fd4a64ba539a214fb88e4388a7c68229ed29834bfd7d2bd4b57c0994a83cfac8"
     },
     {
       "path": "tests/test_worldclass_p3.py",
       "bytes": 26443,
-      "sha256": "d0c88ec04cd435668a64286dd640216899bae33f17d5cfd98b779c2c004775d3"
+      "sha256": "0b4114ae615fa0e9ddcc6ebfde4af673b88c114c43f99d1a4dc4e0c8558c2ad1"
     },
     {
       "path": "tests/test_worldclass_p4.py",
       "bytes": 15830,
-      "sha256": "efb9fd9f15ca85ced507d478be8050c595b25ce66145edd90168e6e708896a6c"
+      "sha256": "90ac9ab56d071dd322928b0098c95d635ad8bd515e078137d711c71b54832252"
     },
     {
       "path": "tests/test_worldclass_p5.py",
       "bytes": 16371,
-      "sha256": "47167e8675a3e336a80b778176d2d38d3a862baff9c753ff3d76eb0eee393699"
+      "sha256": "7090a2c77be0a8451462fb371302c027f3e2aad0587d9d93dcb2d3a1272cf8e1"
     }
   ],
   "identity_status": "Source file hashes observed; not installed-runtime attestation",
   "test_log": {
-    "path": "AUDIT_FIX_FINAL_REGRESSION_2026-10-11.txt",
-    "sha256": "fb75c13565f2faa3edc7a160f4f71553308fb67ee2d5c3fe77ed951b70b70ff1",
-    "reported_summary": "706 passed, 9 warnings in 102.27s (0:01:42)",
+    "path": "NATIVE_INTEGRATION_FINAL_REGRESSION_2026-10-12.txt",
+    "sha256": "c01aa6e2218e018210b7884da365185da3d3a3dd5a6d872e5b1fbd2057cef1a4",
+    "reported_summary": "719 passed, 9 warnings in 61.52s (0:01:01)",
     "scope": "Recorded suite",
-    "full_regression_log": "AUDIT_FIX_FINAL_REGRESSION_2026-10-11.txt",
-    "full_regression_result": "706 passed, 9 warnings in 102.27s (0:01:42)",
+    "full_regression_log": "NATIVE_INTEGRATION_FINAL_REGRESSION_2026-10-12.txt",
+    "full_regression_result": "719 passed, 9 warnings in 61.52s (0:01:01)",
     "initial_timing_failure_log": "MEDIATION_AND_RECOVERY_REGRESSION_2026-10-10.txt"
   },
   "actual_local_assessment": {
-    "id": "a48d8d81-1dfd-4953-ac92-bcd2f2296a10",
+    "id": "371f6c8b-022d-427a-9cc2-a88da96d314d",
     "state": "completed",
-    "review_items": 21,
+    "review_items": 23,
     "mutations": [],
-    "report_sha256": "a5704fb05cb9edeacaede5b6a98eeb7f462a38465ab41bcca7e996d9ef0d2c43"
+    "report_sha256": "0cb6deeec9c74687149a98fb21f9d4349330529cb1d7a8ce12bde7f7dd550355"
   },
   "actual_installed_readiness": {
-    "path": "POST_AUDIT_FIX_READINESS_2026-10-11.json",
-    "sha256": "a7415aa04ae28da89ac3b41d9d87592e517117cb1f064343f55a338a87d46aa0",
-    "observed_at": "2026-10-11T13:16:45.514656+00:00",
+    "path": "POST_NATIVE_READINESS_2026-10-12.json",
+    "sha256": "56bf5938f01c0f8e41ecaf176f24b47853f1795013a1238d807e03c51ab73ac5",
+    "observed_at": "2026-10-11T19:11:07.851968+00:00",
     "state": "activation_held",
     "service": {
       "state": "running",
@@ -1363,11 +1448,11 @@
   },
   "actual_installed_runtime_identity": {
     "state": "approved_runtime_digest_verified",
-    "files": 5792,
-    "manifest_sha256": "143411b911539f26650d2882c0f8423e8780aacbf3476f8ea121660f7e1b925a",
+    "files": 5796,
+    "manifest_sha256": "88ff60de375cb33a20ec59cdd85c0808122464532f03cd7942a28047e2830846",
     "publisher_authenticated": false,
-    "independent_inventory_sha256": "18ad28608b8feb92742ea10d1f958b51aa5108ac26af2d67565c769fb255228e",
-    "activation_receipt_sha256": "060e2d65cee2547f2f8f6be82d60ac939dd0e7a98abfa8f3c9e150643a3ea0a2"
+    "independent_inventory_sha256": "f8833585e245a76f0ff44a51a4471a28ce1e5b01b9fdd1ba1736e7d2cf0b9b35",
+    "activation_receipt_sha256": "06973723db4626b7229087f3638720f5c7fc16f6d55d6012420c9f05985bd09f"
   },
   "actual_installed_tls_measurement": {
     "state": "bounded_verified_handshake_observed",

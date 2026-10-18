@@ -1,0 +1,198 @@
+{
+  "run_id": 38166949351,
+  "state": "actual_remote_results_verified",
+  "source_head_sha": "4afcda39443a9b2015b474620f27b9ff13b3a2ef",
+  "results": [
+    {
+      "platform": "windows-2022",
+      "regression": {
+        "tests": 719,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25,
+        "passed": 694
+      },
+      "gui": {
+        "state": "keyboard_routing_passed",
+        "workspace_source": "D:\\a\\VIGILLANCE\\VIGILLANCE\\dvielle\\gui\\assessment.py",
+        "full_name_tab_selector_worked": true,
+        "enter_space_activations": 2,
+        "disabled_button_blocked": true,
+        "callback_errors": [],
+        "scales": [
+          {
+            "scale": 1.0,
+            "tab_width": 1028,
+            "tab_header_requested_width": 857,
+            "tab_header_actual_width": 857,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 1.25,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1050,
+            "tab_header_actual_width": 1014,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 1.5,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1329,
+            "tab_header_actual_width": 1010,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 2.0,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1724,
+            "tab_header_actual_width": 1004,
+            "window_width": 1028,
+            "window_height": 749
+          }
+        ],
+        "mutations": [],
+        "local_signer_controls": [
+          {
+            "label": "Verify signed report",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Revoke & replace",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Rotate signer",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Check signer",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          }
+        ],
+        "missing_signer_observation_without_generation": true,
+        "limits": [
+          "Command probe verifies event routing, not actual Administrator consent.",
+          "Layout dimensions are measurements, not human visual/scaling acceptance.",
+          "Narrator and flash-area/contrast acceptance remain unmeasured."
+        ]
+      },
+      "result_attestations_verified": true,
+      "exact_run_invocation": "https://github.com/DVILLIE/VIGILLANCE/actions/runs/38166949351/attempts/1"
+    },
+    {
+      "platform": "windows-2025",
+      "regression": {
+        "tests": 719,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25,
+        "passed": 694
+      },
+      "gui": {
+        "state": "keyboard_routing_passed",
+        "workspace_source": "D:\\a\\VIGILLANCE\\VIGILLANCE\\dvielle\\gui\\assessment.py",
+        "full_name_tab_selector_worked": true,
+        "enter_space_activations": 2,
+        "disabled_button_blocked": true,
+        "callback_errors": [],
+        "scales": [
+          {
+            "scale": 1.0,
+            "tab_width": 1028,
+            "tab_header_requested_width": 857,
+            "tab_header_actual_width": 857,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 1.25,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1050,
+            "tab_header_actual_width": 1014,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 1.5,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1329,
+            "tab_header_actual_width": 1010,
+            "window_width": 1028,
+            "window_height": 749
+          },
+          {
+            "scale": 2.0,
+            "tab_width": 1028,
+            "tab_header_requested_width": 1724,
+            "tab_header_actual_width": 1004,
+            "window_width": 1028,
+            "window_height": 749
+          }
+        ],
+        "mutations": [],
+        "local_signer_controls": [
+          {
+            "label": "Verify signed report",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Revoke & replace",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Rotate signer",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          },
+          {
+            "label": "Check signer",
+            "visible": true,
+            "width": 442,
+            "height": 60,
+            "within_parent_width": true,
+            "keyboard_focus_revealed_center": true
+          }
+        ],
+        "missing_signer_observation_without_generation": true,
+        "limits": [
+          "Command probe verifies event routing, not actual Administrator consent.",
+          "Layout dimensions are measurements, not human visual/scaling acceptance.",
+          "Narrator and flash-area/contrast acceptance remain unmeasured."
+        ]
+      },
+      "result_attestations_verified": true,
+      "exact_run_invocation": "https://github.com/DVILLIE/VIGILLANCE/actions/runs/38166949351/attempts/1"
+    }
+  ],
+  "public_installer_built": false
+}

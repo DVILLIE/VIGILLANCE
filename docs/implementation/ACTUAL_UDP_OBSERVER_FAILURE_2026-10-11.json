@@ -1,0 +1,107 @@
+{
+  "state": "failed_or_incomplete",
+  "started": "2026-10-11T13:31:46.350210+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5792,
+    "manifest_sha256": "143411b911539f26650d2882c0f8423e8780aacbf3476f8ea121660f7e1b925a",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "profile": "Any",
+    "address_families": [
+      "IPv4"
+    ],
+    "remote_addresses": [
+      "1.1.1.1/32"
+    ]
+  },
+  "observed_protocol": "UDP DNS port 53",
+  "question": "www.python.org A",
+  "mutations": [
+    {
+      "operation": "restrict_network",
+      "operation_id": "20a286b368d4452e92083450e8f49906"
+    }
+  ],
+  "packet_drop_attribution": "not_measured",
+  "scope_kind": "all_instances_of_exact_executable",
+  "excluded": [
+    "IPv6",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "child images",
+    "competing policy"
+  ],
+  "before": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.2615180000429973
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-702287fc45f3-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+        "remote": "1.1.1.1",
+        "group": "DVielle",
+        "description": "DVielle invocation e184ca3af1694f0dbe7a407dc695dde2",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "20a286b368d4452e92083450e8f49906"
+  },
+  "during": [
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.000069299945608
+    },
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.0024353999178857
+    }
+  ],
+  "error_type": "ValueError",
+  "windows_error": null,
+  "error": "not enough values to unpack (expected 4, got 2)",
+  "error_frames": [
+    {
+      "function": "main",
+      "line": 137
+    },
+    {
+      "function": "observe_drop_events",
+      "line": 69
+    }
+  ],
+  "recovery": {
+    "ok": true,
+    "code": "restored",
+    "performed": true,
+    "journal_state": "restored",
+    "message": "Owned-rule cleanup verified; other rules preserved.",
+    "operation_id": "20a286b368d4452e92083450e8f49906"
+  },
+  "after": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.0068153999745845795
+  },
+  "finished": "2026-10-11T13:32:01.595855+00:00"
+}

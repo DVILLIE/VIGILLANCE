@@ -58,8 +58,8 @@ def main() -> int:
     parser.add_argument('--verify-existing', action='store_true')
     parser.add_argument('--target-python', choices=['3.12', '3.14'], default='3.12')
     args = parser.parse_args()
-    if os.name != 'nt' or sys.version_info[:2] != (3, 12):
-        raise RuntimeError('Prepare with the Windows Python 3.12 target runtime.')
+    if os.name != 'nt' or sys.version_info[:2] not in {(3, 12), (3, 14)}:
+        raise RuntimeError('Prepare with a supported Windows Python 3.12 or 3.14 runtime.')
     import ctypes
     if ctypes.windll.shell32.IsUserAnAdmin():
         raise PermissionError('Dependency preparation must run without elevation.')

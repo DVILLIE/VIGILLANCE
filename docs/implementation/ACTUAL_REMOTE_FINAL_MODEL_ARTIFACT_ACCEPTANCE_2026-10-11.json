@@ -1,0 +1,46 @@
+{
+  "observed_at": "2026-10-11T15:14:08.002870+00:00",
+  "state": "real_publisher_artifact_hash_verified",
+  "publisher_metadata": "https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-135M-Instruct/revision/12fd25f77366fa6b3b4b768ec3050bf629380bac?blobs=true",
+  "manifest": {
+    "model_id": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "license": "Apache-2.0",
+    "required_memory_bytes": 805306368,
+    "artifacts": [
+      {
+        "filename": "model.safetensors",
+        "sha256": "5af571cbf074e6d21a03528d2330792e532ca608f24ac70a143f6b369968ab8c",
+        "bytes": 269060552
+      }
+    ]
+  },
+  "weights_downloaded_this_run": true,
+  "admission": {
+    "state": "execution_held",
+    "model_id": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "artifacts": [
+      {
+        "filename": "model.safetensors",
+        "state": "hash_matched"
+      }
+    ],
+    "artifacts_verified": true,
+    "memory_admission": true,
+    "available_memory_bytes": 14207070208,
+    "required_memory_bytes": 805306368,
+    "isolation": "not_verified",
+    "evaluation": "not_completed",
+    "execution_authorized": false,
+    "fallback": "deterministic_evidence_linked_investigation",
+    "holds": [
+      "Verify an exact isolated runtime with outbound denial and resource limits.",
+      "Evaluate evidence fidelity and benefit on held-out real cases before admission."
+    ]
+  },
+  "execution_performed": false,
+  "model_evaluation": "not_performed",
+  "license_scope": "Immutable publisher card declaration; no redistribution of model weights",
+  "measurement_environment": "github-hosted"
+}

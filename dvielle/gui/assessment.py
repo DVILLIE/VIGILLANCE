@@ -16,6 +16,15 @@ from agent.assessment.evidence import freshness, resolution_plan
 from dvielle.gui import theme as T
 
 
+class AssessmentTabs(ctk.CTkTabview):
+    def _grid_forget_all_tabs(self, exclude_name=None):
+        # CTk schedules cleanup with the previously selected name. Rapid tab
+        # changes must not let that delayed callback hide the current page.
+        if exclude_name is not None:
+            exclude_name = self.get()
+        super()._grid_forget_all_tabs(exclude_name=exclude_name)
+
+
 class AssessmentWorkspace(ctk.CTkFrame):
     def __init__(self, master, directory: Path, dispatch):
         super().__init__(master, fg_color="transparent")
@@ -56,10 +65,29 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.share_versions.pack(anchor="w", pady=6)
         self.sign_exports = ctk.CTkCheckBox(self, text='Sign exports locally with ML-DSA-65 (Windows-protected key; retain the signer fingerprint separately)')
         self.sign_exports.pack(anchor='w', pady=6)
-        self.tabs = ctk.CTkTabview(self, fg_color=T.BG_PANEL)
+        self.tabs = AssessmentTabs(self, fg_color=T.BG_PANEL)
+        tab_names = ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs")
+        self.tab_choice = ctk.CTkOptionMenu(self, values=list(tab_names), command=self.tabs.set)
+        self.tab_choice.set('Assessment')
+        self.tab_choice.pack(anchor='w', pady=(4, 0))
         self.tabs.pack(fill="both", expand=True, pady=10)
-        for title in ("Assessment", "Authorized website", "Protection actions", "Evidence", "Resolution plan", "Attack paths", "Quantum readiness", "History", "Privacy & costs"):
+        for title in tab_names:
             self.tabs.add(title)
+        self.quantum_content = ctk.CTkScrollableFrame(self.tabs.tab('Quantum readiness'), fg_color='transparent')
+        self.quantum_content.pack(fill='both', expand=True)
+        signer = ctk.CTkFrame(self.quantum_content, fg_color=T.BG_PANEL_ALT)
+        signer.pack(fill='x', pady=6)
+        ctk.CTkLabel(signer, text='Local report signer', font=T.FONT_BODY).pack(anchor='w', padx=10, pady=6)
+        self.signer_status = ctk.CTkLabel(signer, text='Check the local signer before managing its keys.',
+                                        wraplength=700, justify='left')
+        self.signer_status.pack(anchor='w', padx=10, pady=4)
+        signer_controls = ctk.CTkFrame(signer, fg_color='transparent')
+        signer_controls.pack(fill='x', padx=8, pady=8)
+        signer_controls.grid_columnconfigure((0, 1), weight=1)
+        ctk.CTkButton(signer_controls, text='Check signer', command=self.check_signer).grid(row=0, column=0, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Rotate signer', command=self.rotate_signer).grid(row=0, column=1, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Revoke & replace', command=lambda: self.rotate_signer(revoke=True)).grid(row=1, column=0, sticky='ew', padx=3, pady=3)
+        ctk.CTkButton(signer_controls, text='Verify signed report', command=self.verify_signed_report).grid(row=1, column=1, sticky='ew', padx=3, pady=3)
         privacy = self.tabs.tab('Privacy & costs')
         self.retention_enabled = ctk.CTkCheckBox(privacy, text='Automatically clean old history after an assessment')
         self.retention_enabled.pack(anchor='w', pady=8)
@@ -138,7 +166,8 @@ class AssessmentWorkspace(ctk.CTkFrame):
         self.action_result.insert('1.0', 'No protection action requested. Existing rules are unchanged.')
         self.action_result.configure(state='disabled')
         for title in ("Assessment", "Evidence", "Resolution plan", "Quantum readiness", "History", "Privacy & costs"):
-            view = ctk.CTkTextbox(self.tabs.tab(title), height=310, wrap="word", font=T.FONT_MONO)
+            parent = self.quantum_content if title == 'Quantum readiness' else self.tabs.tab(title)
+            view = ctk.CTkTextbox(parent, height=310, wrap="word", font=T.FONT_MONO)
             view.pack(fill="both", expand=True)
             view.configure(state="disabled")
             self.views[title] = view
@@ -149,6 +178,7 @@ class AssessmentWorkspace(ctk.CTkFrame):
                    "TCP listener observations and available Windows protection posture.\n\n"
                    "Missing coverage remains unknown. No automatic OS remediation is enabled here.")
         self.refresh_history()
+        self._keyboard_controls()
         if self.engine is not None:
             try:
                 policy = HistoryPrivacy(self.engine).policy()
@@ -454,6 +484,40 @@ class AssessmentWorkspace(ctk.CTkFrame):
         except (ValueError, OSError, sqlite3.Error, KeyError, TypeError, AttributeError):
             self.status.configure(text="The selected assessment is unavailable.")
 
+    def _keyboard_controls(self):
+        """Expose actual action canvases to Tab, Enter and Space with a focus ring."""
+        pending = list(self.winfo_children())
+        while pending:
+            widget = pending.pop()
+            pending.extend(widget.winfo_children())
+            if isinstance(widget, ctk.CTkButton):
+                canvas = widget._canvas
+                canvas.configure(takefocus=1, highlightthickness=2,
+                                 highlightcolor=widget._apply_appearance_mode(T.ACCENT),
+                                 highlightbackground=widget._apply_appearance_mode(T.BG_PANEL))
+                def invoke(_event, button=widget):
+                    button.invoke()  # CTkButton retains its disabled-state guard.
+                    return 'break'
+                widget.bind('<Return>', invoke, add=True)
+                widget.bind('<space>', invoke, add=True)
+                widget.bind('<FocusIn>', lambda _event, button=widget: self._reveal_control(button), add=True)
+
+    def _reveal_control(self, button):
+        parent = button.master
+        while parent is not None:
+            if isinstance(parent, ctk.CTkScrollableFrame):
+                canvas = parent._parent_canvas
+                region = canvas.bbox('all')
+                height = canvas.winfo_height()
+                if region and height > 1:
+                    top = button.winfo_rooty() - canvas.winfo_rooty()
+                    if top < 0 or top + button.winfo_height() > height:
+                        position = canvas.canvasy(0) + top
+                        target = position - max(0, height - button.winfo_height()) / 2
+                        canvas.yview_moveto(max(0, min(1, target / max(1, region[3] - region[1]))))
+                return
+            parent = getattr(parent, 'master', None)
+
     def stop(self):
         self.stop_event.set()
         self.status.configure(text="Stop requested. An in-flight OS query/request must finish or time out; "
@@ -481,6 +545,64 @@ class AssessmentWorkspace(ctk.CTkFrame):
                         self.status.configure(text='Redacted report exported; signature unavailable (' + type(exc).__name__ + '). No signed-export claim.')
             except (OSError, sqlite3.Error, ValueError, KeyError, TypeError):
                 self.status.configure(text="Report export failed; the assessment remains in local history.")
+
+    def check_signer(self):
+        if self.engine is None:
+            self.signer_status.configure(text='Local assessment storage is unavailable.')
+            return None
+        try:
+            from agent.assessment.signatures import report_key_status
+            status = report_key_status(self.engine.directory / 'security')
+            if status['state'] != 'active':
+                self.signer_status.configure(text='No signer yet. Create one by exporting a locally signed report.')
+                return None
+            self.signer_status.configure(text='Active fingerprint: ' + status['key_fingerprint'] +
+                                         '\nRetired/revoked signers: ' + str(len(status['retired'])))
+            return status
+        except Exception as exc:
+            self.signer_status.configure(text='Signer unavailable (' + type(exc).__name__ + ').')
+            return None
+
+    def rotate_signer(self, *, revoke=False):
+        status = self.check_signer()
+        if status is None:
+            return
+        explanation = ('Previously signed reports from this signer will be rejected by local lifecycle verification.'
+                       if revoke else 'Previously signed reports remain verifiable as retired. The old private seed is discarded.')
+        if not messagebox.askyesno("D'Vielle local signer", explanation +
+                                  '\n\nCreate a new report signer? Retain its new fingerprint independently.',
+                                  parent=self.winfo_toplevel()):
+            return
+        try:
+            from agent.assessment.signatures import rotate_report_key
+            result = rotate_report_key(self.engine.directory / 'security', status['key_fingerprint'],
+                                       revoke_previous=revoke)
+            self.signer_status.configure(text='Signer rotated. Retain new fingerprint: ' + result['key_fingerprint'] +
+                                         '\nPrevious signer: ' + result['previous_state'])
+        except Exception as exc:
+            self.signer_status.configure(text='Rotation unavailable (' + type(exc).__name__ + '). Check signer state again.')
+
+    def verify_signed_report(self):
+        if self.engine is None:
+            self.signer_status.configure(text='Local assessment storage is unavailable.')
+            return
+        filename = filedialog.askopenfilename(parent=self.winfo_toplevel(),
+                                             title='Select a locally signed JSON report',
+                                             filetypes=[('JSON report', '*.json')])
+        if not filename:
+            return
+        try:
+            from agent.assessment.signatures import verify_local_report, MAX_BYTES
+            report = Path(filename)
+            with report.with_suffix(report.suffix + '.sig.json').open('rb') as stream:
+                raw = stream.read(MAX_BYTES + 1)
+            if len(raw) > MAX_BYTES:
+                raise ValueError('Oversized signature envelope')
+            result = verify_local_report(report, json.loads(raw), self.engine.directory / 'security')
+            self.signer_status.configure(text='Report signature verified. Signer: ' + result['signer_lifecycle'] +
+                                         '. This verifies report bytes, not the report conclusions.')
+        except Exception as exc:
+            self.signer_status.configure(text='Report signature NOT verified (' + type(exc).__name__ + ').')
 
     def close(self):
         self.closed = True

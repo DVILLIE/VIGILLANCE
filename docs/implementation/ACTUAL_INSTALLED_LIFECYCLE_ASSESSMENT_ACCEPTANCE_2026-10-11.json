@@ -1,0 +1,15 @@
+{
+  "state": "completed",
+  "runtime_sha256": "22a77eaa196229ecafeea90367a97bbdfde7905512dc8690021e59df70888bd2",
+  "investigation_paths": 20,
+  "signature": {
+    "state": "trusted_report_signature_verified",
+    "algorithm": "ML-DSA-65",
+    "key_fingerprint": "f070d7dc4ef1f1799e7b8de7cfbf10bd305b669b8ff5ec58c790f673440c7cda",
+    "report_sha256": "0cb6deeec9c74687149a98fb21f9d4349330529cb1d7a8ce12bde7f7dd550355",
+    "scope": "Local report bytes only; not OS authorization or network/publisher authentication.",
+    "signer_lifecycle": "active"
+  },
+  "existing_encrypted_signer_unchanged": true,
+  "mutations": []
+}
