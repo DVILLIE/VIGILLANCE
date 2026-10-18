@@ -1,0 +1,15 @@
+{
+  "runtime_sha256": "88ff60de375cb33a20ec59cdd85c0808122464532f03cd7942a28047e2830846",
+  "files": 5796,
+  "activation_receipt": "C:\\Program Files\\DVielle\\upgrade-result-upgrade-018c76fb737f448290961b22cd963317.json",
+  "activation_state": "activated_identity_verified",
+  "notification_backend_returned_without_error": true,
+  "speech_sapi_call_succeeded": true,
+  "human_visibility_or_audio_verified": false,
+  "helper_running": true,
+  "resident_task_running": true,
+  "resident_runlevel_limited": true,
+  "notification_errors": [],
+  "installed_dependency_removal_performed": false,
+  "runtime_files": 5796
+}

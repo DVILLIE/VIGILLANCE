@@ -1,0 +1,46 @@
+{
+  "state": "keyboard_routing_passed",
+  "enter_space_activations": 2,
+  "disabled_button_blocked": true,
+  "callback_errors": [],
+  "scales": [
+    {
+      "scale": 1.0,
+      "tab_width": 1200,
+      "tab_header_requested_width": 857,
+      "tab_header_actual_width": 857,
+      "window_width": 1200,
+      "window_height": 850
+    },
+    {
+      "scale": 1.25,
+      "tab_width": 1200,
+      "tab_header_requested_width": 1050,
+      "tab_header_actual_width": 1050,
+      "window_width": 1200,
+      "window_height": 850
+    },
+    {
+      "scale": 1.5,
+      "tab_width": 1200,
+      "tab_header_requested_width": 1329,
+      "tab_header_actual_width": 1182,
+      "window_width": 1200,
+      "window_height": 850
+    },
+    {
+      "scale": 2.0,
+      "tab_width": 1200,
+      "tab_header_requested_width": 1724,
+      "tab_header_actual_width": 1176,
+      "window_width": 1200,
+      "window_height": 850
+    }
+  ],
+  "mutations": [],
+  "limits": [
+    "Command probe verifies event routing, not actual Administrator consent.",
+    "Layout dimensions are measurements, not human visual/scaling acceptance.",
+    "Narrator and flash-area/contrast acceptance remain unmeasured."
+  ]
+}

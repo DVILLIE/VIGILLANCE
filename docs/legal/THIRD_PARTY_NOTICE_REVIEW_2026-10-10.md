@@ -1,5 +1,30 @@
 # D'Vielle installed third-party notice evidence
 
+## 12 October implementation update
+
+The protected dependency migration is now complete. All four legacy packages are
+absent from the active environment. A new actual metadata notice inventory contains
+**47 notice files for all 15 active distributions**, with no package missing a
+notice in the inspected metadata paths. See
+`installed-third-party-2026-10-12/inventory.json` and the
+[completed migration acceptance](../implementation/STEP_01_DEPENDENCY_MIGRATION_ACCEPTANCE_AND_RECOVERY_2026-10-12.md).
+The older inventory below remains historical evidence. Native/OS dependency
+completeness and final shipped-artifact licensing review are not certified here.
+
+### Earlier native candidate checkpoint
+
+The notification/speech migration removes win10toast and pyttsx3 from the source
+dependency declaration. Actual wheel closure verification of the new candidate
+also excludes pypiwin32 and comtypes. The inspected thirteen-wheel candidate is
+recorded under `dist/offline-dependencies-native-20261012/manifest.json`.
+This resolves the need for the two problematic artifacts in future clean installs;
+it does not authorize omitting their notices from a distribution of the existing
+installed environment, which still contains the unused packages. Transactional
+environment migration and final shipped-artifact notice reconciliation remain open.
+See [native integration evidence](../implementation/NATIVE_NOTIFICATION_AND_SPEECH_INTEGRATION_2026-10-12.md).
+
+## Original installed inventory
+
 The actual protected installation contains 19 Python distributions. A read-only
 inventory copied 62 license/notice files from their installed distribution metadata
 directories into `installed-third-party/`. `inventory.json` records package names,

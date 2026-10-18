@@ -1,0 +1,37 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-00f37a74bba34261b07fbc9e3aeaa966",
+  "old_runtime_sha256": "143411b911539f26650d2882c0f8423e8780aacbf3476f8ea121660f7e1b925a",
+  "new_runtime_sha256": "19a3ad2daf1c1ac50e03434d5a207fa9d1123393c90210e7ac7e2b4235230fde",
+  "changes": [
+    {
+      "path": "agent/assessment/__main__.py",
+      "old_sha256": "ca7edb9470062e6429705b09ed4a4409abf7f0872d102cb64a716c1aa2cb2f76",
+      "new_sha256": "91180746219f6660dee3978497077aec4588d63ceba9c9bad64e9d3801523e33"
+    },
+    {
+      "path": "agent/assessment/attack_paths.py",
+      "old_sha256": null,
+      "new_sha256": "4dbec9707b943f2d22a15b737ab3767ffdf5a70c7323a54d4a3b1bd5e0e8032e"
+    },
+    {
+      "path": "agent/assessment/engine.py",
+      "old_sha256": "cd3327472fbc0aa269d12e3299a06b69c1a9ddeff8556347283ce5b41d7ab21b",
+      "new_sha256": "b4f496835ab9319daf7e8b88a7b5ea314c20a6dc21b1f67cd8a7289442ec8751"
+    },
+    {
+      "path": "agent/assessment/model_admission.py",
+      "old_sha256": null,
+      "new_sha256": "f069ac5da365b6f7b941121da97a57fe2367486e532b0d42ffea788fd450a56b"
+    },
+    {
+      "path": "agent/assessment/signatures.py",
+      "old_sha256": null,
+      "new_sha256": "fa08f871d1f832d340ae3bc419c936c5ffe488b769a6dcf4f9ca4357553be167"
+    },
+    {
+      "path": "dvielle/gui/assessment.py",
+      "old_sha256": "a8fb16226e81524c2a947572d5a588d2ad440eb82f5a384b79c2c813dc738d74",
+      "new_sha256": "771b29c9e2075636f7756542a9d4ea85e95ca2929f15605ff12221a96954c3f2"
+    }
+  ]
+}

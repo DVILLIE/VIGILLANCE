@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-11T14:35:04.422480+00:00",
+  "state": "local_workflow_structure_and_exact_dependency_resolution_verified",
+  "remote_jobs": "not_run",
+  "workflow_sha256": "315bf6c4211fe7f88d966b646444a43f08957413c00cb5ae93e0912993a2f57c",
+  "runtime_lock_packages": 17,
+  "validation_lock_packages": 5,
+  "dependency_resolution": "pip --dry-run --ignore-installed --require-hashes --only-binary=:all: completed with exit 0",
+  "server_matrix": [
+    "windows-2022",
+    "windows-2025"
+  ],
+  "client_windows_approval_acceptance": "not_inferred",
+  "permissions": {
+    "contents": "read"
+  },
+  "artifact_scope": "pytest XML only"
+}

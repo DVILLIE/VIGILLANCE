@@ -1,0 +1,27 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-082723bb655241b5bcf36afa0d72ced0",
+  "old_runtime_sha256": "61b92d0ac0dfefb7815b5717db98422c2673084e52ecef7d6a86488157819a3b",
+  "new_runtime_sha256": "88ff60de375cb33a20ec59cdd85c0808122464532f03cd7942a28047e2830846",
+  "changes": [
+    {
+      "path": "agent/notifications.py",
+      "old_sha256": null,
+      "new_sha256": "a3dfcb6d9d83df6ac7eb5097bd6403c85ac47ad73903eb00557a5122a9b371ee"
+    },
+    {
+      "path": "agent/utils.py",
+      "old_sha256": "67238641b3fb5c5ec7364fa217ffed160469aeb994d4f0941e0af78a727dadb5",
+      "new_sha256": "4c9168ebccea875582221bcd33bc4967297f9c3139439960e6d7eaa25703fa0e"
+    },
+    {
+      "path": "dvielle/gui/tray.py",
+      "old_sha256": "520f9aa3488f9f14b401f383001c922bf43b50b666183579339cde712fc28db8",
+      "new_sha256": "5818241424975753fbb4d7c7355be1ee890caf3898cea9b2da6f56124465cb84"
+    },
+    {
+      "path": "dvielle/gui/voice.py",
+      "old_sha256": "0b1fd421f76b7382ac135896fc3c93fcecead2302a67b36bc494612c8f19c415",
+      "new_sha256": "53dceaf9b24f492005e658597146b730f45d9161866433b834d715558af661d0"
+    }
+  ]
+}

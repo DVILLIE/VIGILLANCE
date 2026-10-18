@@ -1,0 +1,8 @@
+{
+  "state": "trusted_report_signature_verified",
+  "algorithm": "ML-DSA-65",
+  "key_fingerprint": "f070d7dc4ef1f1799e7b8de7cfbf10bd305b669b8ff5ec58c790f673440c7cda",
+  "report_sha256": "ef69c3ded57912ef2d1ee450276e708e069f1072ad5fc98f2b739a1ce9015349",
+  "scope": "Local report bytes only; not OS authorization or network/publisher authentication.",
+  "trust_scope": "Fingerprint captured by this local operator; not public publisher identity."
+}

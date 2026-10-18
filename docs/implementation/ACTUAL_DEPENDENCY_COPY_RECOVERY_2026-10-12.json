@@ -1,0 +1,13 @@
+{
+  "state": "actual_installed_file_copy_round_trip_and_interruption_verified",
+  "changes": 370,
+  "child_exit_code": 23,
+  "interrupted_intents": 5,
+  "actual_mutated_files_before_recovery": 4,
+  "exact_predecessor_restored": true,
+  "installed_runtime_changed": false,
+  "isolated_copy_directory": "E:\\DVielleProjects\\DVILLIE-main-repairs\\dist\\dependency-migration-copy\\dependency-copy-yr0tmw48",
+  "os_service_recovery_tested": false,
+  "original_copy_directory": "E:\\DVielleProjects\\DVILLIE-main-repairs\\docs\\implementation\\dependency-copy-yr0tmw48",
+  "evidence_copy_moved_within_verified_workspace": true
+}

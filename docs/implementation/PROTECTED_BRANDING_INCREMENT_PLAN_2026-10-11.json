@@ -1,0 +1,47 @@
+{
+  "stage": "C:\\Program Files\\DVielleStage-11c41fe7cfde47e0ab2ee84e63afe713",
+  "old_runtime_sha256": "22a77eaa196229ecafeea90367a97bbdfde7905512dc8690021e59df70888bd2",
+  "new_runtime_sha256": "61b92d0ac0dfefb7815b5717db98422c2673084e52ecef7d6a86488157819a3b",
+  "changes": [
+    {
+      "path": "agent/main.py",
+      "old_sha256": "9d42cd7e3bd48eb4553e5f1b7ffbe257e98a116f338cbc301719d26c231d9dd3",
+      "new_sha256": "635883d04c5b40d54c8fb02fec7b3972a0294a1edacdab5480c48ccf51d4dd6a"
+    },
+    {
+      "path": "agent/version.py",
+      "old_sha256": "92f91d74d4aedf3376835945b44517d296b1fd550d95dcaaf96c35d5eb646cdf",
+      "new_sha256": "ac049fb00837d47672e9e254da8c9928027a5f8a7c91267d317a8f3f37bcedff"
+    },
+    {
+      "path": "agent/engine/handlers.py",
+      "old_sha256": "a81dc8ea4dbed7a817dcdcbd67b69f8f82877212cc16d3ce6ec7fe46eb9fbbca",
+      "new_sha256": "30c995a8c991f98b9ceda84b7da33343c10054dd1222175ceb9cf4f5e9fbadf5"
+    },
+    {
+      "path": "agent/engine/net_block.py",
+      "old_sha256": "463dbdfa22d22dd4dff5fd8aaae1887503619de2bfeddcb8066c1bed7c598d40",
+      "new_sha256": "169d9b7a2f06b69a991d073bc2fbaf972f760aa8120de004f4cb673b11549ff4"
+    },
+    {
+      "path": "agent/modules/prevention.py",
+      "old_sha256": "4d966e42a664705fa986ecede4633d6690588e7367a905cdd9f0ab14da305330",
+      "new_sha256": "88227cb151cfa6abd4ab26e41040a2c65fbd5a78ef2da00803a54a3b167ef2ce"
+    },
+    {
+      "path": "agent/modules/resource_advisor.py",
+      "old_sha256": "3c1e6f8965b9ba262dff1888d97168de10a636559ba8b5fde11b510674e6f2bc",
+      "new_sha256": "3674729c7003be9994b405bcb4cde503ed52957a853fd9eb858d9eb90d0cea60"
+    },
+    {
+      "path": "agent/modules/sandbox.py",
+      "old_sha256": "f880844690f64d8330bed65294bdcab05c6a543b45c1088d8485f25d6f97feeb",
+      "new_sha256": "46e9935a5ff23b11f1677f71b64e3bec7d5ab0d05b3d69a254beed0fa79dd7c6"
+    },
+    {
+      "path": "dvielle/__init__.py",
+      "old_sha256": "2bfaa06f0bbb64bd4229881caf91524932b0aeb581086b7aef76673b3f3fa400",
+      "new_sha256": "fd17c6c01c20d6eb2c3dc3a76baf056badc770afe7da74025ef6a9b5cb7f3c28"
+    }
+  ]
+}

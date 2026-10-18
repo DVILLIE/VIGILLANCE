@@ -3,10 +3,19 @@ import json
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
 
 from agent.runtime import COLLECTOR_NAMES
 from agent.controller import AgentController
+
+
+def _controller_diagnostic(controller):
+    thread = controller._thread
+    frame = sys._current_frames().get(thread.ident) if thread is not None else None
+    return {'ownership': controller.status.ownership, 'error': controller.status.error,
+            'thread_alive': bool(thread and thread.is_alive()),
+            'thread_stack': ''.join(traceback.format_stack(frame)) if frame else 'No live controller frame'}
 
 
 def _config(tmp_path):
@@ -52,7 +61,7 @@ def test_real_resident_single_owner_snapshot_and_graceful_stop(tmp_path):
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline and follower.status.ownership != 'attached':
             time.sleep(.1)
-        assert follower.status.ownership == 'attached'
+        assert follower.status.ownership == 'attached', _controller_diagnostic(follower)
         assert follower.status.running
         assert follower.twin.as_dict()['runtime']['owner_token'] == token
         follower.stop()
@@ -63,7 +72,7 @@ def test_real_resident_single_owner_snapshot_and_graceful_stop(tmp_path):
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline and follower.status.ownership != 'attached':
             time.sleep(.1)
-        assert follower.status.ownership == 'attached'
+        assert follower.status.ownership == 'attached', _controller_diagnostic(follower)
         stop = subprocess.run(cmd + ['--stop'], capture_output=True, text=True, timeout=15)
         assert stop.returncode == 0, stop.stderr
         assert owner.wait(timeout=10) == 0

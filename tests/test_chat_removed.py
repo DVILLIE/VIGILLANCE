@@ -29,7 +29,7 @@ def test_console_and_config_have_no_chat_surface() -> None:
     lowered = pyproject.lower()
     assert "duckduckgo" not in lowered
     assert "speechrecognition" not in lowered
-    assert "pyttsx3" in pyproject
+    assert "pywin32" in pyproject
 
 
 def test_console_voice_toasts_stay() -> None:
@@ -37,5 +37,5 @@ def test_console_voice_toasts_stay() -> None:
     assert callable(voice.speak_async)
     assert callable(voice.greet_on_startup)
     text = (ROOT / "dvielle" / "gui" / "voice.py").read_text(encoding="utf-8")
-    assert "pyttsx3" in text
+    assert "SAPI.SpVoice" in text
     assert "speak_async" in (ROOT / "dvielle" / "gui" / "app.py").read_text(encoding="utf-8")

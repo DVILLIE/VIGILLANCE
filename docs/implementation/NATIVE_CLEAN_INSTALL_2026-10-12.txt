@@ -1,0 +1,30 @@
+Looking in links: dist/offline-dependencies-native-20261012/wheels
+Processing .\dist\offline-dependencies-native-20261012\wheels\cffi-2.1.1-cp314-cp314-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 1))
+Processing .\dist\offline-dependencies-native-20261012\wheels\cryptography-50.0.1-cp311-abi3-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 2))
+Processing .\dist\offline-dependencies-native-20261012\wheels\customtkinter-6.0.0-py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 3))
+Processing .\dist\offline-dependencies-native-20261012\wheels\darkdetect-0.8.0-py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 4))
+Processing .\dist\offline-dependencies-native-20261012\wheels\packaging-26.3-py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 5))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pillow-12.3.0-cp314-cp314-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 6))
+Processing .\dist\offline-dependencies-native-20261012\wheels\psutil-7.2.2-cp37-abi3-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 7))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pycparser-3.0-py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 8))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pystray-0.19.5-py2.py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 9))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pywin32-312-cp314-cp314-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 10))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pyyaml-6.0.3-cp314-cp314-win_amd64.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 11))
+Processing .\dist\offline-dependencies-native-20261012\wheels\setuptools-84.0.0-py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 12))
+Processing .\dist\offline-dependencies-native-20261012\wheels\six-1.17.0-py2.py3-none-any.whl (from -r dist/offline-dependencies-native-20261012/requirements.lock (line 13))
+Installing collected packages: six, setuptools, pyyaml, pywin32, pycparser, psutil, pillow, packaging, darkdetect, pystray, customtkinter, cffi, cryptography
+
+Successfully installed cffi-2.1.1 cryptography-50.0.1 customtkinter-6.0.0 darkdetect-0.8.0 packaging-26.3 pillow-12.3.0 psutil-7.2.2 pycparser-3.0 pystray-0.19.5 pywin32-312 pyyaml-6.0.3 setuptools-84.0.0 six-1.17.0
+Obtaining file:///E:/DVielleProjects/DVILLIE-main-repairs
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: dvielle
+  Building editable for dvielle (pyproject.toml): started
+  Building editable for dvielle (pyproject.toml): finished with status 'done'
+  Created wheel for dvielle: filename=dvielle-2.5.0-0.editable-py3-none-any.whl size=8221 sha256=33ae5c1f9da8c5d4a4629b42b84ccbd1702a3602cb3040c1b7eb658832d00cdf
+  Stored in directory: C:\Users\ravik\AppData\Local\Temp\pip-ephem-wheel-cache-mp7bjpnd\wheels\a4\97\0f\274a778df6659e75788e5a921f9eee05aef58344a7ce0a12c6
+Successfully built dvielle
+Installing collected packages: dvielle
+Successfully installed dvielle-2.5.0

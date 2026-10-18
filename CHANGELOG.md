@@ -3,6 +3,48 @@
 All notable changes to D'Vielle (Intelligent Vigilance) are recorded here.
 Versions follow `pyproject.toml` `[project].version`. Dates are in IST.
 
+## [Unreleased] - 2026-10-18
+
+Owner's post-2.5.0 work: native notifications and speech, a protected report-signer
+lifecycle, a guarded legacy-dependency migration, and Windows acceptance evidence.
+Package version stays 2.5.0. The resident monitor stays Limited.
+
+### Added
+
+- **Report signer lifecycle.** The local ML-DSA-65 report-signing key is now a
+  versioned, DPAPI-protected record with explicit compare-and-rotate, retire and
+  revoke. Replacement is atomic and write-through, and the old private seed is
+  discarded. The Quantum readiness tab gains Check signer, Rotate signer,
+  Revoke & replace and Verify signed report controls.
+- **Native notifications** (`agent/notifications.py`). Toasts go through a bounded,
+  serialized queue on the existing pystray tray backend. Delivery is best effort,
+  and a failed notification is kept in the log.
+- **Legacy dependency migration** (`scripts/migrate_legacy_dependencies.py`) with
+  copy-recovery acceptance, plus acceptance scripts for the assessment GUI, the
+  notification backend and optional model-artifact verification.
+- **Guardian Windows acceptance workflow** (`.github/workflows/guardian-validation.yml`)
+  on windows-2022 and windows-2025 with Python 3.14, installing exact hash-pinned
+  dependencies from `.github/locks/`.
+- Implementation and acceptance evidence for 2026-10-11 and 2026-10-12 under
+  `docs/implementation/`, and an installed third-party licence inventory under
+  `docs/legal/installed-third-party-2026-10-12/`.
+
+### Changed
+
+- Speech uses Windows SAPI directly. Voice language matching handles
+  multi-language voices, and spoken text is never treated as speech markup.
+- The Assessment workspace has a tab selector, keyboard access (Tab, Enter and
+  Space with a focus ring, scrolling to the focused control), and a fix so fast tab
+  switches no longer hide the current page.
+- The UDP scope acceptance and evidence-recording scripts were extended.
+- Test configuration keeps the elevated-runner `requires_unelevated` skip and adds a
+  GC pass after GUI tests to avoid a Python 3.14 Tk font finalizer hang.
+- `.gitignore` now excludes `/security/` and `*.dpapi` (local signing keys).
+
+### Removed
+
+- The `win10toast` and `pyttsx3` optional dependencies.
+
 ## [2.5.0] - 2026-10-11
 
 D'Vielle 2.5.0 is a large hardening and capability release, published as source.

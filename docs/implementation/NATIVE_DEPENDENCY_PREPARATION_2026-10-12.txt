@@ -1,0 +1,86 @@
+Collecting psutil==7.2.2
+  Downloading psutil-7.2.2-cp37-abi3-win_amd64.whl.metadata (22 kB)
+Collecting PyYAML==6.0.3
+  Downloading pyyaml-6.0.3-cp314-cp314-win_amd64.whl.metadata (2.4 kB)
+Collecting customtkinter==6.0.0
+  Downloading customtkinter-6.0.0-py3-none-any.whl.metadata (698 bytes)
+Collecting Pillow==12.3.0
+  Downloading pillow-12.3.0-cp314-cp314-win_amd64.whl.metadata (9.3 kB)
+Collecting pystray==0.19.5
+  Downloading pystray-0.19.5-py2.py3-none-any.whl.metadata (9.4 kB)
+Collecting cryptography==50.0.1
+  Downloading cryptography-50.0.1-cp311-abi3-win_amd64.whl.metadata (4.3 kB)
+Collecting packaging==26.3
+  Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting pywin32==312
+  Downloading pywin32-312-cp314-cp314-win_amd64.whl.metadata (11 kB)
+Collecting setuptools==84.0.0
+  Downloading setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting darkdetect (from customtkinter==6.0.0)
+  Downloading darkdetect-0.8.0-py3-none-any.whl.metadata (3.6 kB)
+Collecting six (from pystray==0.19.5)
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting cffi>=2.0.0 (from cryptography==50.0.1)
+  Downloading cffi-2.1.1-cp314-cp314-win_amd64.whl.metadata (2.6 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography==50.0.1)
+  Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Downloading psutil-7.2.2-cp37-abi3-win_amd64.whl (137 kB)
+Downloading pyyaml-6.0.3-cp314-cp314-win_amd64.whl (156 kB)
+Downloading customtkinter-6.0.0-py3-none-any.whl (302 kB)
+Downloading pillow-12.3.0-cp314-cp314-win_amd64.whl (7.2 MB)
+   ---------------------------------------- 7.2/7.2 MB 6.9 MB/s  0:00:01
+Downloading pystray-0.19.5-py2.py3-none-any.whl (49 kB)
+Downloading cryptography-50.0.1-cp311-abi3-win_amd64.whl (3.8 MB)
+   ---------------------------------------- 3.8/3.8 MB 5.1 MB/s  0:00:00
+Downloading packaging-26.3-py3-none-any.whl (129 kB)
+Downloading pywin32-312-cp314-cp314-win_amd64.whl (7.0 MB)
+   ---------------------------------------- 7.0/7.0 MB 7.0 MB/s  0:00:01
+Downloading setuptools-84.0.0-py3-none-any.whl (818 kB)
+   ---------------------------------------- 818.2/818.2 kB 5.4 MB/s  0:00:00
+Downloading cffi-2.1.1-cp314-cp314-win_amd64.whl (187 kB)
+Downloading darkdetect-0.8.0-py3-none-any.whl (9.0 kB)
+Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Saved .\dist\offline-dependencies-native-20261012\wheels\psutil-7.2.2-cp37-abi3-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\pyyaml-6.0.3-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\customtkinter-6.0.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\pillow-12.3.0-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\pystray-0.19.5-py2.py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\cryptography-50.0.1-cp311-abi3-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\packaging-26.3-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\pywin32-312-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\setuptools-84.0.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\cffi-2.1.1-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\darkdetect-0.8.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\pycparser-3.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\wheels\six-1.17.0-py2.py3-none-any.whl
+Successfully downloaded psutil PyYAML customtkinter Pillow pystray cryptography packaging pywin32 setuptools cffi darkdetect pycparser six
+Looking in links: e:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\wheels
+Processing .\dist\offline-dependencies-native-20261012\wheels\cffi-2.1.1-cp314-cp314-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 1))
+Processing .\dist\offline-dependencies-native-20261012\wheels\cryptography-50.0.1-cp311-abi3-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 2))
+Processing .\dist\offline-dependencies-native-20261012\wheels\customtkinter-6.0.0-py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 3))
+Processing .\dist\offline-dependencies-native-20261012\wheels\darkdetect-0.8.0-py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 4))
+Processing .\dist\offline-dependencies-native-20261012\wheels\packaging-26.3-py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 5))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pillow-12.3.0-cp314-cp314-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 6))
+Processing .\dist\offline-dependencies-native-20261012\wheels\psutil-7.2.2-cp37-abi3-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 7))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pycparser-3.0-py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 8))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pystray-0.19.5-py2.py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 9))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pywin32-312-cp314-cp314-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 10))
+Processing .\dist\offline-dependencies-native-20261012\wheels\pyyaml-6.0.3-cp314-cp314-win_amd64.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 11))
+Processing .\dist\offline-dependencies-native-20261012\wheels\setuptools-84.0.0-py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 12))
+Processing .\dist\offline-dependencies-native-20261012\wheels\six-1.17.0-py2.py3-none-any.whl (from -r E:\DVielleProjects\DVILLIE-main-repairs\dist\offline-dependencies-native-20261012\requirements.lock (line 13))
+Saved .\dist\offline-dependencies-native-20261012\closure-check\cffi-2.1.1-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\cryptography-50.0.1-cp311-abi3-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\customtkinter-6.0.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\darkdetect-0.8.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\packaging-26.3-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\pillow-12.3.0-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\psutil-7.2.2-cp37-abi3-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\pycparser-3.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\pystray-0.19.5-py2.py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\pywin32-312-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\pyyaml-6.0.3-cp314-cp314-win_amd64.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\setuptools-84.0.0-py3-none-any.whl
+Saved .\dist\offline-dependencies-native-20261012\closure-check\six-1.17.0-py2.py3-none-any.whl
+Successfully downloaded cffi cryptography customtkinter darkdetect packaging pillow psutil pycparser pystray pywin32 pyyaml setuptools six
+{"output": "E:\\DVielleProjects\\DVILLIE-main-repairs\\dist\\offline-dependencies-native-20261012", "wheels": 13, "installed": false, "publisher_authenticated": false}

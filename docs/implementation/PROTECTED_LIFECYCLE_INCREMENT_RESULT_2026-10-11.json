@@ -1,0 +1,36 @@
+{
+  "started": "2026-10-11T15:15:49.253276+00:00",
+  "state": "activated_identity_verified",
+  "plan": {
+    "stage": "C:\\Program Files\\DVielleStage-11c41fe7cfde47e0ab2ee84e63afe713",
+    "old_runtime_sha256": "19a3ad2daf1c1ac50e03434d5a207fa9d1123393c90210e7ac7e2b4235230fde",
+    "new_runtime_sha256": "22a77eaa196229ecafeea90367a97bbdfde7905512dc8690021e59df70888bd2",
+    "changes": [
+      {
+        "path": "agent/assessment/signatures.py",
+        "old_sha256": "fa08f871d1f832d340ae3bc419c936c5ffe488b769a6dcf4f9ca4357553be167",
+        "new_sha256": "10a622e859cc04cc9f4da0f0ebaedde31d1b1f3c1080f9a791fed313b3400217"
+      },
+      {
+        "path": "dvielle/gui/assessment.py",
+        "old_sha256": "771b29c9e2075636f7756542a9d4ea85e95ca2929f15605ff12221a96954c3f2",
+        "new_sha256": "38c1b6c4d2f28c7dad30521e5aa3029d0dff4941d53aa81e87af5a8a35774b31"
+      }
+    ]
+  },
+  "firewall_mutations": [],
+  "grants_preserved": true,
+  "task_enabled": true,
+  "helper_was_running": true,
+  "change_intents": [
+    "agent/assessment/signatures.py",
+    "dvielle/gui/assessment.py"
+  ],
+  "identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5795,
+    "manifest_sha256": "22a77eaa196229ecafeea90367a97bbdfde7905512dc8690021e59df70888bd2",
+    "publisher_authenticated": false
+  },
+  "finished": "2026-10-11T15:16:23.733917+00:00"
+}

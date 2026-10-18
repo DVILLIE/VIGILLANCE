@@ -1,0 +1,127 @@
+{
+  "state": "audit_recovery_required",
+  "started": "2026-10-11T13:40:34.040405+00:00",
+  "runtime_identity": {
+    "state": "approved_runtime_digest_verified",
+    "files": 5795,
+    "manifest_sha256": "19a3ad2daf1c1ac50e03434d5a207fa9d1123393c90210e7ac7e2b4235230fde",
+    "publisher_authenticated": false
+  },
+  "scope": {
+    "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+    "profile": "Any",
+    "address_families": [
+      "IPv4"
+    ],
+    "remote_addresses": [
+      "1.1.1.1/32"
+    ]
+  },
+  "observed_protocol": "UDP DNS port 53",
+  "question": "www.python.org A",
+  "mutations": [
+    {
+      "operation": "restrict_network",
+      "operation_id": "0bfd8902a93d48c78f0d3867d2f7d388"
+    }
+  ],
+  "packet_drop_attribution": "matching_wfp_security_event",
+  "scope_kind": "all_instances_of_exact_executable",
+  "excluded": [
+    "IPv6",
+    "QUIC",
+    "VPN",
+    "proxy",
+    "child images",
+    "competing policy"
+  ],
+  "before": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.007620400050655007
+  },
+  "apply": {
+    "ok": true,
+    "code": "ok",
+    "performed": true,
+    "message": "Verified Windows Firewall outbound block rules for this program on the chosen profile. This does not prove every connection already stopped. A Windows Firewall app rule is not a leakproof block. IPv4 and IPv6 are separate filters, and a VPN or other adapter can move traffic onto an interface the rule does not match. D'Vielle does not claim the app is isolated from every network. This request does not cover every address family.",
+    "verified": [
+      {
+        "name": "DVielle-restrict-702287fc45f3-v4",
+        "enabled": "True",
+        "direction": "Outbound",
+        "action": "Block",
+        "profile": "Any",
+        "address_family": "IPv4",
+        "program": "C:\\Program Files\\DVielleRuntime\\Python314\\python.exe",
+        "remote": "1.1.1.1",
+        "group": "DVielle",
+        "description": "DVielle invocation b525e48a350348bdb692af567c3f0526",
+        "missing": "no"
+      }
+    ],
+    "journal_state": "configuration_verified",
+    "operation_id": "0bfd8902a93d48c78f0d3867d2f7d388"
+  },
+  "audit_scope": {
+    "subcategory": "Filtering Platform Connection",
+    "original_flags": 0,
+    "requested_flags": 2,
+    "state": "audit_recovery_required"
+  },
+  "during": [
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.003414500039071
+    },
+    {
+      "state": "response_unavailable",
+      "error_type": "TimeoutError",
+      "windows_error": null,
+      "elapsed_seconds": 3.0042212000116706
+    }
+  ],
+  "drop_events": {
+    "state": "query_completed",
+    "matching_drops": [
+      {
+        "time": "2026-10-11T13:40:41.6554294Z",
+        "destination_port": 53,
+        "destination": "1.1.1.1",
+        "process_id": 12792,
+        "record_id": 1472270,
+        "event_id": 5157,
+        "protocol": 17,
+        "application": "\\device\\harddiskvolume4\\program files\\dvielleruntime\\python314\\python.exe"
+      },
+      {
+        "time": "2026-10-11T13:40:38.6523517Z",
+        "destination_port": 53,
+        "destination": "1.1.1.1",
+        "process_id": 12792,
+        "record_id": 1472264,
+        "event_id": 5157,
+        "protocol": 17,
+        "application": "\\device\\harddiskvolume4\\program files\\dvielleruntime\\python314\\python.exe"
+      }
+    ],
+    "audit_policy_changed": false,
+    "bounded_event_limit": 200
+  },
+  "recovery": {
+    "ok": true,
+    "code": "restored",
+    "performed": true,
+    "journal_state": "restored",
+    "message": "Owned-rule cleanup verified; other rules preserved.",
+    "operation_id": "0bfd8902a93d48c78f0d3867d2f7d388"
+  },
+  "after": {
+    "state": "matching_dns_response",
+    "answer_records": 5,
+    "elapsed_seconds": 0.0070974999107420444
+  },
+  "finished": "2026-10-11T13:40:49.841584+00:00"
+}

@@ -1,0 +1,1077 @@
+{
+  "schema_version": 1,
+  "id": "984a27d2-265d-4845-b243-9a5981b06a58",
+  "started": "2026-10-11T13:30:16.209865+00:00",
+  "state": "completed",
+  "scope": {
+    "target": "local",
+    "authority": "[redacted]",
+    "authorized": false,
+    "expires_at": 0,
+    "share_runtime_versions": false,
+    "tls_handshake_only": false,
+    "require_hybrid": false
+  },
+  "findings": [
+    {
+      "id": "89b9debd-5a51-40a4-b521-4b38e220871c",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.616256+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "64e6632b-7d73-479c-8d90-c97e51e5085b",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.632512+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "906feb80-22ac-4431-8a3f-a06cf73caa3c",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.646459+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "5340eec6-69b6-4607-bc2c-fe192f20a00c",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.660053+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "c91f58ff-b7cb-4f91-a9ae-60e957b77b69",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.685036+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "b70d9c93-5063-42d6-b041-483ccd9856e6",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.685094+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "418bdf70-4e5e-450d-9664-1c0c9b6c9692",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.697278+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "adc0726b-b820-47b4-9409-0a2dd47e0a2f",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.697510+00:00",
+      "observation": "A listener on port 49664 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "092ee2cc-ac85-40e5-8241-57119b25ebd6",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.733390+00:00",
+      "observation": "A listener on port 5040 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "799dff97-b46a-4df6-ab2f-f693a82fee36",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.733445+00:00",
+      "observation": "A listener on port 49665 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "7a3218c6-9a99-466e-9f17-de6d4e1180a6",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.733485+00:00",
+      "observation": "A listener on port 49673 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "3a595477-9457-44fc-9e2d-71692d28d8b5",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.733508+00:00",
+      "observation": "A listener on port 445 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "5c3db873-f4c0-4e21-bb19-1fc33129ad49",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.765087+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "3a992533-d27d-4b6a-8a23-f698e320aa42",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781705+00:00",
+      "observation": "A listener on port 135 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "e72e8a2b-81ad-4be2-9d8e-771a4b525de9",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781760+00:00",
+      "observation": "A listener on port 49666 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "99d4f4d6-e282-4b48-920d-94a573ca1ab1",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781790+00:00",
+      "observation": "A listener on port 49668 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "3b5a808b-8a94-41fe-b554-f62c6eeec3cc",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781818+00:00",
+      "observation": "A listener on port 49667 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "0375e4c7-8685-4d07-93e4-c2ad68bdd6c6",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781835+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "caeee411-9bc1-45d7-bc5d-ad007ed0bdd2",
+      "kind": "listener",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:16.781847+00:00",
+      "observation": "A listener on port 5357 binds all interfaces.",
+      "resolution": "Identify the owning application and intended clients; review firewall scope. A wildcard listener alone does not establish internet reachability.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.listeners"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac"
+      ]
+    },
+    {
+      "id": "5e027fe3-ff7a-4e06-a95f-70f5f375a8de",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:25.346356+00:00",
+      "observation": "Controlled folder access reports Disabled.",
+      "resolution": "Review application compatibility and recovery backups before considering Audit or Enabled mode. This control does not prevent reading or exfiltration.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "4600a449-b9a9-42fa-8d96-0525b021195d"
+      ]
+    },
+    {
+      "id": "eac08d2b-bb63-4ea5-936f-25da20ff503e",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:25.346385+00:00",
+      "observation": "Vulnerable signed-driver ASR rule has observed action 5; it is not configured in Block mode.",
+      "resolution": "Review effective protection, managed policy and audit compatibility before changing this rule.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "4600a449-b9a9-42fa-8d96-0525b021195d"
+      ]
+    },
+    {
+      "id": "ee01d1c9-ff45-4c9f-847b-5cb5e1558587",
+      "kind": "posture",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:25.346398+00:00",
+      "observation": "LSASS credential-access ASR rule has observed action 5; it is not configured in Block mode.",
+      "resolution": "Review effective protection, managed policy and audit compatibility before changing this rule.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.windows_posture"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "4600a449-b9a9-42fa-8d96-0525b021195d"
+      ]
+    },
+    {
+      "id": "8bcd8ed3-416c-43aa-b69f-649812882641",
+      "kind": "quantum_readiness",
+      "severity": "review",
+      "state": "observed",
+      "observed_at": "2026-10-11T13:30:25.380146+00:00",
+      "observation": "Runtime cryptographic provider recorded; post-quantum exchange and authentication were not measured.",
+      "resolution": "Inventory actual protocols and peers, then verify supported negotiated exchange and authentication separately.",
+      "executed": false,
+      "evidence_refs": [
+        "observations.cryptography"
+      ],
+      "confidence": "No statistical probability assigned",
+      "evidence_ids": [
+        "657c47b6-1717-4411-ae36-e38d48df7c36"
+      ]
+    }
+  ],
+  "observations": {
+    "platform": {
+      "system": "Windows",
+      "release": "11",
+      "version": "10.0.26200",
+      "python": "3.14.8"
+    },
+    "runtime_packages": [
+      {
+        "name": "cryptography",
+        "version": "50.0.1",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "Pillow",
+        "version": "12.3.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "customtkinter",
+        "version": "6.0.0",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "PyYAML",
+        "version": "6.0.3",
+        "ecosystem": "PyPI"
+      },
+      {
+        "name": "pywin32",
+        "version": "312",
+        "ecosystem": "PyPI"
+      }
+    ],
+    "cryptography": {
+      "python_ssl_provider": "OpenSSL 3.5.9 29 Sep 2026",
+      "tls13_runtime_support": true,
+      "post_quantum_exchange": "not_measured",
+      "post_quantum_authentication": "not_measured",
+      "local_provider_checks": {
+        "state": "observed",
+        "scope": "Local cryptographic primitive execution only",
+        "negotiated_key_exchange": "not_measured",
+        "negotiated_authentication": "not_measured",
+        "private_keys_saved": false,
+        "ml_kem_768": {
+          "state": "passed",
+          "encapsulation_decapsulation_matched": true,
+          "invalid_length_rejected": true
+        },
+        "ml_dsa_65": {
+          "state": "passed",
+          "signature_verified": true,
+          "modified_message_rejected": true,
+          "wrong_context_rejected": true
+        },
+        "elapsed_seconds": 0.021841299952939153
+      }
+    },
+    "dependency_review": {
+      "state": "not_queried",
+      "reason": "Version sharing was not authorized."
+    },
+    "listeners": [
+      {
+        "address": "[redacted]",
+        "port": 28390,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49668,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49664,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49667,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 28385,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 18080,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 135,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49350,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 139,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 42050,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49665,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 445,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49673,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49351,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49664,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49669,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 5040,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49665,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49673,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 445,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49666,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 59818,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 135,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 54678,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49666,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49668,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 49667,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 5357,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      },
+      {
+        "address": "[redacted]",
+        "port": 5357,
+        "pid": null,
+        "owner_identity": {
+          "state": "redacted",
+          "meaning": "Process identifiers, creation time and name removed from export."
+        }
+      }
+    ],
+    "windows_posture": {
+      "antivirus_enabled": true,
+      "realtime_enabled": true,
+      "firewall_enabled": true,
+      "profiles": {
+        "domain": true,
+        "private": true,
+        "public": true
+      },
+      "defender_health": {
+        "coverage": "complete",
+        "am_running_mode": "Normal",
+        "signature_age_days": 0,
+        "signature_last_updated": "10/11/2026 11:48:18",
+        "signature_version": "1.459.670.0",
+        "engine_version": "1.1.26080.3",
+        "product_version": "4.18.26080.4",
+        "signatures_out_of_date": false,
+        "active_mode": "AVAILABLE",
+        "realtime": "AVAILABLE",
+        "query_state": "AVAILABLE"
+      },
+      "asr_cfa": {
+        "coverage": "complete",
+        "rules": {
+          "56a863a9-875e-4185-98a7-b882c64b5ce5": 5,
+          "9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2": 5,
+          "e6db77e5-3df2-4cf1-b95a-636979351e5b": 5,
+          "7674ba52-37eb-4a4f-a9a1-f0f9a1619a2c": 5,
+          "d4f940ab-401b-4efc-aadc-ad5f3c50688a": 5,
+          "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550": 5,
+          "01443614-cd74-433a-b99e-2ecdc07bfc25": 5,
+          "5beb7efe-fd9a-4556-801d-275e5ffc04cc": 5,
+          "d3e037e1-3eb8-44c8-a917-57927947596d": 5,
+          "3b576869-a4ec-4529-8536-b80a7769e899": 5,
+          "75668c1f-73b5-4cf0-bb93-3ecf5cb7cc84": 5,
+          "26190899-1602-49e8-8b27-eb1d0a1ce869": 5,
+          "d1e49aac-8f56-4280-b9ba-993a6d77406c": 5,
+          "33ddedf1-c6e0-47cb-833e-de6133960387": 5,
+          "b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4": 5,
+          "c0033c00-d16d-4114-a5a0-dc9b3a7d2ceb": 5,
+          "a8f5898e-1dc8-49a9-9878-85004b8a61e6": 5,
+          "92e97fa1-2edf-4476-bdd6-9dd0b4dddc7b": 5,
+          "c1db55ab-c21a-4637-bb3f-a12568109d35": 5
+        },
+        "cfa_mode": 0,
+        "cfa_mode_name": "Disabled"
+      }
+    },
+    "assessment_resources": {
+      "scope": "Assessment process and descendants visible at checkpoints; not every D'Vielle process.",
+      "samples": [
+        {
+          "observed_monotonic": 778342.3236242,
+          "elapsed_seconds": null,
+          "process_count": 1,
+          "rss_sum_bytes": 32370688,
+          "cpu_core_percent": null,
+          "cpu_lower_bound_core_percent": null,
+          "cpu_coverage": "warming_up",
+          "cpu_machine_percent": null,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 1,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778342.6280434,
+          "elapsed_seconds": 0.3044192000525072,
+          "process_count": 1,
+          "rss_sum_bytes": 43003904,
+          "cpu_core_percent": 107.78722233794844,
+          "cpu_lower_bound_core_percent": 107.78722233794844,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 26.94680558448711,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778342.6625132,
+          "elapsed_seconds": 0.03446979995351285,
+          "process_count": 1,
+          "rss_sum_bytes": 43315200,
+          "cpu_core_percent": 90.65906980065105,
+          "cpu_lower_bound_core_percent": 90.65906980065105,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 22.664767450162763,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778342.9085737,
+          "elapsed_seconds": 0.2460605000378564,
+          "process_count": 1,
+          "rss_sum_bytes": 44515328,
+          "cpu_core_percent": 107.95109331206496,
+          "cpu_lower_bound_core_percent": 107.95109331206496,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 26.98777332801624,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778345.6258116,
+          "elapsed_seconds": 2.7172379000112414,
+          "process_count": 1,
+          "rss_sum_bytes": 48189440,
+          "cpu_core_percent": 83.95473947976959,
+          "cpu_lower_bound_core_percent": 83.95473947976959,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 20.988684869942396,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778348.3954794,
+          "elapsed_seconds": 2.7696677999338135,
+          "process_count": 1,
+          "rss_sum_bytes": 48250880,
+          "cpu_core_percent": 11.282941586260554,
+          "cpu_lower_bound_core_percent": 11.282941586260554,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 2.8207353965651385,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778351.4731214,
+          "elapsed_seconds": 3.07764200004749,
+          "process_count": 1,
+          "rss_sum_bytes": 48254976,
+          "cpu_core_percent": 1.0153877546354577,
+          "cpu_lower_bound_core_percent": 1.0153877546354577,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 0.25384693865886443,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        },
+        {
+          "observed_monotonic": 778351.5073866,
+          "elapsed_seconds": 0.03426520002540201,
+          "process_count": 1,
+          "rss_sum_bytes": 48259072,
+          "cpu_core_percent": 45.60020075299905,
+          "cpu_lower_bound_core_percent": 45.60020075299905,
+          "cpu_coverage": "sampled",
+          "cpu_machine_percent": 11.400050188249763,
+          "unreadable_processes": 0,
+          "coverage": "sampled",
+          "new_processes": 0,
+          "departed_processes": 0
+        }
+      ],
+      "sampled_peak_rss_sum_bytes": 48259072,
+      "total_samples": 8,
+      "retained_sample_capacity": 1024,
+      "discarded_sample_details": 0,
+      "coverage": "sampled",
+      "notes": [
+        "Shared pages can be counted in more than one RSS; this is not unique physical memory.",
+        "Short-lived processes between checkpoints and exited-process final CPU are not measured.",
+        "New processes require a second sample for a CPU delta; missing costs are not zero.",
+        "Checkpoint peaks are not continuous peaks or foreground-workload benchmarks.",
+        "No hard CPU cap, no zero-slowdown guarantee and no other user process termination."
+      ]
+    }
+  },
+  "coverage": [
+    "Runtime package inventory only; not an all-software census.",
+    "TCP listeners observed; UDP exposure and external reachability not established.",
+    "Privileged remediation unavailable in this workspace; no Windows policy was changed."
+  ],
+  "mutations": [],
+  "claims": "Observed assessment only; no enforcement or exploitability certification.",
+  "evidence_records": {
+    "observations.platform": {
+      "id": "812f8470-48aa-487b-9a33-531940480a5d",
+      "ts": "2026-10-11T13:30:16.522295+00:00",
+      "sensor": "assessment.platform",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.platform",
+        "sha256": "6de6b92b2f9ddc7dd7613780945741bf703b051b7905037515b95cea8d2ed3e9",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.runtime_packages": {
+      "id": "38707663-f1fb-40d1-b2c8-8ae518e47f4f",
+      "ts": "2026-10-11T13:30:16.522380+00:00",
+      "sensor": "assessment.runtime_packages",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.runtime_packages",
+        "sha256": "2d1890d7ffd801efadc8f563f872261002d69adf4ed3d8a2a8a7cf242457a788",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.cryptography": {
+      "id": "657c47b6-1717-4411-ae36-e38d48df7c36",
+      "ts": "2026-10-11T13:30:16.522445+00:00",
+      "sensor": "assessment.cryptography",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.cryptography",
+        "sha256": "b6b1c446054152db41af0a5458c0d617b8a4455361444c6204dc0cb6ac34d0d2",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "scope.target": {
+      "id": "426098f7-d853-463c-a49e-e201d3d8d3ca",
+      "ts": "2026-10-11T13:30:16.522477+00:00",
+      "sensor": "assessment.target",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "scope.target",
+        "sha256": "ea17e25c6c7aa6ef9407f976a670e87e37bc7e2a86b7bd4a3305bb16f1ba6052",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.dependency_review": {
+      "id": "517caeb1-ae8e-4cfb-accc-06f7b976c9fb",
+      "ts": "2026-10-11T13:30:16.547960+00:00",
+      "sensor": "assessment.dependency_review",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.dependency_review",
+        "sha256": "f412827aa43058659a6d2dd94c65139236ebab54c9b1e2284dc50e5533b47795",
+        "coverage": "not_queried",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.listeners": {
+      "id": "0a957f3b-0e7e-4baf-80e3-894d8a51e0ac",
+      "ts": "2026-10-11T13:36:41.602669+00:00",
+      "sensor": "assessment.listeners",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.listeners",
+        "sha256": "c184b34f6153f41a112eb493f2759b452f16f33d075721cc69f5a4ec1f6d277e",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.windows_posture": {
+      "id": "4600a449-b9a9-42fa-8d96-0525b021195d",
+      "ts": "2026-10-11T13:30:25.362402+00:00",
+      "sensor": "assessment.windows_posture",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.windows_posture",
+        "sha256": "e768757b2cd94efcabba81384f50c56c3e537aa0f8fbd096853ed55f5c04b955",
+        "coverage": "observed",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    },
+    "observations.assessment_resources": {
+      "id": "dde0b255-08ab-424c-91fd-c3c9f28976b3",
+      "ts": "2026-10-11T13:30:25.394331+00:00",
+      "sensor": "assessment.assessment_resources",
+      "entity": "984a27d2-265d-4845-b243-9a5981b06a58",
+      "payload": {
+        "source_path": "observations.assessment_resources",
+        "sha256": "191d925ecae5aa6031eb61cdbef776aa049cd873cbd9b146b2792f2738640d92",
+        "coverage": "sampled",
+        "meaning": "Checkpoint record of this run; not a continuous sensor or tamper-proof attestation."
+      },
+      "cadence": "pulse"
+    }
+  },
+  "finished": "2026-10-11T13:30:25.380657+00:00",
+  "attack_path_review": {
+    "schema_version": 1,
+    "freshness": "stale_snapshot",
+    "paths": [
+      {
+        "id": "route-1",
+        "kind": "file_modification_control_gap",
+        "observed": "Controlled Folder Access was reported disabled; an infection is not inferred.",
+        "evidence_ids": [
+          "4600a449-b9a9-42fa-8d96-0525b021195d"
+        ],
+        "state": "reobserve_first",
+        "unverified_prerequisites": [
+          "An unauthorized writer, its permissions, and affected files.",
+          "Backup integrity and application compatibility."
+        ],
+        "exploitability": "not_established",
+        "control_review": "review_cfa_compatibility"
+      }
+    ],
+    "investigation_order": [
+      {
+        "id": "review_cfa_compatibility",
+        "recommendation": "Review backups and Controlled Folder Access audit compatibility.",
+        "routes_to_investigate": [
+          "route-1"
+        ],
+        "authorization": "none",
+        "executed": false,
+        "newly_covered_route_count": 1
+      }
+    ],
+    "uncovered_route_ids": [],
+    "automation": "recommendations_only",
+    "method": "Greedy grouping of observed review routes; not an optimal prevention or probability model.",
+    "claims": "Potential routes with explicit unknown prerequisites; no confirmed attack or containment inferred."
+  },
+  "history_maintenance": {
+    "deleted": 0,
+    "enabled": false
+  },
+  "export": {
+    "created": "2026-10-11T13:36:41.602916+00:00",
+    "identifiers_included": false
+  }
+}

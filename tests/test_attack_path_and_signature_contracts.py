@@ -75,3 +75,45 @@ def test_model_provenance_mismatch_and_missing_weights_never_authorize_execution
     manifest['artifacts'][0]['filename'] = '../outside.safetensors'
     with pytest.raises(ValueError, match='Unsafe'):
         inspect_candidate(manifest, tmp_path)
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Actual Windows user-DPAPI lifecycle')
+def test_real_key_rotation_revocation_and_conditional_update(tmp_path):
+    from agent.assessment.signatures import (sign_report, verify_local_report,
+                                             rotate_report_key, report_key_status)
+    report = tmp_path / 'report.json'
+    report.write_text('{"scope":"local lifecycle acceptance"}')
+    directory = tmp_path / 'keys'
+    first = sign_report(report, directory)
+    before = (directory / 'report-signing-key.dpapi').read_bytes()
+    with pytest.raises(ValueError, match='differs'):
+        rotate_report_key(directory, '0' * 64)
+    assert (directory / 'report-signing-key.dpapi').read_bytes() == before
+    rotation = rotate_report_key(directory, first['key_fingerprint'])
+    second = sign_report(report, directory)
+    assert second['key_fingerprint'] == rotation['key_fingerprint'] != first['key_fingerprint']
+    assert verify_local_report(report, first, directory)['signer_lifecycle'] == 'retired'
+    assert verify_local_report(report, second, directory)['signer_lifecycle'] == 'active'
+    rotate_report_key(directory, second['key_fingerprint'], revoke_previous=True)
+    with pytest.raises(ValueError, match='revoked'):
+        verify_local_report(report, second, directory)
+    third = sign_report(report, directory)
+    assert verify_local_report(report, third, directory)['signer_lifecycle'] == 'active'
+    assert len(report_key_status(directory)['retired']) == 2
+    assert not list(directory.glob('*.dpapi.dpapi'))
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Actual Windows legacy seed migration')
+def test_existing_dpapi_seed_migrates_only_on_explicit_rotation(tmp_path):
+    import win32crypt
+    from agent.assessment.signatures import CONTEXT, sign_report, rotate_report_key
+    from cryptography.hazmat.primitives.asymmetric.mldsa import MLDSA65PrivateKey
+    directory = tmp_path / 'keys'; directory.mkdir()
+    key = MLDSA65PrivateKey.generate()
+    encrypted = win32crypt.CryptProtectData(key.private_bytes_raw(), 'legacy acceptance', CONTEXT, None, None, 1)
+    key_path = directory / 'report-signing-key.dpapi'; key_path.write_bytes(encrypted)
+    report = tmp_path / 'report.json'; report.write_text('{"local":true}')
+    original = sign_report(report, directory)
+    assert key_path.read_bytes() == encrypted
+    rotated = rotate_report_key(directory, original['key_fingerprint'])
+    assert sign_report(report, directory)['key_fingerprint'] == rotated['key_fingerprint']

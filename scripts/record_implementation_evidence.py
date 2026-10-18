@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
 import re
 import subprocess
@@ -28,9 +29,14 @@ def git(*args: str) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--record-date', default=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+                        help='Document date in YYYY-MM-DD; observation timestamp remains actual UTC.')
+    args = parser.parse_args()
+    document_date = datetime.strptime(args.record_date, '%Y-%m-%d').strftime('%Y-%m-%d')
     files = []
     for name in sorted(set(git("ls-files", "-co", "-z", "--exclude-standard").split("\0"))):
-        if not (name.startswith(("agent/", "dvielle/", "tests/", "scripts/", "installer/", "assets/"))
+        if not (name.startswith(("agent/", "dvielle/", "tests/", "scripts/", "installer/", "assets/", ".github/"))
                 or name in {"pyproject.toml", "LICENSE", "README.md"}):
             continue
         path = ROOT / name
@@ -39,6 +45,10 @@ def main() -> int:
         files.append({"path": name, "bytes": path.stat().st_size, "sha256": digest(path)})
     directory = ROOT / "docs" / "implementation"
     log = next(directory / name for name in (
+        'DEPENDENCY_MIGRATION_REGRESSION_2026-10-12.txt',
+        'NATIVE_INTEGRATION_FINAL_REGRESSION_2026-10-12.txt',
+        'REMOTE_VALIDATION_LIFECYCLE_LOCAL_REGRESSION_2026-10-11.txt',
+        'SAME_DAY_COMPLETION_FINAL_REGRESSION_2026-10-11.txt',
         'AUDIT_FIX_FINAL_REGRESSION_2026-10-11.txt',
         'ASSESSMENT_AND_CONSENT_FINAL_REGRESSION_2026-10-10.txt',
         'HYBRID_GATE_FINAL_REGRESSION_2026-10-10.txt',
@@ -60,10 +70,17 @@ def main() -> int:
     if not summaries:
         raise ValueError("The saved test log has no completed result; do not record an invented pass.")
     assessment = next(directory / name for name in (
+        'ACTUAL_INSTALLED_LIFECYCLE_ASSESSMENT_2026-10-11.json',
+        'ACTUAL_INSTALLED_COMPLETION_ASSESSMENT_2026-10-11.json',
         'POST_ACTIVATION_LOCAL_ASSESSMENT_2026-10-10.json',
         'LOCAL_ASSESSMENT_CURRENT_2026-10-10.json') if (directory / name).exists())
     report = json.loads(assessment.read_text(encoding="utf-8-sig"))
     readiness_path = next(directory / name for name in (
+        'POST_DEPENDENCY_READINESS_2026-10-12.json',
+        'POST_NATIVE_READINESS_2026-10-12.json',
+        'POST_BRANDING_READINESS_2026-10-11.json',
+        'POST_LIFECYCLE_READINESS_2026-10-11.json',
+        'POST_COMPLETION_READINESS_2026-10-11.json',
         'POST_AUDIT_FIX_READINESS_2026-10-11.json',
         'POST_MEDIATION_READINESS_2026-10-10.json',
         'POST_ACTIVATION_READINESS_2026-10-10.json',
@@ -74,9 +91,12 @@ def main() -> int:
     runtime_path = directory / 'INSTALLED_RUNTIME_IDENTITY_2026-10-10.json'
     runtime = json.loads(runtime_path.read_text(encoding='utf-8-sig')) if runtime_path.exists() else {}
     approvals = []
-    for path in directory.glob('PROTECTED_*INCREMENT_RESULT_*.json'):
+    result_paths = list(directory.glob('PROTECTED_*INCREMENT_RESULT_*.json'))
+    result_paths += list(directory.glob('PROTECTED_DEPENDENCY_MIGRATION_RESULT_*.json'))
+    accepted_states = {'activated_identity_verified', 'dependency_migration_identity_verified'}
+    for path in result_paths:
         candidate = json.loads(path.read_text(encoding='utf-8-sig'))
-        if candidate.get('state') == 'activated_identity_verified':
+        if candidate.get('state') in accepted_states:
             approvals.append((datetime.fromisoformat(candidate['finished']), path, candidate))
     if not approvals:
         raise ValueError('No completed protected activation receipt was recorded.')
@@ -93,7 +113,7 @@ def main() -> int:
     if activation.exists() and live.exists():
         activated = json.loads(activation.read_text(encoding='utf-8-sig'))
         observed = json.loads(live.read_text(encoding='utf-8-sig'))
-        if (activated.get('state') != 'activated_identity_verified'
+        if (activated.get('state') not in accepted_states
                 or observed['runtime_sha256'] != activated['identity']['manifest_sha256']
                 or observed['runtime_files'] != activated['identity']['files']):
             raise ValueError('Activation and independent runtime inventory disagree.')
@@ -119,9 +139,9 @@ def main() -> int:
         "identity_status": "Source file hashes observed; not installed-runtime attestation",
         "test_log": {"path": log.name, "sha256": digest(log), "reported_summary": summaries[-1],
             "scope": "Affected GUI and mediation subset" if log.name.startswith('MEDIATION_GUI_') else "Recorded suite",
-            "full_regression_log": log.name if log.name.startswith(('AUDIT_FIX_FINAL_', 'ASSESSMENT_AND_CONSENT_FINAL_', 'MEDIATION_FINAL_', 'HYBRID_GATE_FINAL_')) else
+            "full_regression_log": log.name if log.name.startswith(('DEPENDENCY_MIGRATION_', 'NATIVE_INTEGRATION_FINAL_', 'REMOTE_VALIDATION_LIFECYCLE_LOCAL_', 'SAME_DAY_COMPLETION_FINAL_', 'AUDIT_FIX_FINAL_', 'ASSESSMENT_AND_CONSENT_FINAL_', 'MEDIATION_FINAL_', 'HYBRID_GATE_FINAL_')) else
                 "MEDIATION_AND_RECOVERY_REGRESSION_2026-10-10.txt",
-            "full_regression_result": summaries[-1] if log.name.startswith(('AUDIT_FIX_FINAL_', 'ASSESSMENT_AND_CONSENT_FINAL_', 'MEDIATION_FINAL_', 'HYBRID_GATE_FINAL_')) else
+            "full_regression_result": summaries[-1] if log.name.startswith(('DEPENDENCY_MIGRATION_', 'NATIVE_INTEGRATION_FINAL_', 'REMOTE_VALIDATION_LIFECYCLE_LOCAL_', 'SAME_DAY_COMPLETION_FINAL_', 'AUDIT_FIX_FINAL_', 'ASSESSMENT_AND_CONSENT_FINAL_', 'MEDIATION_FINAL_', 'HYBRID_GATE_FINAL_')) else
                 "690 passed; one readiness timing failure, passed on targeted recheck",
             "initial_timing_failure_log": "MEDIATION_AND_RECOVERY_REGRESSION_2026-10-10.txt"},
         "actual_local_assessment": {"id": report["id"], "state": report["state"],
@@ -134,7 +154,7 @@ def main() -> int:
         "actual_installed_tls_measurement": tls_evidence,
         "deployment": {"protected_service": readiness['service']['state'], "installed_artifact": installed_identity,
                        "post_quantum_negotiation": tls_evidence['state']}}
-    destination = directory / ("IMPLEMENTATION_EVIDENCE_MANIFEST_" + datetime.now(timezone.utc).strftime('%Y-%m-%d') + ".json")
+    destination = directory / ("IMPLEMENTATION_EVIDENCE_MANIFEST_" + document_date + ".json")
     atomic_text(destination, json.dumps(evidence, indent=2, allow_nan=False))
     print(json.dumps({"manifest": str(destination), "source_files": len(files),
                       "tests": summaries[-1], "deployment": "not_certified"}))

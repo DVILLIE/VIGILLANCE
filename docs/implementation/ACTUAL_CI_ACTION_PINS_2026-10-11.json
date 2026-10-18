@@ -1,0 +1,22 @@
+[
+  {
+    "repository": "actions/checkout",
+    "tag": "v6",
+    "commit": "d23441a48e516b6c34aea4fa41551a30e30af803"
+  },
+  {
+    "repository": "actions/setup-python",
+    "tag": "v6",
+    "commit": "ece7cb06caefa5fff74198d8649806c4678c61a1"
+  },
+  {
+    "repository": "actions/upload-artifact",
+    "tag": "v4",
+    "commit": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  {
+    "repository": "actions/attest-build-provenance",
+    "tag": "v3",
+    "commit": "43d14bc2b83dec42d39ecae14e916627a18bb661"
+  }
+]

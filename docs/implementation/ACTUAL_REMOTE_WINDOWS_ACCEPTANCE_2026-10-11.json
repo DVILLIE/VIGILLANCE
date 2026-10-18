@@ -1,0 +1,34 @@
+{
+  "state": "actual_two_build_windows_regression_and_result_provenance_verified",
+  "run_id": 38149108891,
+  "url": "https://github.com/DVILLIE/VIGILLANCE/actions/runs/38149108891",
+  "observations": [
+    {
+      "runner": "guardian-validation-windows-2022",
+      "actual_test_counts": {
+        "tests": 712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25
+      },
+      "passed": 687,
+      "artifact_sha256": "54086eaa6cc17d5dd02457e2fab08fbbfced5d6d34c6b827217ca3635d5eff21",
+      "attestation": "repository_and_workflow_identity_verified",
+      "proof": "REMOTE_ATTESTATION_guardian-validation-windows-2022_2026-10-11.json"
+    },
+    {
+      "runner": "guardian-validation-windows-2025",
+      "actual_test_counts": {
+        "tests": 712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25
+      },
+      "passed": 687,
+      "artifact_sha256": "a097716689042e0d6490d36b92bcf9a45c0f6e5939822d29c32d168ddb60b3b8",
+      "attestation": "repository_and_workflow_identity_verified",
+      "proof": "REMOTE_ATTESTATION_guardian-validation-windows-2025_2026-10-11.json"
+    }
+  ],
+  "scope": "Actual hosted Windows Server builds; no human desktop UAC, client Windows pilot or signed installer claim."
+}

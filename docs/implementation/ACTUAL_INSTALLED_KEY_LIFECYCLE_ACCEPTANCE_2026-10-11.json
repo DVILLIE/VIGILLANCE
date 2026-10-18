@@ -1,0 +1,10 @@
+{
+  "state": "actual_installed_key_rotation_and_revocation_passed",
+  "runtime_sha256": "22a77eaa196229ecafeea90367a97bbdfde7905512dc8690021e59df70888bd2",
+  "algorithm": "ML-DSA-65",
+  "old_retired_signature_verified": true,
+  "revoked_signature_rejected": true,
+  "retired_registry_records": 2,
+  "scope": "Real cryptography with temporary acceptance keys; existing operator signer was not rotated.",
+  "os_remediation_mutations": []
+}

@@ -15,6 +15,8 @@
 
 D'Vielle watches the computer it is installed on, explains what it noticed in plain language, and shows you options. It changes the PC only after you choose. Every finding is a ticket: **Found &rarr; Fix &rarr; Resolved** (or still monitoring). Unknown stays unknown, and a partial check is labelled partial.
 
+Current implementation, verified installed scope and remaining release acceptance: [2026-10-12 acceptance plan](docs/implementation/CURRENT_ACCEPTANCE_AND_IMPLEMENTATION_PLAN_2026-10-12.md).
+
 Package `dvielle` **2.5.0** &middot; [What's new](CHANGELOG.md) &middot; [Releases](https://github.com/DVILLIE/VIGILLANCE/releases) &middot; MIT licensed
 
 ## Nexus Fold Prime theme and Quantum Key logo

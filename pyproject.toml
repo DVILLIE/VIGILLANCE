@@ -35,9 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 windows = [
-    "win10toast>=0.9; sys_platform == 'win32'",
     "pywin32>=306; sys_platform == 'win32'",
-    "pyttsx3>=2.90; sys_platform == 'win32'",
 ]
 dev = ["pytest>=8", "ruff>=0.6"]
 

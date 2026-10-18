@@ -1,0 +1,9 @@
+{
+  "subcategory": "Filtering Platform Connection",
+  "original_flags": 0,
+  "requested_flags": 2,
+  "state": "original_policy_restored",
+  "actual_before_recovery": 2,
+  "actual_after_recovery": 0,
+  "recovery": "Explicit Windows NONE=4 restores observed original disabled flags=0."
+}

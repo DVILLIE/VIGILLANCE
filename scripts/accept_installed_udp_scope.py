@@ -12,6 +12,77 @@ import time
 import ipaddress
 from datetime import datetime, timezone
 from pathlib import Path
+from contextlib import contextmanager
+
+
+@contextmanager
+def temporary_connection_failure_audit(report, destination):
+    """Durable intent, narrow subcategory, compare-before-restore system policy."""
+    import ctypes
+    from ctypes import wintypes
+    import uuid
+    import win32api, win32security, win32con
+    from agent.local_files import atomic_text
+    class GUID(ctypes.Structure):
+        _fields_ = [('data', ctypes.c_ubyte * 16)]
+    class Policy(ctypes.Structure):
+        _fields_ = [('subcategory',GUID),('flags',wintypes.ULONG),('category',GUID)]
+    guid = GUID.from_buffer_copy(uuid.UUID('0cce9226-69ae-11d9-bed3-505054503030').bytes_le)
+    api = ctypes.WinDLL('advapi32', use_last_error=True)
+    query = api.AuditQuerySystemPolicy
+    query.argtypes = [ctypes.POINTER(GUID),wintypes.ULONG,ctypes.POINTER(ctypes.POINTER(Policy))]
+    query.restype = wintypes.BOOL
+    change = api.AuditSetSystemPolicy
+    change.argtypes = [ctypes.POINTER(Policy),wintypes.ULONG]
+    change.restype = wintypes.BOOL
+    free = api.AuditFree
+    free.argtypes = [ctypes.c_void_p]
+    free.restype = None
+    token = win32security.OpenProcessToken(win32api.GetCurrentProcess(), win32con.TOKEN_ADJUST_PRIVILEGES | win32con.TOKEN_QUERY)
+    privilege = win32security.LookupPrivilegeValue(None, 'SeSecurityPrivilege')
+    prior_privileges = win32security.AdjustTokenPrivileges(token, False, [(privilege,win32con.SE_PRIVILEGE_ENABLED)])
+    def read():
+        pointer = ctypes.POINTER(Policy)()
+        if not query(ctypes.byref(guid),1,ctypes.byref(pointer)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            return Policy.from_buffer_copy(ctypes.string_at(pointer,ctypes.sizeof(Policy)))
+        finally:
+            free(pointer)
+    def set_policy(policy):
+        if policy.flags == 0:
+            # AuditSetSystemPolicy uses explicit NONE=4; zero means no change.
+            policy = Policy.from_buffer_copy(policy)
+            policy.flags = 4
+        if not change(ctypes.byref(policy),1):
+            raise ctypes.WinError(ctypes.get_last_error())
+    evidence = destination.with_suffix('.audit.json')
+    active = None
+    try:
+        original = read()
+        active = Policy.from_buffer_copy(original)
+        active.flags = (original.flags & ~4) | 2  # Failure only added; preserve Success if already enabled.
+        report['audit_scope'] = {'subcategory':'Filtering Platform Connection', 'original_flags':original.flags,
+                                 'requested_flags':active.flags,'state':'intent_recorded'}
+        atomic_text(evidence,json.dumps(report['audit_scope'],indent=2))
+        set_policy(active)
+        if read().flags != active.flags:
+            raise RuntimeError('Failure audit activation was not verified')
+        report['audit_scope']['state'] = 'temporary_failure_audit_verified'
+        atomic_text(evidence,json.dumps(report['audit_scope'],indent=2))
+        yield
+    finally:
+        try:
+            if active is not None:
+                if read().flags == active.flags:
+                    set_policy(original)
+                    report['audit_scope']['state'] = ('original_policy_restored' if read().flags == original.flags else 'audit_recovery_required')
+                else:
+                    report['audit_scope']['state'] = 'external_policy_change_preserved'
+                atomic_text(evidence,json.dumps(report['audit_scope'],indent=2))
+        finally:
+            win32security.AdjustTokenPrivileges(token,False,prior_privileges)
+            token.Close()
 
 
 def probe(address):
@@ -66,12 +137,12 @@ try {
   @{query_unavailable=$true;error_type=$_.Exception.GetType().Name} | ConvertTo-Json -Compress
 }
 """.replace('__START__', stamp).replace('__PID__', str(pid)).replace('__ADDRESS__', address)
-    code, stdout, _, timed_out = run_powershell(script, timeout=10)
+    stdout, timed_out = run_powershell(script, timeout=10)
     records = []
-    for line in stdout.splitlines():
+    for line in (stdout or '').splitlines():
         if line.strip():
             records.append(json.loads(line))
-    return {'state':'query_completed' if code == 0 and not timed_out and not any(r.get('query_unavailable') for r in records) else 'unavailable',
+    return {'state':'query_completed' if stdout is not None and not timed_out and not any(r.get('query_unavailable') for r in records) else 'unavailable',
             'matching_drops':[r for r in records if r.get('event_id') in {5152,5157}],
             'audit_policy_changed':False, 'bounded_event_limit':200}
 
@@ -132,17 +203,24 @@ def main(acceptance):
         if result.get('ok') is not True:
             report['state'] = 'apply_not_verified'
             return
-        drop_start = datetime.now(timezone.utc)
-        report['during'] = [probe(address) for _ in range(2)]
-        report['drop_events'] = observe_drop_events(address, psutil.Process().pid, drop_start)
+        with temporary_connection_failure_audit(report, destination):
+            drop_start = datetime.now(timezone.utc)
+            report['during'] = [probe(address) for _ in range(2)]
+            report['drop_events'] = observe_drop_events(address, psutil.Process().pid, drop_start)
         # A timeout alone cannot prove that Windows blocked a packet.
         blocked = all(r['state'] == 'response_unavailable' and r['windows_error'] == 10013
                       for r in report['during'])
         matched_drop = bool(report['drop_events']['matching_drops'])
         report['packet_drop_attribution'] = 'matching_wfp_security_event' if matched_drop else 'not_measured'
         report['state'] = 'bounded_udp_denial_observed' if blocked or matched_drop else 'udp_acceptance_not_proven'
+        if report.get('audit_scope', {}).get('state') != 'original_policy_restored':
+            report['state'] = 'audit_recovery_required'
     except Exception as exc:
-        report.update(state='failed_or_incomplete', error_type=type(exc).__name__)
+        import traceback
+        report.update(state='failed_or_incomplete', error_type=type(exc).__name__,
+                      windows_error=getattr(exc, 'winerror', None),
+                      error=str(exc), error_frames=[{'function':row.name, 'line':row.lineno}
+                                                   for row in traceback.extract_tb(exc.__traceback__)])
     finally:
         # A lost reply can follow a durable claim. Recover its exact grant-bound
         # operation before revoking an apparently unused permission.
