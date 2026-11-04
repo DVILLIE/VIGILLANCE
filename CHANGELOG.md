@@ -3,11 +3,35 @@
 All notable changes to D'Vielle (Intelligent Vigilance) are recorded here.
 Versions follow `pyproject.toml` `[project].version`. Dates are in IST.
 
+## [2.5.1] - 2026-11-04
+
+Home kill-chain observe: ClickFix/TerminalFix-class paste-and-run detection (no
+clipboard) and Defender exclusion / preference-weakening change tickets. Ask-user
+options only. Resident monitor stays Limited.
+
+### Added
+
+- **Paste-and-run guard** (`agent/modules/paste_run_guard.py`): scores process
+  command lines and optional PowerShell 4104 script blocks for public
+  TerminalFix/ClickFix patterns (Cloudflare lure, iex/irm, staging paths). Never
+  reads the clipboard. Access denial / missing logging stay partial or unavailable.
+- **Defender exclusion observer** (`agent/modules/defender_exclusions.py`): baselines
+  `ExclusionPath` / process / extension lists and weakened monitor preferences;
+  tickets only on post-baseline growth. Never calls `Add-MpPreference`.
+- Options catalogs for `paste_run_suspicion` and `defender_exclusion_*` (guide /
+  learn / snooze / why — no automatic kill).
+- Plain-English checklist: `docs/I_THINK_I_WAS_HIT.md`.
+- Tests: `tests/test_paste_run_guard.py`, `tests/test_defender_exclusions.py`.
+
+### Changed
+
+- `ingest_monitors(collect_live=True)` also collects paste-run and exclusion batches.
+
 ## [Unreleased] - 2026-10-18
 
 Owner's post-2.5.0 work: native notifications and speech, a protected report-signer
 lifecycle, a guarded legacy-dependency migration, and Windows acceptance evidence.
-Package version stays 2.5.0. The resident monitor stays Limited.
+Package version was 2.5.0 at that sync. The resident monitor stays Limited.
 
 ### Added
 

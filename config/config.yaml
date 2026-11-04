@@ -110,6 +110,8 @@ modules:
   resource_advisor: true
   microsoft_guard: true
   network_info: true
+  paste_run_guard: true        # ClickFix/TerminalFix-class cmdline + optional 4104 (no clipboard)
+  defender_exclusions: true    # observe ExclusionPath growth after baseline (never add)
   # Stubs removed from v1 — flags reserved for future
   # usb_watch: false
   # dns_cache: false

@@ -16,7 +16,12 @@ from agent.engine.observations import (
     startup_observations,
 )
 from agent.engine.footprint import FootprintProgress, collect_footprint_facts, observation_from_footprint
-from agent.engine.watch import observation_from_camera, observation_from_egress
+from agent.engine.watch import (
+    observation_from_camera,
+    observation_from_egress,
+    observation_from_exclusion,
+    observation_from_paste_run,
+)
 from agent.learn.memory import SafetyBaseline
 from agent.modules.resource_advisor import SYSTEM_PROTECTED
 from agent.store.db import AgentStore, utc_now
@@ -36,6 +41,8 @@ def ingest_monitors(
     egress_facts=None,
     camera_facts=None,
     footprint_facts=None,
+    paste_run_batch=None,
+    exclusion_batch=None,
     collect_live: bool = False,
     experience=None,
     sample_times: dict[str, str] | None = None,
@@ -88,6 +95,19 @@ def ingest_monitors(
             footprint_facts = attempt("footprint", collect_footprint_facts, collecting=True)
         if startup_items is None:
             startup_items = attempt("startup", collect_startup_items, collecting=True)
+        if paste_run_batch is None:
+            from agent.modules.paste_run_guard import collect_paste_run_facts
+
+            paste_run_batch = attempt("paste_run", collect_paste_run_facts, collecting=True)
+        if exclusion_batch is None:
+            from agent.modules.defender_exclusions import collect_exclusion_batch
+
+            learn = engine.memory.learn_dir
+            exclusion_batch = attempt(
+                "defender_exclusions",
+                lambda: collect_exclusion_batch(learn),
+                collecting=True,
+            )
     if security is not None:
         evaluate("security", lambda: from_security(security))
     for advice_item in advice or []:
@@ -102,6 +122,12 @@ def ingest_monitors(
         evaluate("egress", lambda fact=fact: [observation_from_egress(fact)])
     for fact in camera_facts or []:
         evaluate("camera", lambda fact=fact: [observation_from_camera(fact)])
+    if paste_run_batch is not None and getattr(paste_run_batch, "facts", None):
+        for fact in paste_run_batch.facts:
+            evaluate("paste_run", lambda fact=fact: [observation_from_paste_run(fact)])
+    if exclusion_batch is not None and getattr(exclusion_batch, "facts", None):
+        for fact in exclusion_batch.facts:
+            evaluate("defender_exclusions", lambda fact=fact: [observation_from_exclusion(fact)])
     progress = attempt("footprint", lambda: FootprintProgress(engine.memory.learn_dir / "baseline_footprint.txt"))
     for fact in footprint_facts or []:
         obs = attempt("footprint", lambda fact=fact: observation_from_footprint(fact))

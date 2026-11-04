@@ -63,6 +63,48 @@ def safety_protection_options() -> list[Option]:
     ]
 
 
+def safety_paste_run_options() -> list[Option]:
+    return [
+        _guide(
+            "open_settings",
+            "Open Windows Security",
+            "Tell you where to open Windows Security for a scan. Nothing else is changed.",
+            "safety.open_settings",
+        ),
+        _learn(
+            "keep_on",
+            "This was me / a drill — keep quiet for this snippet class",
+            "Remember this subject so the same paste signature stays quiet. A different snippet still asks.",
+            "allow",
+            "monitoring",
+        ),
+        _not_now(),
+        _never("Never warn for this signature", "Stop nagging about this exact paste signature. A quiet log line remains."),
+        _why(),
+    ]
+
+
+def safety_exclusion_options() -> list[Option]:
+    return [
+        _guide(
+            "open_settings",
+            "Open Windows Security exclusions",
+            "Tell you where to review Defender exclusions and tamper settings. D'Vielle does not remove the exclusion itself.",
+            "safety.open_settings",
+        ),
+        _learn(
+            "keep_on",
+            "I added this exclusion — keep on",
+            "Remember this exclusion subject as allowed. A different exclusion still asks.",
+            "allow",
+            "monitoring",
+        ),
+        _not_now(),
+        _never("Never warn for this exclusion", "Stop nagging about this exclusion subject. A quiet log line remains."),
+        _why(),
+    ]
+
+
 def safety_startup_options() -> list[Option]:
     return [
         _learn(
@@ -290,6 +332,9 @@ CATALOGS = {
     ("safety", "protection_off"): safety_protection_options,
     ("safety", "suspicious_startup"): safety_startup_options,
     ("safety", "new_startup"): safety_startup_options,
+    ("safety", "paste_run_suspicion"): safety_paste_run_options,
+    ("safety", "defender_exclusion_added"): safety_exclusion_options,
+    ("safety", "defender_preference_weakened"): safety_exclusion_options,
     ("speed", "resource_hog"): speed_options,
     ("storage", "safe_temp"): storage_options,
     ("privacy", "unexpected_egress"): privacy_options,
