@@ -222,3 +222,122 @@ def observation_from_camera(fact: dict) -> Observation | None:
             "frames_stored": False,
         },
     )
+
+
+def observation_from_paste_run(fact: dict) -> Observation | None:
+    """ClickFix/TerminalFix-class suspicion from cmdline or script-block text. No clipboard."""
+    subject = str(fact.get("subject") or "").strip()
+    snippet = str(fact.get("snippet") or "").strip()
+    if not subject or not snippet or "|" in subject or "\n" in subject:
+        return None
+    tags = [str(t) for t in (fact.get("tags") or []) if t]
+    channel = str(fact.get("channel") or "unknown")
+    try:
+        score = int(fact.get("score") or 0)
+    except (TypeError, ValueError):
+        score = 0
+    process_name = str(fact.get("process_name") or "")
+    try:
+        pid = int(fact.get("pid") or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    lure = "cloudflare_lure" in tags
+    title = (
+        "A PowerShell script looked like a fake 'verify you are human' paste"
+        if lure
+        else "A PowerShell or cmd line looked like a download-and-run paste"
+    )
+    why = (
+        "Websites sometimes trick people into pasting a command into PowerShell or Terminal "
+        "(ClickFix / TerminalFix). D'Vielle did not read the clipboard. "
+        "This is a suspicion from command text and public hunting patterns, not proof of infection."
+    )
+    evidence = [
+        f"Channel: {channel}",
+        f"Tags: {', '.join(tags) if tags else 'none'}",
+        f"Score: {score}",
+        f"Snippet: {snippet[:240]}",
+        "Clipboard was not read.",
+    ]
+    if process_name:
+        evidence.append(f"Process: {process_name}")
+    if pid:
+        evidence.append(f"Process id: {pid}")
+    return Observation(
+        pillar="safety",
+        kind="paste_run_suspicion",
+        subject_identity=subject,
+        title_simple=title,
+        why_it_matters=why,
+        if_ignored="If the paste was real malware, it can keep running until you stop that process or reboot carefully.",
+        evidence_refs=evidence,
+        severity="high" if lure or score >= 6 else "medium",
+        confidence="medium",
+        recommended_action="Review the snippet, open Windows Security, and avoid pasting website commands into PowerShell.",
+        resolution_steps=[
+            "Do not paste website 'verification' commands into PowerShell or Terminal.",
+            "Open Windows Security and run a quick scan if you already pasted something.",
+            "Show why for the exact snippet D'Vielle saw.",
+        ],
+        reversible="yes",
+        identity_ok=False,
+        expected=False,
+        suspicious_mismatch=True,
+        action_class="ask_user",
+        quiet_on_allow=False,
+        signals={"channel": channel, "tags": tags, "score": score, "pid": pid, "process_name": process_name},
+    )
+
+
+def observation_from_exclusion(fact: dict) -> Observation | None:
+    """New Defender exclusion or weakened preference after baseline."""
+    subject = str(fact.get("subject") or "").strip()
+    label = str(fact.get("label") or "").strip()
+    kind = str(fact.get("kind") or "defender_exclusion_added")
+    if not subject or not label or "|" in subject or "\n" in subject:
+        return None
+    channel = str(fact.get("channel") or "")
+    if kind == "defender_preference_weakened":
+        title = f"A Defender preference weakened: {label}"
+        why = (
+            "A Defender monitoring preference flipped to a weaker setting after D'Vielle stored a baseline. "
+            "Attackers sometimes disable protections after they get in. This is not proof of malware."
+        )
+        obs_kind = "defender_preference_weakened"
+    else:
+        title = f"A new Defender exclusion appeared: {label}"
+        why = (
+            "Defender exclusion lists grew after D'Vielle stored a baseline. "
+            "Legitimate software sometimes adds exclusions; malware also does. "
+            "D'Vielle did not add this exclusion."
+        )
+        obs_kind = "defender_exclusion_added"
+    return Observation(
+        pillar="safety",
+        kind=obs_kind,
+        subject_identity=subject,
+        title_simple=title,
+        why_it_matters=why,
+        if_ignored="Excluded paths or disabled monitors can hide later malware from Defender.",
+        evidence_refs=[
+            f"Label: {label}",
+            f"Channel: {channel or 'preference'}",
+            "Get-MpPreference was readable for this sample.",
+            "D'Vielle never adds ExclusionPath from this observer.",
+        ],
+        severity="high",
+        confidence="high",
+        recommended_action="Review Windows Security exclusions / tamper settings after you pick an option.",
+        resolution_steps=[
+            "Open Windows Security → Virus & threat protection settings → Exclusions / Tamper Protection.",
+            "Remove unfamiliar exclusions if you did not approve them.",
+            "Show why for the exact change.",
+        ],
+        reversible="partial",
+        identity_ok=True,
+        expected=False,
+        suspicious_mismatch=False,
+        action_class="ask_user",
+        quiet_on_allow=False,
+        signals={"label": label, "channel": channel, "kind": kind},
+    )

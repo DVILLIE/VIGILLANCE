@@ -26,10 +26,17 @@ Claim language follows `docs/FUNCTION_SPEC.md` and the primary-source brief date
 
 ### 1. Defender orchestration
 
-- **Promise.** Observe Defender and configure only features the edition supports. Do not disable real-time protection to replace it. Do not add an install-time `ExclusionPath`.
-- **Assumptions.** Defender is present. The user consents before a preference change. ASR and CFA changes go through the dual gate, then a second read of the live preference.
-- **Evidence.** `Get-MpComputerStatus` fields on the health report. Access denial stays partial. `tests/test_worldclass_p0.py` and `tests/test_install_acl_contract.py` reject `ExclusionPath`.
-- **UNCHECKED.** Engine freshness stays UNKNOWN. This version does not compare the engine with a catalog. Live binary attestation of the running process is UNCHECKED.
+- **Promise.** Observe Defender and configure only features the edition supports. Do not disable real-time protection to replace it. Do not add an install-time `ExclusionPath`. From 2.5.1, when `Get-MpPreference` is readable, ticket **new** exclusions / weakened monitor preferences after a local baseline.
+- **Assumptions.** Defender is present. The user consents before a preference change. ASR and CFA changes go through the dual gate, then a second read of the live preference. Exclusion observe needs preference read rights; Limited tokens may get access denied.
+- **Evidence.** `Get-MpComputerStatus` fields on the health report. Access denial stays partial. `tests/test_worldclass_p0.py` and `tests/test_install_acl_contract.py` reject `ExclusionPath`. `tests/test_defender_exclusions.py` for baseline/diff honesty.
+- **UNCHECKED.** Engine freshness stays UNKNOWN. This version does not compare the engine with a catalog. Live binary attestation of the running process is UNCHECKED. Tamper Protection registry depth beyond preference fields is UNCHECKED.
+
+### 1b. Paste-and-run (ClickFix / TerminalFix class)
+
+- **Promise.** Flag suspicious PowerShell/cmd command lines and optional script-block (4104) lure text using public hunting patterns. Never read the clipboard. Never kill a process from this observer.
+- **Assumptions.** Process `CommandLine` is readable and/or PowerShell Script Block Logging is enabled. Missing channels stay unavailable/partial — not safe.
+- **Evidence.** `agent/modules/paste_run_guard.py`, `tests/test_paste_run_guard.py`. Microsoft TerminalFix (2026-08-28) and Elastic TerminalFix lure rule as pattern sources.
+- **UNCHECKED.** Full coverage of every obfuscation. Browser-extension and clipper attacks.
 
 ### 2. Edition-honest matrix
 
