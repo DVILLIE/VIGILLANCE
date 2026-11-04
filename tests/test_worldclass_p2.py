@@ -1,4 +1,4 @@
-﻿"""P2: firewall assistant, privileged helper contract, published CPU contract."""
+"""P2: firewall assistant, privileged helper contract, published CPU contract."""
 
 from __future__ import annotations
 
@@ -125,7 +125,7 @@ def _observe(rules: str = "", *, mpssvc: str = "Running", vpn: str = "", count: 
 
 
 def test_version_is_2_0_0():
-    assert get_version() == "2.5.0"
+    assert get_version() == "2.5.1"
 
 
 def test_home_firewall_stays_available_and_sandbox_stays_unavailable():
